@@ -246,7 +246,8 @@
     body.simple-mode .wrap{gap:12px;padding-top:8px}
     body.simple-mode .card{padding:13px}
     body.simple-mode #roseModeSwitch{display:none!important}
-    body.simple-mode #legendRose{display:none!important}
+    body.simple-mode #legendRose{display:flex!important}
+    body.simple-mode #legendRose span{font-size:11px;line-height:1.25}
     body.simple-mode #metrics, body.simple-mode #analysisText, body.simple-mode #flags, body.simple-mode .summaryHelpRow{display:none!important}
     body.simple-mode footer{display:none}
     body.simple-mode #placeStatus{font-size:12px;line-height:1.32}
@@ -646,7 +647,7 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <footer>
-  Инструмент разработан кинологом @podKiT кинологического поискового отряда «2-К» для свободного использования и распространения. Источники: Open‑Meteo, NASA POWER, Open‑Meteo GFS/NOAA и MET Norway без ключей; OpenWeather, WeatherAPI.com, Visual Crossing и Tomorrow.io с персональными ключами; Яндекс/Meteum, Gismeteo, ДАНИО/HMN и Windy при отдельном доступе. Проверка на месте обязательна для рабочих решений.
+  Инструмент разработан кинологом @podKiT кинологического поискового отряда «2-К» для свободного использования и распространения. Источники: Open‑Meteo, NASA POWER, Open‑Meteo GFS/NOAA и MET Norway без ключей; OpenWeather, WeatherAPI.com, Visual Crossing и Tomorrow.io с персональными ключами; Яндекс/Meteum, Gismeteo, ДАНИО/HMN и Windy при отдельном доступе/тарифе. Проверка на месте обязательна для рабочих решений.
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1731,7 +1732,7 @@
         dataType: 'почасовой прогноз по координате; направление ветра разобрано из wind_dir, скорость в м/с',
         station: 'этим источником не выдаётся в используемом endpoint’е',
         distance: 'недоступно',
-        note: 'приоритетный РФ/СНГ‑источник при наличии ключа; в чистом HTML может быть ограничен CORS'
+        note: 'приоритетный РФ/СНГ‑источник при наличии ключа; в чистом HTML может быть ограничен CORS/тарифом'
       }
     };
   }
@@ -1781,7 +1782,7 @@
         dataType: 'прогноз с шагом около 3 часов по координате; скорость в м/с',
         station: 'этим endpoint’ом не выдаётся',
         distance: 'недоступно',
-        note: 'приоритетный РФ/СНГ‑источник при наличии токена; структура ответа может отличаться по доступу'
+        note: 'приоритетный РФ/СНГ‑источник при наличии токена; структура B2B‑ответа может отличаться по тарифу'
       }
     };
   }
@@ -1903,7 +1904,7 @@
       }
     }
     const filtered = filterRowsToPeriod(rows, period.start, period.end);
-    if (!filtered.length) throw new Error('в выбранном периоде нет почасовых данных; проверьте ключ и доступность WeatherAPI.com.');
+    if (!filtered.length) throw new Error('в выбранном периоде нет почасовых данных; проверьте тариф/доступность forecast/history WeatherAPI.com.');
     return {
       rows: filtered,
       url,
@@ -1914,7 +1915,7 @@
         dataType: 'почасовые прогнозные или исторические данные; wind_kph/gust_kph переведены в м/с',
         station: data.location?.name ? `расчётная точка: ${data.location.name}` : 'этим endpoint’ом не выдаётся',
         distance: 'недоступно',
-        note: 'глобальный резервный источник при наличии ключа; для архива могут действовать ограничения аккаунта'
+        note: 'глобальный резервный источник при наличии ключа; для истории могут действовать тарифные ограничения'
       }
     };
   }
@@ -1963,7 +1964,7 @@
       data = await fetchJson(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
       endpoint = 'tomorrowio_historical';
       sourceLabel = 'Tomorrow.io Historical Weather API';
-      dataType = 'почасовые архивные данные Tomorrow.io; доступность архива зависит от аккаунта и лимитов';
+      dataType = 'почасовые исторические данные Tomorrow.io; доступность истории зависит от free‑плана и лимитов аккаунта';
     } else {
       url = 'https://api.tomorrow.io/v4/weather/forecast?' + new URLSearchParams({
         location: `${lat},${lon}`,
@@ -1979,7 +1980,7 @@
 
     const rows = tomorrowRowsFromData(data);
     const filtered = filterRowsToPeriod(rows, period.start, period.end);
-    if (!filtered.length) throw new Error('Tomorrow.io ответил, но не дал подходящих почасовых точек для выбранного периода. Для прошлого периода проверьте, доступен ли архив в вашем аккаунте.');
+    if (!filtered.length) throw new Error('Tomorrow.io ответил, но не дал подходящих почасовых точек для выбранного периода. Для прошлого периода проверьте, доступна ли история на вашем free‑плане.');
     return {
       rows: filtered,
       url,
