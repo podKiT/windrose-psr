@@ -1,0 +1,2843 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Инструмент построения графика розы ветров и переноса запаха</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#121a2c;
+      --panel2:#182238;
+      --text:#eef3ff;
+      --muted:#a9b6d3;
+      --line:#2d3a59;
+      --accent:#7dd3fc;
+      --good:#8ddf9a;
+      --warn:#ffd166;
+      --bad:#ff8a8a;
+      --shadow: 0 14px 36px rgba(0,0,0,.28);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #1e2d4c 0, #0b1020 34%, #070a12 100%);
+      color:var(--text);
+      line-height:1.45;
+    }
+    header{
+      padding:26px 18px 10px;
+      max-width:1280px;
+      margin:0 auto;
+    }
+    h1{font-size:clamp(24px,3vw,38px); margin:0 0 8px; letter-spacing:.2px}
+    h2{font-size:20px; margin:0 0 14px}
+    h3{font-size:16px; margin:16px 0 8px}
+    p{margin:8px 0;color:var(--muted)}
+    .wrap{max-width:1280px; margin:0 auto; padding:14px 18px 40px}
+    .grid{display:grid; gap:16px}
+    .grid > *{min-width:0}
+    .grid.main{grid-template-columns: 410px minmax(0,1fr)}
+    .grid.two{grid-template-columns: repeat(2,minmax(0,1fr))}
+    .grid.three{grid-template-columns: repeat(3,minmax(0,1fr))}
+    @media (max-width: 1100px){.grid.main,.grid.two,.grid.three{grid-template-columns:1fr}}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018)), var(--panel);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:var(--shadow);
+      min-width:0;
+      overflow:hidden;
+    }
+    label{display:block; font-weight:650; font-size:13px; color:#dce6ff; margin:10px 0 6px}
+    input,select,button,textarea{
+      font:inherit;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#0c1324;
+      color:var(--text);
+      padding:10px 12px;
+      width:100%;
+      outline:none;
+    }
+    input:focus,select:focus,textarea:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(125,211,252,.12)}
+    button{
+      cursor:pointer;
+      border:none;
+      background:linear-gradient(135deg,#38bdf8,#60a5fa);
+      color:#04101f;
+      font-weight:750;
+      transition: transform .06s ease, filter .15s ease;
+    }
+    button:hover{filter:brightness(1.06)}
+    button:active{transform:translateY(1px)}
+    button.secondary{background:#22304d;color:var(--text);border:1px solid var(--line)}
+    button.ghost{background:transparent;color:var(--accent);border:1px dashed #3d567d}
+    button.danger{background:#6f2631;color:#ffe5e5;border:1px solid #9d3b46}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .row > *{flex:1; min-width:0}
+    .mini{font-size:12px; color:var(--muted)}
+    .sourceLine{display:grid; grid-template-columns:minmax(0,1fr) 120px 46px; gap:10px; align-items:end}
+    .timeoutSelect{font-weight:750; text-align:center}
+    @media (max-width:720px){.sourceLine{grid-template-columns:1fr}.timeoutSelect{text-align:left}.sourceLine .iconBtn{width:100%;max-width:none;justify-self:stretch}}
+
+    .iconBtn{height:43px; width:43px; min-width:43px; max-width:43px; padding:0; border-radius:12px; background:#22304d; color:#dce6ff; border:1px solid var(--line); font-size:20px; line-height:1; flex:0 0 43px}
+    .sourceLine .iconBtn{justify-self:end; align-self:end}
+    .modalHead .iconBtn{width:43px; min-width:43px; max-width:43px; flex:0 0 43px}
+    .iconBtn:hover{border-color:var(--accent); filter:brightness(1.08)}
+    .modalOverlay{position:fixed; inset:0; background:rgba(0,0,0,.62); display:flex; align-items:center; justify-content:center; padding:18px; z-index:10000}
+    .modalOverlay.hidden{display:none!important}
+    .modal{width:min(920px,100%); max-height:88vh; overflow:auto; background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.022)), var(--panel); border:1px solid rgba(255,255,255,.13); border-radius:18px; padding:16px; box-shadow:var(--shadow)}
+    .modal.smallModal{width:min(620px,100%)}
+    .modal.helpModal{width:min(980px,100%)}
+    .helpGrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:12px}
+    .helpBlock{background:#0d1528; border:1px solid var(--line); border-radius:14px; padding:12px; min-width:0}
+    .helpBlock h3{margin:0 0 8px; color:#eef3ff}
+    .helpBlock p{margin:6px 0; font-size:13px}
+    .helpBlock ul{margin:6px 0 0 18px; padding:0; color:var(--muted); font-size:13px}
+    .helpBlock li{margin:4px 0}
+    .helpWide{grid-column:1 / -1}
+    @media (max-width:720px){.helpGrid{grid-template-columns:1fr}}
+    .modalHead{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px}
+    .modalHead h2{margin:0}
+    .settingsGrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:12px}
+    .settingsItem{background:#0d1528; border:1px solid var(--line); border-radius:14px; padding:12px; min-width:0}
+    .settingsItem a{color:var(--accent); text-decoration:none; font-weight:700}
+    .settingsItem a:hover{text-decoration:underline}
+    .settingsItem .mini{margin-top:6px}
+    .compactPair{display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:end}
+    .twoButtonRow{display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:center; margin-top:10px}
+    .questionBtn{display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:999px; background:#22304d; color:#dce6ff; border:1px solid var(--line); font-weight:900; font-size:13px; cursor:pointer; user-select:none}
+    .fieldTitle{display:flex; align-items:center; gap:8px; margin:10px 0 6px}
+    .fieldTitle label{margin:0}
+    .fieldHelp{background:#0d1528;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:8px 0;color:var(--muted);font-size:12px}
+    .fieldHelp code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; color:#dce6ff}
+    .actionBtn{background:linear-gradient(135deg,#86efac,#34d399)!important;color:#042015!important; margin-top:14px}
+    .actionBtn:disabled{opacity:.45; cursor:not-allowed; filter:grayscale(.35); transform:none}
+    .sourceDetails{background:#0d1528;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:10px}
+    .sourceDetails summary{cursor:pointer;font-weight:750;color:#dce6ff}
+    .summaryHelpRow{display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start; margin-top:10px}
+    .summaryHelpRow details{margin-top:0}
+    .summaryTools{display:flex; justify-content:flex-end; margin-top:10px}
+    .smallInfoBtn{width:auto; flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px; border-radius:12px; background:#22304d; color:#dce6ff; border:1px solid var(--line); font-size:13px; font-weight:750}
+    .smallInfoBtn:hover{border-color:var(--accent); filter:brightness(1.06)}
+    .metric.primary{border-color:rgba(125,211,252,.42)}
+    .metric.goodish{border-color:rgba(141,223,154,.42)}
+    .metric.warnish{border-color:rgba(255,209,102,.42)}
+    .metric.badish{border-color:rgba(255,138,138,.42)}
+    @media (max-width:720px){.compactPair,.twoButtonRow,.settingsGrid,.summaryHelpRow{grid-template-columns:1fr}}
+
+    .status{padding:10px 12px;border-radius:12px;background:#0d1528;border:1px solid var(--line); color:#d9e7ff; margin-top:10px; white-space:pre-line}
+    .status.good{border-color:rgba(141,223,154,.55); color:#dfffe4}
+    .status.warn{border-color:rgba(255,209,102,.55); color:#fff1c2}
+    .status.bad{border-color:rgba(255,138,138,.55); color:#ffe0e0}
+    .suggestions{display:grid; gap:8px; margin-top:10px; max-height:280px; overflow:auto}
+    .suggestion{
+      padding:10px 12px;
+      background:#0c1324;
+      border:1px solid var(--line);
+      border-radius:12px;
+      cursor:pointer;
+    }
+    .suggestion:hover{border-color:var(--accent); background:#101b31}
+    .pillbar{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+    .pill{display:inline-flex; gap:6px; align-items:center; padding:6px 9px; border-radius:999px; background:#0e1729; border:1px solid var(--line); color:#d8e5ff; font-size:12px}
+    .metric{background:#0d1528;border:1px solid var(--line);border-radius:14px;padding:12px}
+    .metric b{display:block; font-size:22px; line-height:1.1; margin:0}
+    .metric span{font-size:12px; color:var(--muted)}
+    .metric .metricLabel{display:block; margin:0 0 6px; color:var(--muted); font-size:12px; line-height:1.25}
+    .canvasBox{background:#091122; border:1px solid var(--line); border-radius:16px; padding:10px; min-height:360px; overflow:hidden}
+    canvas{width:100%; max-width:640px; display:block; margin:0 auto}
+    table{width:100%; border-collapse:collapse; margin-top:8px; font-size:13px}
+    th,td{border-bottom:1px solid #26334f; padding:8px 7px; text-align:left; vertical-align:top}
+    th{color:#dce6ff; font-size:12px; background:#0d1528; position:sticky; top:0}
+    .tableWrap{max-height:360px; overflow:auto; border:1px solid var(--line); border-radius:14px; background:#0c1324}
+    .muted{color:var(--muted)}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; background:#07101f; padding:2px 6px; border-radius:6px; border:1px solid var(--line)}
+    details{background:#0d1528;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:10px}
+    summary{cursor:pointer;font-weight:700;color:#dce6ff}
+    .legend{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:8px}
+    .legend span{display:inline-flex; align-items:center; gap:6px; font-size:12px; color:#dce6ff}
+    .swatch{width:13px;height:13px;border-radius:4px;display:inline-block;border:1px solid rgba(255,255,255,.3)}
+
+    .cardHead{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 14px}
+    .cardHead h2{margin:0}
+    .collapseBtn{width:auto; min-width:38px; padding:6px 10px; border-radius:10px; background:#22304d; color:#dce6ff; border:1px solid var(--line); font-weight:800; line-height:1}
+    .card.collapsed .cardBody{display:none}
+    .card.collapsed .collapseBtn{background:#0d1528}
+    .segmented{display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 12px}
+    .segmented button{width:auto; flex:0 0 auto; padding:8px 11px; border-radius:999px; background:#101a2f; color:#dce6ff; border:1px solid var(--line); font-size:13px}
+    .segmented button.active{background:linear-gradient(135deg,#38bdf8,#60a5fa); color:#04101f; border-color:transparent}
+    .noteBox{background:#0d1528;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:10px;color:var(--muted);font-size:13px}
+    .noteBox p{margin:6px 0}
+    .wideCard{grid-column:1 / -1}
+    @media (max-width: 720px){
+      header{padding:18px 12px 6px}
+      .wrap{padding:10px 10px 26px}
+      .card{padding:12px; border-radius:14px}
+      h1{font-size:23px}
+      h2{font-size:17px}
+      .row{display:grid; grid-template-columns:1fr; gap:8px}
+      .row > *{width:100%}
+      .grid.two,.grid.three{gap:10px}
+      .canvasBox{min-height:280px; padding:6px}
+      canvas{max-width:100%}
+      .tableWrap{max-height:330px}
+      th,td{padding:7px 6px; font-size:12px}
+      .metric b{font-size:18px}
+      .segmented button{flex:1 1 100%; width:100%}
+      .pillbar{gap:6px}
+      .pill{font-size:11px}
+    }
+
+    footer{max-width:1280px;margin:0 auto;padding:0 18px 28px;color:var(--muted);font-size:12px}
+
+    .mapBox{
+      height:300px;
+      min-height:240px;
+      margin-top:12px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+      background:#0c1324;
+    }
+    .mapHint{font-size:12px;color:var(--muted);margin-top:6px}
+    .leaflet-container{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0c1324}
+    .leaflet-control-attribution{font-size:10px}
+    @media (max-width:720px){
+      .mapBox{height:260px; border-radius:14px}
+    }
+
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:22px;
+      transform:translateX(-50%) translateY(20px);
+      background:#0d1528;
+      color:#dfffe4;
+      border:1px solid rgba(141,223,154,.65);
+      box-shadow:var(--shadow);
+      border-radius:14px;
+      padding:12px 16px;
+      z-index:11000;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .18s ease, transform .18s ease;
+      font-weight:750;
+      max-width:min(560px,calc(100vw - 28px));
+      text-align:center;
+    }
+    .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+
+
+    .modeBar{max-width:1280px;margin:10px auto 0;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .modeBar span{color:var(--muted);font-size:13px;font-weight:700}
+    .modeBar button{width:auto;flex:0 0 auto;padding:8px 12px;border-radius:999px;background:#101a2f;color:#dce6ff;border:1px solid var(--line);font-size:13px}
+    .modeBar button.active{background:linear-gradient(135deg,#38bdf8,#60a5fa);color:#04101f;border-color:transparent}
+    body.simple-mode .advancedOnly{display:none!important}
+    body.simple-mode .collapseBtn{display:none!important}
+    body.simple-mode .grid.main{grid-template-columns:minmax(0,390px) minmax(0,1fr)}
+    body.simple-mode .wrap{gap:12px;padding-top:8px}
+    body.simple-mode .card{padding:13px}
+    body.simple-mode #roseModeSwitch{display:none!important}
+    body.simple-mode #legendRose{display:none!important}
+    body.simple-mode #metrics, body.simple-mode #analysisText, body.simple-mode #flags, body.simple-mode .summaryHelpRow{display:none!important}
+    body.simple-mode footer{display:none}
+    body.simple-mode #placeStatus{font-size:12px;line-height:1.32}
+    body.simple-mode .canvasBox{min-height:330px}
+    body.simple-mode .cardHead{margin-bottom:8px}
+    @media (max-width:720px){
+      header{padding:14px 10px 5px}
+      .wrap{padding:8px 8px 22px;gap:10px}
+      .card{padding:10px;border-radius:13px}
+      h1{font-size:20px;line-height:1.16;margin-bottom:5px}
+      h2{font-size:16px;margin-bottom:8px}
+      header p{font-size:12px;line-height:1.3;margin:5px 0}
+      label{font-size:12px;margin:7px 0 4px}
+      input,select,button,textarea{padding:8px 10px;border-radius:10px;font-size:14px}
+      .status{padding:8px 9px;margin-top:7px;font-size:12px}
+      .suggestions{gap:6px;max-height:190px}
+      .suggestion{padding:8px 9px}
+      .canvasBox{min-height:260px;padding:4px;border-radius:12px}
+      .mapBox{height:210px;min-height:190px}
+      .metric{padding:9px;border-radius:12px}
+      .metric b{font-size:16px}
+      .segmented{gap:5px;margin-bottom:8px}
+      .segmented button{padding:7px 8px;font-size:12px}
+      .modeBar{margin-top:6px;gap:6px}
+      .modeBar button{padding:7px 10px;font-size:12px}
+      body.simple-mode .wrap{padding:6px 7px 16px;gap:7px}
+      body.simple-mode .card{padding:9px;border-radius:12px}
+      body.simple-mode h1{font-size:18px}
+      body.simple-mode header p{font-size:11px}
+      body.simple-mode .canvasBox{min-height:235px}
+      body.simple-mode .grid.main{grid-template-columns:1fr}
+    }
+
+    .hidden{display:none!important}
+  </style>
+</head>
+<body class="simple-mode">
+<header>
+  <h1>Инструмент построения графика розы ветров и переноса запаха</h1>
+  <p>Инструмент разработан кинологом @podKiT кинологического поискового отряда «Кожа и Кости» для свободного использования и распространения.</p>
+  <div class="modeBar" aria-label="Режим интерфейса">
+    <span>Режим:</span>
+    <button id="simpleModeBtn" type="button" class="active">Простой</button>
+    <button id="advancedModeBtn" type="button">Продвинутый</button>
+  </div>
+</header>
+
+<main class="wrap grid main">
+  <section class="grid">
+    <div class="card">
+      <h2>1. Место</h2>
+
+      <label for="placeInput">Поиск населённого пункта</label>
+      <div class="row">
+        <input id="placeInput" placeholder="Например: Ржев, Осташков, Тверь" autocomplete="off" />
+        <button id="searchPlaceBtn" style="flex:.42">Найти</button>
+      </div>
+      <div class="mini">Поиск идёт через Open‑Meteo Geocoding. Можно выбирать ближайший крупный населённый пункт.</div>
+      <div id="suggestions" class="suggestions"></div>
+      <div class="fieldTitle advancedOnly">
+        <label for="coordInput">Или вставьте координаты / ссылку с карт</label>
+        <button id="coordHelpBtn" class="questionBtn" type="button" title="Какие ссылки и координаты можно вставлять" aria-label="Подсказка по координатам">?</button>
+      </div>
+      <textarea id="coordInput" class="advancedOnly" rows="3" placeholder="55.7558, 37.6173&#10;https://yandex.ru/maps/?ll=38.171845%2C55.771064&z=11&#10;https://yandex.ru/maps/?whatshere%5Bpoint%5D=38.055802%2C55.831399&#10;https://maps.google.com/?q=55.7558,37.6173"></textarea>
+      <div class="twoButtonRow advancedOnly">
+        <button id="parseCoordBtn" class="secondary">Применить координаты</button>
+        <button id="geoBtn" class="ghost">Моё местоположение</button>
+      </div>
+
+      <div id="placeStatus" class="status warn">Место пока не выбрано.</div>
+      <div class="mapBox advancedOnly" id="map"></div>
+      <div class="mapHint advancedOnly">Кликните по карте, чтобы выбрать точку. Маркер можно перетаскивать.</div>
+    </div>
+
+    <div class="card">
+      <h2>2. Период</h2>
+      <label for="presetSelect">Быстрый выбор</label>
+      <select id="presetSelect">
+        <option value="6">Последние 6 часов</option>
+        <option value="12" selected>Последние 12 часов</option>
+        <option value="24">Последние 24 часа</option>
+        <option value="48">Последние 48 часов</option>
+        <option value="96">Последние 96 часов</option>
+        <option value="future6">Прогноз: ближайшие 6 часов</option>
+        <option value="future12">Прогноз: ближайшие 12 часов</option>
+        <option value="future24">Прогноз: ближайшие 24 часа</option>
+        <option value="custom">Произвольный период</option>
+      </select>
+
+      <div class="row advancedOnly">
+        <div>
+          <label for="startTime">Начало</label>
+          <input id="startTime" type="datetime-local" />
+        </div>
+        <div>
+          <label for="endTime">Конец</label>
+          <input id="endTime" type="datetime-local" />
+        </div>
+      </div>
+      <div class="mini advancedOnly">Время трактуется как локальное время выбранной местности. Для координат без города часовой пояс определит API после запроса.</div>
+      <div class="compactPair advancedOnly">
+        <div>
+          <label for="binCount">Секторы розы</label>
+          <select id="binCount">
+            <option value="8">8 направлений</option>
+            <option value="16" selected>16 направлений</option>
+          </select>
+        </div>
+        <div>
+          <label for="minSpeed">Игнорировать ветер слабее</label>
+          <select id="minSpeed">
+            <option value="0">Не игнорировать</option>
+            <option value="0.5" selected>0.5 м/с — почти штиль</option>
+            <option value="1">1 м/с</option>
+            <option value="2">2 м/с</option>
+          </select>
+        </div>
+      </div>
+      <div class="sourceLine advancedOnly">
+        <div>
+          <label for="sourceSelect">Источник данных</label>
+          <select id="sourceSelect">
+            <option value="auto" selected>Авто</option>
+            <option value="yandex">Яндекс/Meteum — ключ, прогноз</option>
+            <option value="gismeteo">Gismeteo — токен, прогноз 3 ч</option>
+            <option value="danio">ДАНИО/HMN — cid, факт + прогноз</option>
+            <option value="openweather">OpenWeather — ключ, прогноз 3 ч</option>
+            <option value="weatherapi">WeatherAPI.com — ключ, архив + прогноз</option>
+            <option value="windy">Windy Point Forecast — ключ, прогноз</option>
+            <option value="visualcrossing">Visual Crossing — ключ, архив + прогноз</option>
+            <option value="openmeteo">Open‑Meteo — без ключа, архив + прогноз</option>
+            <option value="nasa">NASA POWER — без ключа, архив/недавние данные</option>
+            <option value="openmeteogfs">Open‑Meteo GFS/NOAA — без ключа, почасовой резерв</option>
+            <option value="metno">MET Norway — без ключа, только прогноз</option>
+          </select>
+        </div>
+        <div>
+          <label for="sourceTimeout">Таймаут</label>
+          <select id="sourceTimeout" class="timeoutSelect" title="Сколько ждать ответа от каждого источника">
+            <option value="5" selected>5 сек</option><option value="10">10 сек</option><option value="15">15 сек</option><option value="20">20 сек</option><option value="25">25 сек</option><option value="30">30 сек</option><option value="35">35 сек</option><option value="40">40 сек</option><option value="45">45 сек</option><option value="50">50 сек</option><option value="55">55 сек</option><option value="60">60 сек</option>
+          </select>
+        </div>
+        <button id="sourceSettingsBtn" class="iconBtn" type="button" title="Ключи и настройки источников">⚙</button>
+      </div>
+      <div class="mini advancedOnly">По умолчанию включён режим «Авто»: программа сама перебирает доступные сейчас источники. Источник можно выбрать вручную, но для большинства нужен API‑ключ, который получают отдельно.</div>
+
+      <button id="loadWeatherBtn" class="actionBtn" disabled>Получить ветер и построить розу</button>
+      <div id="loadStatus" class="status">Готов к запросу.</div>
+    </div>
+
+    <div class="card advancedOnly">
+      <h2>3. Экспорт</h2>
+      <div class="grid three">
+        <button id="exportCsvBtn" class="secondary">CSV</button>
+        <button id="copyReportBtn" class="secondary">Текст отчёта</button>
+        <button id="exportRosePngBtn" class="secondary">PNG розы</button>
+      </div>
+      <div class="summaryTools" style="justify-content:flex-end; gap:10px; flex-wrap:wrap">
+        <button id="technicalInfoBtn" class="smallInfoBtn" type="button">Источник и технические данные</button>
+        <button id="helpInfoBtn" class="smallInfoBtn" type="button">Справка</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card advancedOnly">
+      <h2>Сводка</h2>
+      <div class="grid three" id="metrics">
+        <div class="metric"><span class="metricLabel">Усредненное направление ветра</span><b>—</b></div>
+        <div class="metric"><span class="metricLabel">Усредненное направление переноса запаха</span><b>—</b></div>
+        <div class="metric"><span class="metricLabel">Устойчивость запаха</span><b>—</b></div>
+      </div>
+      <div id="analysisText" class="status">После загрузки здесь появится прикладной вывод.</div>
+      <div class="pillbar" id="flags"></div>
+      <div class="summaryHelpRow">
+        <details id="calcHelp">
+          <summary>Как читать расчёт</summary>
+          <div class="noteBox">
+            <p><b>Средневзвешенное направление</b> — это не простое «самое частое направление». Каждый час превращается в вектор, а скорость ветра даёт ему вес: час с ветром 5 м/с влияет сильнее, чем час с 0.7 м/с.</p>
+            <p><b>Стабильность R</b> показывает, насколько направления складываются в одну линию. R≈1 — ветер держался в одном секторе; R≈0 — направления взаимно гасят друг друга, значит единственная стрелка малоинформативна.</p>
+            <p><b>Перенос запаха</b> считается разворотом направления ветра на 180°: если ветер дул с запада, запах в модели относило на восток. На вкладке «Перенос запаха» более старые часы дополнительно ослабляются по возрасту и погодным условиям.</p><p><b>Устойчивость запаха</b> — оперативная эвристика, а не лабораторная константа. Она учитывает влажность, температуру, дождь, силу ветра, порывы, ориентировочную солнечную нагрузку по времени суток/сезону и возраст часовой точки. В лесу, низинах и закрытых объёмах запах может сохраняться иначе.</p>
+          </div>
+        </details>
+        <details id="scentHelp">
+          <summary>Как оценена устойчивость запаха</summary>
+          <div id="scentDetails" class="noteBox">После загрузки здесь появится пояснение по влажности, солнцу, дождю, ветру и возрасту следа.</div>
+        </details>
+      </div>
+    </div>
+
+    <div class="card wideCard">
+      <h2>Роза ветров и перенос запаха</h2>
+      <div class="segmented" id="roseModeSwitch" aria-label="Режим отображения розы">
+        <button type="button" data-rose-mode="wind" class="active">Только ветер</button>
+        <button type="button" data-rose-mode="scent">Только перенос запаха</button>
+        <button type="button" data-rose-mode="both">Наложение</button>
+      </div>
+      <div class="canvasBox"><canvas id="roseCanvas" width="620" height="620"></canvas></div>
+      <div class="legend" id="legendRose"></div>
+    </div>
+
+    <div class="card wideCard advancedOnly">
+      <h2>Секторы и почасовая динамика</h2>
+      <div class="segmented" id="dataModeSwitch" aria-label="Режим таблицы">
+        <button type="button" data-data-mode="sectors" class="active">Главные секторы</button>
+        <button type="button" data-data-mode="hourly">Почасовая динамика</button>
+      </div>
+      <div id="dataPanel" class="tableWrap"></div>
+    </div>
+
+    <div class="card advancedOnly">
+      <h2>Полевые поправки</h2>
+      <p><b>Лес, овраги, реки, застройка и ночь</b> могут менять перенос запаха сильнее, чем это видно в модели. Если скорость меньше 1–2 м/с и направление прыгает, розу лучше читать как слабую подсказку, а не как основание для жёсткого планирования.</p>
+      <div class="pillbar">
+        <span class="pill">ветер 10 м ≠ ветер у земли</span>
+        <span class="pill">склон даёт сток воздуха</span>
+        <span class="pill">лес гасит скорость</span>
+        <span class="pill">просека канализирует поток</span>
+        <span class="pill">дождь меняет запаховую картину</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+
+<div id="coordHelpModal" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="coordHelpTitle">
+  <div class="modal smallModal">
+    <div class="modalHead">
+      <h2 id="coordHelpTitle">Как вставить координаты или ссылку с карт</h2>
+      <button id="coordHelpClose" class="iconBtn" type="button" title="Закрыть">×</button>
+    </div>
+    <div class="noteBox">
+      <p><b>Яндекс.Карты:</b> самый точный способ — щёлкнуть правой кнопкой мыши по нужной точке на карте, выбрать в контекстном меню <b>«Что здесь?»</b>, затем скопировать ссылку из браузерной строки и вставить сюда.</p>
+      <p>В такой ссылке обычно есть <code>whatshere[point]=долгота,широта</code>, и именно эта точка берётся в расчёт.</p>
+      <p>Можно и проще: открыть нужное место в Яндекс.Картах, приблизить карту и скопировать ссылку из адресной строки. Тогда программа возьмёт центр карты <code>ll=долгота,широта</code>. Это чуть менее точно, но для ориентировочной погодной оценки обычно допустимо.</p>
+      <p><b>Google Maps:</b> поддерживаются длинные ссылки с <code>@широта,долгота</code>, <code>?q=широта,долгота</code> и <code>query=широта,долгота</code>. Короткие ссылки вида <code>maps.app.goo.gl</code> браузерный HTML сам не раскрывает.</p>
+      <p><b>Обычные координаты:</b> <code>55.7558, 37.6173</code>, <code>N55.7558 E37.6173</code>, <code>55°45'21&quot;N 37°37'02&quot;E</code>.</p>
+    </div>
+  </div>
+</div>
+
+
+<div id="sourceSettingsModal" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="sourceSettingsTitle">
+  <div class="modal">
+    <div class="modalHead">
+      <h2 id="sourceSettingsTitle">Ключи источников данных</h2>
+      <button id="sourceSettingsClose" class="iconBtn" type="button" title="Закрыть">×</button>
+    </div>
+    <p class="mini">Ключи сохраняются только в localStorage этого браузера. В HTML‑версии они видимы пользователю файла, поэтому сюда стоит вставлять только ключи, которые допустимо использовать внутри вашей группы.</p>
+    <div class="settingsGrid">
+      <div class="settingsItem"><label for="yandexKey">Яндекс/Meteum API key</label><input id="yandexKey" type="password" placeholder="X-Yandex-Weather-Key / X-Yandex-API-Key" autocomplete="off" /><div class="mini"><a href="https://yandex.ru/dev/weather/doc/ru/concepts/how-to" target="_blank" rel="noopener">Как получить ключ</a>: тестовый ключ через кабинет разработчика. Прямой запрос из браузера может блокироваться CORS.</div></div>
+      <div class="settingsItem"><label for="gismeteoKey">Gismeteo token</label><input id="gismeteoKey" type="password" placeholder="X-Gismeteo-Token" autocomplete="off" /><div class="mini"><a href="https://docs.gismeteo.net/v3/weather" target="_blank" rel="noopener">Документация API</a>: нужен токен доступа, обычно через B2B/обращение к Gismeteo.</div></div>
+      <div class="settingsItem"><label for="danioCid">ДАНИО/HMN cid</label><input id="danioCid" type="password" placeholder="cid клиента hmn.ru" autocomplete="off" /><div class="mini"><a href="https://danio.ru/weather-json-api/" target="_blank" rel="noopener">Описание API</a>: для доступа используется клиентский идентификатор <code>cid</code>.</div></div>
+      <div class="settingsItem"><label for="openWeatherKey">OpenWeather API key</label><input id="openWeatherKey" type="password" placeholder="appid" autocomplete="off" /><div class="mini"><a href="https://openweathermap.org/appid" target="_blank" rel="noopener">Как получить ключ</a>: регистрация аккаунта, ключ появляется в личном кабинете.</div></div>
+      <div class="settingsItem"><label for="weatherApiKey">WeatherAPI.com key</label><input id="weatherApiKey" type="password" placeholder="WeatherAPI.com key" autocomplete="off" /><div class="mini"><a href="https://www.weatherapi.com/docs/" target="_blank" rel="noopener">Документация и регистрация</a>: есть free‑план, прогноз и история зависят от тарифа.</div></div>
+      <div class="settingsItem"><label for="windyKey">Windy Point Forecast key</label><input id="windyKey" type="password" placeholder="Windy API key" autocomplete="off" /><div class="mini"><a href="https://api.windy.com/point-forecast/docs" target="_blank" rel="noopener">Point Forecast API</a>: ключ получается в кабинете Windy API, запросы идут POST.</div></div>
+      <div class="settingsItem"><label for="visualCrossingKey">Visual Crossing API key</label><input id="visualCrossingKey" type="password" placeholder="Visual Crossing key" autocomplete="off" /><div class="mini"><a href="https://www.visualcrossing.com/weather-api/" target="_blank" rel="noopener">Получить ключ</a>: после регистрации доступен бесплатный лимит, Timeline API даёт архив и прогноз.</div></div>
+    </div>
+    <div class="row" style="margin-top:14px"><button id="saveSourceSettingsBtn" type="button">Сохранить</button><button id="clearSourceSettingsBtn" class="secondary" type="button">Очистить ключи</button></div>
+  </div>
+</div>
+
+
+<div id="helpInfoModal" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="helpInfoTitle">
+  <div class="modal helpModal">
+    <div class="modalHead">
+      <h2 id="helpInfoTitle">Справка</h2>
+      <button id="helpInfoClose" class="iconBtn" type="button" title="Закрыть">×</button>
+    </div>
+    <p class="mini">Инструмент помогает быстро оценить розу ветров и вероятный перенос запаха по выбранной точке и периоду. Это штабная подсказка для планирования, а не замена фактической проверки ветра, рельефа и работы собаки на месте.</p>
+
+    <div class="helpGrid">
+      <div class="helpBlock">
+        <h3>1. Что делает инструмент</h3>
+        <p>Программа получает почасовые погодные данные по координатам, берёт скорость и направление ветра, строит розу ветров и разворачивает направление на 180°, чтобы показать вероятный сектор переноса запаха.</p>
+        <ul>
+          <li><b>Роза ветров</b> показывает, откуда дул ветер.</li>
+          <li><b>Перенос запаха</b> показывает, куда могло относить запах.</li>
+          <li><b>Наложение</b> позволяет сравнить оба слоя на одном графике.</li>
+        </ul>
+      </div>
+
+      <div class="helpBlock">
+        <h3>2. Как выбрать место</h3>
+        <p>Можно найти населённый пункт, вставить координаты, вставить ссылку с карт или выбрать точку кликом по карте.</p>
+        <ul>
+          <li><b>Самый точный способ для Яндекс.Карт:</b> щёлкните правой кнопкой мыши по нужной точке, выберите <b>«Что здесь?»</b>, после этого скопируйте ссылку из браузерной строки и вставьте её в поле координат.</li>
+          <li>В такой ссылке обычно есть параметр <code>whatshere[point]=долгота,широта</code>. Если в ссылке Яндекс.Карт несколько координат, программа берёт именно <code>whatshere[point]</code>, потому что это выбранная точка.</li>
+          <li>Можно без <b>«Что здесь?»</b>: открыть нужное место, приблизить карту и скопировать ссылку из браузера. Тогда будет использован центр карты <code>ll=долгота,широта</code>. Это менее точно, но для первичной розы ветров с учётом погрешности погодных данных обычно нормально.</li>
+          <li>Для Google Maps поддерживаются длинные ссылки с <code>@широта,долгота</code>, <code>q=широта,долгота</code> и <code>query=широта,долгота</code>.</li>
+          <li>Короткие ссылки Google вида <code>maps.app.goo.gl</code> этот HTML сам не раскрывает.</li>
+        </ul>
+      </div>
+
+      <div class="helpBlock">
+        <h3>3. Источники данных</h3>
+        <p>По умолчанию выбран режим <b>Авто</b>. В нём программа перебирает доступные источники: сначала источники с добавленными ключами, затем Open‑Meteo, NASA POWER, Open‑Meteo GFS/NOAA и только последним MET Norway.</p>
+        <ul>
+          <li>Ключи добавляются через шестерёнку рядом с выбором источника.</li>
+          <li>Источник можно выбрать вручную, но многие API без ключа работать не будут.</li>
+          <li>Если источник не отвечает за выбранный таймаут, программа пробует следующий.</li>
+          <li>Если ни один источник не вернул данные, появится сообщение об ошибке доступа или отсутствии данных.</li>
+          <li><b>Open‑Meteo GFS/NOAA</b> — резервный почасовой источник без ключа: он использует модель NOAA GFS через Open‑Meteo и полезен, если нужен ещё один расчётный слой после NASA POWER.</li>
+        </ul>
+      </div>
+
+      <div class="helpBlock">
+        <h3>4. Период и настройки</h3>
+        <p>Быстрые периоды подходят для оперативной оценки. Произвольный период удобен, если надо анализировать интервал от пропажи до начала работы или отдельные ночные/утренние часы.</p>
+        <ul>
+          <li><b>Секторы розы:</b> 8 направлений проще читать, 16 направлений точнее по сектору.</li>
+          <li><b>Игнорировать ветер слабее:</b> отсекает почти штиль, который часто даёт нестабильную картину.</li>
+          <li><b>Таймаут:</b> сколько секунд ждать каждый источник перед переходом к следующему.</li>
+        </ul>
+      </div>
+
+      <div class="helpBlock helpWide">
+        <h3>5. Как читать сводку</h3>
+        <p><b>Усредненное направление ветра</b> — откуда в среднем дул ветер с учётом скорости. Это не просто самый частый румб: сильный ветер влияет на расчёт больше слабого.</p>
+        <p><b>Усредненное направление переноса запаха</b> — куда в среднем относило запах. Это направление ветра, развёрнутое на 180°.</p>
+        <p><b>Стабильность переноса</b> показывает, насколько направления за период складываются в один устойчивый сектор. Высокая стабильность означает, что средняя стрелка читается лучше. Низкая стабильность означает, что ветер менялся, и надо смотреть почасовую динамику и несколько верхних секторов.</p>
+        <p><b>Устойчивость запаха</b> — оперативная оценка того, насколько погодные условия поддерживали или разрушали старую запаховую картину. Это эвристика, а не лабораторная модель.</p>
+      </div>
+
+      <div class="helpBlock">
+        <h3>6. Устойчивость запаха</h3>
+        <p>Оценка учитывает погодные факторы по часам и возраст данных относительно самых свежих часов.</p>
+        <ul>
+          <li>Влажность примерно 55–90% обычно поддерживает сохранность.</li>
+          <li>Жара, активное солнце и сухой воздух снижают вес старых часов.</li>
+          <li>Слабое увлажнение может помогать, но заметный дождь и сильный дождь снижают читаемость старого следа.</li>
+          <li>Умеренный ветер помогает формировать сектор. Штиль делает картину пятнистой, сильный ветер и порывы рассеивают запах.</li>
+          <li>Свежие часы на розе переноса имеют больший вес, старые постепенно ослабляются.</li>
+        </ul>
+      </div>
+
+      <div class="helpBlock">
+        <h3>7. Как применять в ПСР</h3>
+        <p>Результат лучше использовать как ориентир для выбора сектора, проверки гипотез и планирования работы, а не как единственный критерий.</p>
+        <ul>
+          <li>При устойчивом ветре и хорошей устойчивости запаха основной сектор можно брать увереннее.</li>
+          <li>При слабом ветре, переменном направлении или низкой устойчивости смотрите несколько секторов и почасовую динамику.</li>
+          <li>После смены ветра старый сектор не исчезает мгновенно: запах может оставаться в тени, подстилке, низинах, у препятствий, в закрытом лесу и на влажных участках.</li>
+          <li>На открытой продуваемой местности старый перенос обычно быстрее теряет практическую ценность.</li>
+        </ul>
+      </div>
+
+      <div class="helpBlock">
+        <h3>8. График розы</h3>
+        <p>Цвета показывают диапазоны скорости ветра. Длина сектора показывает, насколько часто или насколько значимо этот сектор встречался в выбранном периоде.</p>
+        <ul>
+          <li>В режиме <b>Только ветер</b> стрелка показывает усреднённое направление, откуда дуло.</li>
+          <li>В режиме <b>Только перенос запаха</b> стрелка показывает, куда несло запах.</li>
+          <li>В режиме <b>Наложение</b> одновременно видны ветер и перенос запаха, но подписи стрелок убраны, чтобы не перегружать график.</li>
+        </ul>
+      </div>
+
+      <div class="helpBlock">
+        <h3>9. Таблицы</h3>
+        <p>Окно «Секторы и почасовая динамика» переключается между двумя режимами.</p>
+        <ul>
+          <li><b>Главные секторы</b> быстро показывает, откуда чаще дул ветер.</li>
+          <li><b>Почасовая динамика</b> нужна, если ветер менялся, был дождь, порывы, слабый ветер или требуется понять момент перестройки переноса.</li>
+        </ul>
+      </div>
+
+      <div class="helpBlock">
+        <h3>10. Экспорт</h3>
+        <p>Блок экспорта позволяет передать результат другому участнику поиска.</p>
+        <ul>
+          <li><b>CSV</b> сохраняет почасовые данные для дальнейшего анализа.</li>
+          <li><b>Текст отчёта</b> копирует в буфер полный прикладной отчёт: координаты, период, источник, ветер, перенос запаха, устойчивость, сектора и ограничения.</li>
+          <li><b>PNG розы</b> сохраняет график с подписью: точка, координаты, период, ветер, перенос запаха, устойчивость и источник.</li>
+          <li><b>Источник и технические данные</b> показывает, какой API сработал, тип данных, станцию/расстояние, если источник это отдаёт, и список попыток источников.</li>
+        </ul>
+      </div>
+
+      <div class="helpBlock helpWide">
+        <h3>11. Ограничения</h3>
+        <p>Большинство источников дают модельные, сеточные или реаналитические данные по координате, а не измерение анемометром в конкретной точке поиска. Ветер на высоте 10 м может отличаться от ветра у земли.</p>
+        <p>Лес, овраги, склоны, вода, просеки, здания, густая растительность, ночь и утренний прогрев могут менять фактический перенос сильнее, чем видно в модели. Рабочее решение всегда сверяется с местностью, фактическим ветром у земли и поведением собаки.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="technicalInfoModal" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="technicalInfoTitle">
+  <div class="modal smallModal">
+    <div class="modalHead">
+      <h2 id="technicalInfoTitle">Источник и технические данные</h2>
+      <button id="technicalInfoClose" class="iconBtn" type="button" title="Закрыть">×</button>
+    </div>
+    <div id="sourceInfo" class="noteBox"><b>Источник:</b> пока нет загруженных данных.</div>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<footer>
+  Инструмент разработан кинологом @podKiT кинологического поискового отряда «Кожа и Кости» для свободного использования и распространения. Источники: Яндекс/Meteum, Gismeteo, ДАНИО/HMN, OpenWeather, WeatherAPI.com, Windy, Visual Crossing при наличии ключей; Open‑Meteo, NASA POWER, Open‑Meteo GFS/NOAA и MET Norway без ключей. Проверка на месте обязательна для рабочих решений.
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  const $ = (id) => document.getElementById(id);
+  const state = {
+    location: null,
+    rows: [],
+    stats: null,
+    lastApiUrl: '',
+    lastEndpoint: '',
+    lastSourceLabel: '',
+    lastSourceMeta: null,
+    lastTriedSources: [],
+    map: null,
+    marker: null,
+    reportText: '',
+    roseMode: 'wind',
+    dataMode: 'sectors',
+    uiMode: 'simple'
+  };
+
+  const DIR16 = ['С','ССВ','СВ','ВСВ','В','ВЮВ','ЮВ','ЮЮВ','Ю','ЮЮЗ','ЮЗ','ЗЮЗ','З','ЗСЗ','СЗ','ССЗ'];
+  const DIR8 = ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'];
+  const DIR16_FULL = ['Север','Северо-северо-восток','Северо-восток','Востоко-северо-восток','Восток','Востоко-юго-восток','Юго-восток','Юго-юго-восток','Юг','Юго-юго-запад','Юго-запад','Западо-юго-запад','Запад','Западо-северо-запад','Северо-запад','Северо-северо-запад'];
+  const DIR8_FULL = ['Север','Северо-восток','Восток','Юго-восток','Юг','Юго-запад','Запад','Северо-запад'];
+  const SPEED_CLASSES = [
+    {name:'0–0.5', min:0, max:0.5, color:'#7b879c', label:'штиль/почти штиль'},
+    {name:'0.5–2', min:0.5, max:2, color:'#7dd3fc', label:'слабый'},
+    {name:'2–5', min:2, max:5, color:'#8ddf9a', label:'рабочий слабый-средний'},
+    {name:'5–8', min:5, max:8, color:'#ffd166', label:'заметный'},
+    {name:'8+', min:8, max:Infinity, color:'#ff8a8a', label:'сильный/порывистый'}
+  ];
+  const SCENT_CLASSES = [
+    {name:'0–0.5', color:'#706b9f'},
+    {name:'0.5–2', color:'#c4b5fd'},
+    {name:'2–5', color:'#a78bfa'},
+    {name:'5–8', color:'#f0abfc'},
+    {name:'8+', color:'#f472b6'}
+  ];
+
+  const KEY_FIELDS = ['yandexKey','gismeteoKey','danioCid','openWeatherKey','weatherApiKey','windyKey','visualCrossingKey'];
+  const KEY_STORAGE = {
+    yandexKey:'psr_yandex_key',
+    gismeteoKey:'psr_gismeteo_key',
+    danioCid:'psr_danio_cid',
+    openWeatherKey:'psr_openweather_key',
+    weatherApiKey:'psr_weatherapi_key',
+    windyKey:'psr_windy_key',
+    visualCrossingKey:'psr_visualcrossing_key'
+  };
+  const WIND_RUMB_DEG = {
+    c:null, calm:null, variable:null, var:null,
+    n:0, nne:22.5, ne:45, ene:67.5, e:90, ese:112.5, se:135, sse:157.5,
+    s:180, ssw:202.5, sw:225, wsw:247.5, w:270, wnw:292.5, nw:315, nnw:337.5,
+    north:0, north_east:45, east:90, south_east:135, south:180, south_west:225, west:270, north_west:315,
+    northeast:45, southeast:135, southwest:225, northwest:315
+  };
+
+  function getKey(field){ return ($(`${field}`)?.value || '').trim(); }
+  function hasKey(field){ return Boolean(getKey(field)); }
+
+  function parseWindDirection(value){
+    if (value == null) return null;
+    if (typeof value === 'number' && Number.isFinite(value)) return normDeg(value);
+    const raw = String(value).trim().toLowerCase().replace(/-/g,'_');
+    if (raw in WIND_RUMB_DEG) return WIND_RUMB_DEG[raw];
+    const n = Number(raw.replace(',', '.'));
+    return Number.isFinite(n) ? normDeg(n) : null;
+  }
+
+  function isoToLocalHour(value){
+    if (!value) return null;
+    const s = String(value);
+    const m = s.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+    if (m) return `${m[1]}T${m[2]}`;
+    const d = new Date(s);
+    if (!isNaN(d)) return floorToHourInput(toDateInput(d, state.location?.timezone || undefined));
+    return null;
+  }
+
+  function firstFinite(...vals){
+    for (const v of vals) {
+      const n = Number(v);
+      if (Number.isFinite(n)) return n;
+    }
+    return null;
+  }
+
+
+  function setStatus(el, text, kind='') {
+    el.className = 'status' + (kind ? ' ' + kind : '');
+    el.textContent = text;
+  }
+
+  let toastTimer = null;
+  function showToast(text, kind='good'){
+    const el = $('toast');
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'toast show' + (kind ? ' ' + kind : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+  }
+
+  function round(n, d=2) {
+    if (!Number.isFinite(n)) return '—';
+    return Number(n).toFixed(d).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
+  }
+
+  function normDeg(deg){
+    deg = Number(deg);
+    if (!Number.isFinite(deg)) return null;
+    return ((deg % 360) + 360) % 360;
+  }
+
+  function dirIndex(deg, bins=16){
+    deg = normDeg(deg);
+    if (deg === null) return null;
+    const width = 360 / bins;
+    return Math.floor((deg + width/2) % 360 / width);
+  }
+
+  function dirShortName(deg, bins=16){
+    const i = dirIndex(deg, bins);
+    if (i === null) return '—';
+    return (bins === 8 ? DIR8 : DIR16)[i];
+  }
+
+  function dirName(deg, bins=16){
+    const i = dirIndex(deg, bins);
+    if (i === null) return '—';
+    return (bins === 8 ? DIR8_FULL : DIR16_FULL)[i];
+  }
+
+  function formatDir(deg, bins=16){
+    if (deg == null) return '—';
+    return `${dirName(deg,bins)} · ${round(deg,0)}°`;
+  }
+
+  function binIndex(deg, bins){
+    const width = 360 / bins;
+    return Math.floor((normDeg(deg) + width/2) % 360 / width);
+  }
+
+  function classIndex(speed){
+    const s = Number(speed);
+    for (let i=0; i<SPEED_CLASSES.length; i++) {
+      if (s >= SPEED_CLASSES[i].min && s < SPEED_CLASSES[i].max) return i;
+    }
+    return SPEED_CLASSES.length - 1;
+  }
+
+  function toDateInput(date, timezone) {
+    const d = date instanceof Date ? date : new Date(date);
+    if (timezone) {
+      try {
+        const parts = new Intl.DateTimeFormat('en-CA', {
+          timeZone: timezone, year:'numeric', month:'2-digit', day:'2-digit',
+          hour:'2-digit', minute:'2-digit', hour12:false
+        }).formatToParts(d).reduce((acc,p)=>{acc[p.type]=p.value; return acc;},{});
+        return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+      } catch(e) {}
+    }
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function floorToHourInput(s){
+    if (!s) return s;
+    return s.slice(0,14) + '00';
+  }
+
+  function datePart(dt){ return dt.slice(0,10); }
+
+  function applyPreset(){
+    const preset = $('presetSelect').value;
+    if (preset === 'custom') return;
+    const tz = state.location?.timezone || undefined;
+    const now = new Date();
+    let start = new Date(now), end = new Date(now);
+    if (preset.startsWith('future')) {
+      const h = Number(preset.replace('future',''));
+      end = new Date(now.getTime() + h*3600*1000);
+    } else {
+      const h = Number(preset);
+      start = new Date(now.getTime() - h*3600*1000);
+    }
+    $('startTime').value = floorToHourInput(toDateInput(start, tz));
+    $('endTime').value = floorToHourInput(toDateInput(end, tz));
+  }
+
+  function updateActionState(){
+    const btn = $('loadWeatherBtn');
+    if (!btn) return;
+    const ok = Boolean(state.location && Number.isFinite(Number(state.location.latitude)) && Number.isFinite(Number(state.location.longitude)));
+    btn.disabled = !ok;
+    btn.title = ok ? 'Можно загружать ветер' : 'Сначала выберите населённый пункт, координаты или точку на карте';
+  }
+
+  function updatePlaceStatus(){
+    if (!state.location) {
+      setStatus($('placeStatus'), 'Место пока не выбрано.', 'warn');
+      updateActionState();
+      return;
+    }
+    const l = state.location;
+    setStatus($('placeStatus'), `${l.name || 'Точка по координатам'}\nШирота: ${round(l.latitude,5)}, долгота: ${round(l.longitude,5)}${l.timezone ? `\nЧасовой пояс: ${l.timezone}` : ''}\nМесто выбрано. Теперь выберите период и нажмите «Получить ветер и построить розу».`, 'good');
+    moveMapToLocation();
+    updateActionState();
+  }
+
+  function initMap(){
+    const box = $('map');
+    if (!box) return;
+    if (!window.L) {
+      box.innerHTML = '<div class="mini" style="padding:12px">Карта не загрузилась: библиотека Leaflet недоступна. Поиск города и координаты работают без карты.</div>';
+      return;
+    }
+    if (state.map) return;
+    const startLat = state.location?.latitude ?? 56.0;
+    const startLon = state.location?.longitude ?? 37.6;
+    state.map = L.map('map', {scrollWheelZoom:true}).setView([startLat, startLon], state.location ? 11 : 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(state.map);
+    state.map.on('click', (e) => {
+      setLocationFromMap(e.latlng.lat, e.latlng.lng, 'Точка с карты');
+    });
+    setTimeout(() => state.map.invalidateSize(), 150);
+    if (state.location) moveMapToLocation();
+  }
+
+  function setLocationFromMap(lat, lon, name='Точка с карты'){
+    state.location = {
+      name,
+      latitude: lat,
+      longitude: lon,
+      timezone: state.location?.timezone || null,
+      elevation: null
+    };
+    updatePlaceStatus();
+    applyPreset();
+  }
+
+  function moveMapToLocation(){
+    if (!state.map || !state.location) return;
+    const lat = Number(state.location.latitude);
+    const lon = Number(state.location.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+    if (!state.marker) {
+      state.marker = L.marker([lat, lon], {draggable:true}).addTo(state.map);
+      state.marker.on('dragend', () => {
+        const p = state.marker.getLatLng();
+        setLocationFromMap(p.lat, p.lng, 'Точка с карты');
+      });
+    } else {
+      state.marker.setLatLng([lat, lon]);
+    }
+    state.marker.bindPopup(`${escapeHtml(state.location.name || 'Точка')}<br>${round(lat,5)}, ${round(lon,5)}`);
+    state.map.setView([lat, lon], Math.max(state.map.getZoom(), 11));
+    setTimeout(() => state.map.invalidateSize(), 80);
+  }
+
+  function locationTitle(item){
+    const parts = [item.name, item.admin1, item.admin2, item.country].filter(Boolean);
+    return parts.join(', ');
+  }
+
+  async function searchPlace(){
+    const q = $('placeInput').value.trim();
+    const box = $('suggestions');
+    box.innerHTML = '';
+    if (q.length < 2) {
+      box.innerHTML = '<div class="mini">Введите минимум 2 символа.</div>';
+      return;
+    }
+    box.innerHTML = '<div class="mini">Ищу…</div>';
+    const url = 'https://geocoding-api.open-meteo.com/v1/search?' + new URLSearchParams({
+      name:q, count:'10', language:'ru', format:'json'
+    }).toString();
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      const results = data.results || [];
+      if (!results.length) {
+        box.innerHTML = '<div class="mini">Ничего не найдено. Попробуйте ближайший крупный город или координаты.</div>';
+        return;
+      }
+      box.innerHTML = '';
+      for (const item of results) {
+        const div = document.createElement('div');
+        div.className = 'suggestion';
+        div.innerHTML = `<b>${escapeHtml(locationTitle(item))}</b><br><span class="mini">${round(item.latitude,5)}, ${round(item.longitude,5)} · ${escapeHtml(item.timezone || 'timezone не указан')}</span>`;
+        div.addEventListener('click', () => {
+          state.location = {
+            name: locationTitle(item),
+            latitude: item.latitude,
+            longitude: item.longitude,
+            timezone: item.timezone || null,
+            elevation: item.elevation || null
+          };
+          $('suggestions').innerHTML = '';
+          updatePlaceStatus();
+          applyPreset();
+          setStatus($('loadStatus'), 'Населённый пункт выбран. Теперь выберите период и нажмите зелёную кнопку построения розы.', 'good');
+        });
+        box.appendChild(div);
+      }
+    } catch(e) {
+      box.innerHTML = `<div class="mini">Ошибка поиска: ${escapeHtml(e.message)}</div>`;
+    }
+  }
+
+  function escapeHtml(s){
+    return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  }
+
+  function parseNum(s){ return Number(String(s).replace(',', '.')); }
+
+  function dmsToDecimal(deg, min=0, sec=0, sign=1){
+    const d = Math.abs(parseNum(deg)) + (parseNum(min)||0)/60 + (parseNum(sec)||0)/3600;
+    const explicitSign = parseNum(deg) < 0 ? -1 : 1;
+    return d * sign * explicitSign;
+  }
+
+  function signFromDir(dir){
+    const d = String(dir || '').toUpperCase();
+    if (['S','W','Ю','З'].includes(d)) return -1;
+    return 1;
+  }
+
+  function isLatLon(lat, lon){
+    return Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180;
+  }
+
+  function looksLikeRussiaLonLat(a, b){
+    return Number.isFinite(a) && Number.isFinite(b) && Math.abs(a) <= 180 && Math.abs(b) <= 90;
+  }
+
+  function pairFromLonLat(lon, lat){
+    lon = parseNum(lon); lat = parseNum(lat);
+    if (isLatLon(lat, lon)) return {latitude:lat, longitude:lon};
+    return null;
+  }
+
+  function pairFromLatLon(lat, lon){
+    lat = parseNum(lat); lon = parseNum(lon);
+    if (isLatLon(lat, lon)) return {latitude:lat, longitude:lon};
+    return null;
+  }
+
+  function parseUrlCoordinates(raw){
+    let decoded = raw;
+    try { decoded = decodeURIComponent(raw); } catch(e) {}
+    const candidates = [];
+
+    // Yandex Maps: точная выбранная точка обычно лежит в whatshere[point]=lon,lat.
+    const whRe = /(?:whatshere\[point\]|whatshere%5Bpoint%5D)=(-?\d+(?:[\.,]\d+)?)\s*,\s*(-?\d+(?:[\.,]\d+)?)/ig;
+    let m;
+    while ((m = whRe.exec(decoded))) {
+      const p = pairFromLonLat(m[1], m[2]);
+      if (p) candidates.push({...p, priority:100, source:'Yandex whatshere'});
+    }
+
+    // Yandex Maps: ll=lon,lat — центр карты. Используем, если точной whatshere-точки нет.
+    const llRe = /(?:[?&]|\b)ll=(-?\d+(?:[\.,]\d+)?)\s*,\s*(-?\d+(?:[\.,]\d+)?)/ig;
+    while ((m = llRe.exec(decoded))) {
+      const p = pairFromLonLat(m[1], m[2]);
+      if (p) candidates.push({...p, priority:60, source:'Yandex ll'});
+    }
+
+    // Google Maps: @lat,lon,zoom
+    const atRe = /@\s*(-?\d+(?:[\.,]\d+)?)\s*,\s*(-?\d+(?:[\.,]\d+)?)(?:\s*,|\/|$)/ig;
+    while ((m = atRe.exec(decoded))) {
+      const p = pairFromLatLon(m[1], m[2]);
+      if (p) candidates.push({...p, priority:80, source:'Google @'});
+    }
+
+    // Google / generic: q=lat,lon, query=lat,lon, destination=lat,lon.
+    const qRe = /(?:[?&]|\b)(?:q|query|destination|center|text)=\s*(-?\d+(?:[\.,]\d+)?)\s*,\s*(-?\d+(?:[\.,]\d+)?)/ig;
+    while ((m = qRe.exec(decoded))) {
+      const p = pairFromLatLon(m[1], m[2]);
+      if (p) candidates.push({...p, priority:70, source:'query'});
+    }
+
+    // Last resort: collect pairs in URLs. For yandex.ru/maps prefer lon,lat; otherwise lat,lon.
+    if (!candidates.length && /^https?:\/\//i.test(decoded)) {
+      const pairRe = /(-?\d{1,3}(?:[\.,]\d+)?)\s*,\s*(-?\d{1,3}(?:[\.,]\d+)?)/g;
+      while ((m = pairRe.exec(decoded))) {
+        let p = null;
+        if (/yandex\./i.test(decoded)) p = pairFromLonLat(m[1], m[2]);
+        if (!p) p = pairFromLatLon(m[1], m[2]);
+        if (p) candidates.push({...p, priority:30, source:'generic pair'});
+      }
+    }
+
+    if (candidates.length) {
+      candidates.sort((a,b) => b.priority - a.priority);
+      const bestPriority = candidates[0].priority;
+      const best = candidates.filter(c => c.priority === bestPriority).at(-1) || candidates[0];
+      return {latitude:best.latitude, longitude:best.longitude, source:best.source};
+    }
+    return null;
+  }
+
+  function parseCoordinates(text){
+    let raw = String(text || '').trim();
+    if (!raw) throw new Error('Пустая строка координат.');
+    raw = raw.replace(/\u2212/g,'-').replace(/[，;]/g, ',');
+
+    const fromUrl = parseUrlCoordinates(raw);
+    if (fromUrl) return fromUrl;
+
+    // Directional DMS or decimal with suffix: 55°45'21"N 37°37'02"E
+    const suffixRe = /(-?\d{1,3}(?:[\.,]\d+)?)\s*(?:[°º]\s*(\d{1,2}(?:[\.,]\d+)?)?\s*(?:['′’]\s*(\d{1,2}(?:[\.,]\d+)?)?\s*(?:["″”])?)?)?\s*([NSEWСЮВЗ])/gi;
+    let suffix = [...raw.matchAll(suffixRe)];
+    if (suffix.length >= 2) {
+      let lat = null, lon = null;
+      for (const x of suffix) {
+        const dir = x[4].toUpperCase();
+        const val = dmsToDecimal(x[1], x[2] || 0, x[3] || 0, signFromDir(dir));
+        if (['N','S','С','Ю'].includes(dir)) lat = val;
+        if (['E','W','В','З'].includes(dir)) lon = val;
+      }
+      if (isLatLon(lat, lon)) return {latitude:lat, longitude:lon};
+    }
+
+    // Prefix form: N55.7558 E37.6173
+    const prefixRe = /([NSEWСЮВЗ])\s*(-?\d{1,3}(?:[\.,]\d+)?)(?:\s*[°º]?\s*(\d{1,2}(?:[\.,]\d+)?)?)?(?:\s*['′’]?\s*(\d{1,2}(?:[\.,]\d+)?)?)?/gi;
+    let prefix = [...raw.matchAll(prefixRe)];
+    if (prefix.length >= 2) {
+      let lat = null, lon = null;
+      for (const x of prefix) {
+        const dir = x[1].toUpperCase();
+        const val = dmsToDecimal(x[2], x[3] || 0, x[4] || 0, signFromDir(dir));
+        if (['N','S','С','Ю'].includes(dir)) lat = val;
+        if (['E','W','В','З'].includes(dir)) lon = val;
+      }
+      if (isLatLon(lat, lon)) return {latitude:lat, longitude:lon};
+    }
+
+    // Plain numeric formats.
+    const nums = (raw.match(/[-+]?\d+(?:[\.,]\d+)?/g) || []).map(parseNum);
+    if (nums.length >= 6) {
+      const lat = dmsToDecimal(nums[0], nums[1], nums[2], nums[0] < 0 ? -1 : 1);
+      const lon = dmsToDecimal(nums[3], nums[4], nums[5], nums[3] < 0 ? -1 : 1);
+      if (isLatLon(lat, lon)) return {latitude:lat, longitude:lon};
+    }
+    if (nums.length >= 4 && raw.includes('°')) {
+      const lat = dmsToDecimal(nums[0], nums[1], 0, nums[0] < 0 ? -1 : 1);
+      const lon = dmsToDecimal(nums[2], nums[3], 0, nums[2] < 0 ? -1 : 1);
+      if (isLatLon(lat, lon)) return {latitude:lat, longitude:lon};
+    }
+    if (nums.length >= 2) {
+      const lat = nums[0], lon = nums[1];
+      if (isLatLon(lat, lon)) return {latitude:lat, longitude:lon};
+    }
+
+    throw new Error('Не смог распознать координаты. Для Яндекс.Карт лучше используйте ссылку с whatshere[point] или ll; для Google — ссылку с @lat,lon или q=lat,lon.');
+  }
+
+  function applyCoordinates(){
+    try {
+      const p = parseCoordinates($('coordInput').value);
+      state.location = {
+        name: p.source ? `Точка по координатам (${p.source})` : 'Точка по координатам',
+        latitude: p.latitude,
+        longitude: p.longitude,
+        timezone: null,
+        elevation: null
+      };
+      updatePlaceStatus();
+      applyPreset();
+      setStatus($('loadStatus'), 'Координаты применены. Выберите период и нажмите зелёную кнопку построения розы.', 'good');
+    } catch(e) {
+      setStatus($('placeStatus'), e.message, 'bad');
+    }
+  }
+
+  function getBrowserGeolocation(){
+    if (!navigator.geolocation) {
+      setStatus($('placeStatus'), 'Браузер не поддерживает геолокацию.', 'bad');
+      return;
+    }
+    setStatus($('placeStatus'), 'Запрашиваю геолокацию у браузера…');
+    navigator.geolocation.getCurrentPosition(pos => {
+      state.location = {
+        name: 'Моё местоположение',
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || null,
+        elevation: null
+      };
+      updatePlaceStatus();
+      applyPreset();
+    }, err => {
+      setStatus($('placeStatus'), `Геолокация не получена: ${err.message}`, 'bad');
+    }, {enableHighAccuracy:true, timeout:10000});
+  }
+
+  function savePoint(){
+    if (!state.location) return setStatus($('placeStatus'), 'Сначала выберите место.', 'warn');
+    localStorage.setItem('psr_windrose_point', JSON.stringify(state.location));
+    setStatus($('placeStatus'), 'Точка сохранена в браузере.\n' + `${state.location.name}\n${round(state.location.latitude,5)}, ${round(state.location.longitude,5)}`, 'good');
+  }
+
+  function loadPoint(){
+    const s = localStorage.getItem('psr_windrose_point');
+    if (!s) return setStatus($('placeStatus'), 'Сохранённой точки пока нет.', 'warn');
+    try {
+      state.location = JSON.parse(s);
+      updatePlaceStatus();
+      applyPreset();
+    } catch(e){
+      setStatus($('placeStatus'), 'Сохранённая точка повреждена.', 'bad');
+    }
+  }
+
+  function getPeriodWindow(){
+    if (!state.location) throw new Error('Сначала выберите место или координаты.');
+    let start = $('startTime').value;
+    let end = $('endTime').value;
+    if (!start || !end) throw new Error('Укажите начало и конец периода.');
+    start = floorToHourInput(start);
+    end = floorToHourInput(end);
+    if (start >= end) throw new Error('Начало периода должно быть раньше конца.');
+    return {start, end, startDate:new Date(start), endDate:new Date(end)};
+  }
+
+  function chooseOpenMeteoEndpoint(start, end){
+    const now = new Date();
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const daysFromNow = (startDate - now) / 86400000;
+    const endDaysFromNow = (endDate - now) / 86400000;
+    if (daysFromNow >= -7 && endDaysFromNow <= 16) return 'forecast';
+    return 'archive';
+  }
+
+  function hasFuturePart(start, end){
+    const nowLocal = floorToHourInput(toDateInput(new Date(), state.location?.timezone || undefined));
+    return end >= nowLocal;
+  }
+
+  function selectedSourceIds(start, end){
+    const choice = $('sourceSelect')?.value || 'auto';
+    if (choice !== 'auto') return [choice];
+    const list = [];
+    // Сначала источники с ключами. Если ключа нет, источник пропускается без лишней ошибки.
+    if (hasKey('yandexKey')) list.push('yandex');
+    if (hasKey('gismeteoKey')) list.push('gismeteo');
+    if (hasKey('danioCid')) list.push('danio');
+    if (hasKey('openWeatherKey')) list.push('openweather');
+    if (hasKey('weatherApiKey')) list.push('weatherapi');
+    if (hasKey('windyKey')) list.push('windy');
+    if (hasKey('visualCrossingKey')) list.push('visualcrossing');
+    // Открытые резервные источники: MET Norway последним, потому что он хуже подходит как контрольный источник для нашей задачи.
+    list.push('openmeteo', 'nasa', 'openmeteogfs', 'metno');
+    return [...new Set(list)];
+  }
+
+  function sourceHumanName(id){
+    return {
+      yandex:'Яндекс/Meteum',
+      gismeteo:'Gismeteo',
+      danio:'ДАНИО/HMN',
+      openweather:'OpenWeather',
+      weatherapi:'WeatherAPI.com',
+      windy:'Windy Point Forecast',
+      openmeteo:'Open‑Meteo',
+      metno:'MET Norway Locationforecast',
+      nasa:'NASA POWER Hourly',
+      openmeteogfs:'Open‑Meteo GFS/NOAA',
+      visualcrossing:'Visual Crossing Timeline'
+    }[id] || id;
+  }
+
+  function getSourceTimeoutMs(){
+    const seconds = Number($('sourceTimeout')?.value || 5);
+    const safeSeconds = Number.isFinite(seconds) ? Math.min(60, Math.max(5, seconds)) : 5;
+    return safeSeconds * 1000;
+  }
+
+  async function fetchJson(url, options={}, timeoutMs=getSourceTimeoutMs()){
+    if (typeof options === 'number') { timeoutMs = options; options = {}; }
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      let r;
+      try {
+        r = await fetch(url, {...options, signal: controller.signal});
+      } catch (e) {
+        if (e && e.name === 'AbortError') throw new Error(`таймаут ${Math.round(timeoutMs/1000)} сек`);
+        throw e;
+      }
+      const text = await r.text();
+      let data;
+      try { data = text ? JSON.parse(text) : {}; }
+      catch(e){ throw new Error(`ответ не JSON: ${text.slice(0,120)}`); }
+      if (!r.ok || data.error) throw new Error(data.reason || data.message || data.errorMessage || `HTTP ${r.status}`);
+      return data;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function filterRowsToPeriod(rows, start, end){
+    return rows
+      .filter(r => r && r.time && r.time >= start && r.time <= end && Number.isFinite(r.speed) && Number.isFinite(r.dir))
+      .sort((a,b) => a.time.localeCompare(b.time));
+  }
+
+  function utcKeyToLocalInput(key, timezone){
+    const s = String(key);
+    const y = Number(s.slice(0,4));
+    const m = Number(s.slice(4,6));
+    const d = Number(s.slice(6,8));
+    const h = Number(s.slice(8,10) || 0);
+    const date = new Date(Date.UTC(y, m-1, d, h, 0, 0));
+    return floorToHourInput(toDateInput(date, timezone || undefined));
+  }
+
+  function ymdForApi(dt){
+    return String(dt).slice(0,10).replaceAll('-','');
+  }
+
+  function haversineKm(lat1, lon1, lat2, lon2){
+    const R = 6371;
+    const toRad = d => d * Math.PI / 180;
+    const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+    return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  async function fetchOpenMeteo(period){
+    const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
+    const variables = 'wind_speed_10m,wind_direction_10m,wind_gusts_10m,temperature_2m,relative_humidity_2m,precipitation';
+    const endpoint = chooseOpenMeteoEndpoint(period.start, period.end);
+    let url;
+    if (endpoint === 'forecast') {
+      const params = new URLSearchParams({
+        latitude: lat,
+        longitude: lon,
+        hourly: variables,
+        current: 'wind_speed_10m,wind_direction_10m,wind_gusts_10m',
+        wind_speed_unit: 'ms',
+        timezone: 'auto',
+        past_days: '7',
+        forecast_days: '16'
+      });
+      url = 'https://api.open-meteo.com/v1/forecast?' + params.toString();
+    } else {
+      const params = new URLSearchParams({
+        latitude: lat,
+        longitude: lon,
+        start_date: datePart(period.start),
+        end_date: datePart(period.end),
+        hourly: variables,
+        wind_speed_unit: 'ms',
+        timezone: 'auto'
+      });
+      url = 'https://archive-api.open-meteo.com/v1/archive?' + params.toString();
+    }
+    const data = await fetchJson(url);
+    if (data.timezone && state.location) state.location.timezone = data.timezone;
+    const h = data.hourly;
+    if (!h || !h.time?.length) throw new Error('API не вернул почасовые данные.');
+    const rows = [];
+    for (let i=0; i<h.time.length; i++) {
+      rows.push({
+        time: h.time[i],
+        speed: h.wind_speed_10m?.[i] == null ? null : Number(h.wind_speed_10m[i]),
+        dir: h.wind_direction_10m?.[i] == null ? null : Number(h.wind_direction_10m[i]),
+        gust: h.wind_gusts_10m?.[i] == null ? null : Number(h.wind_gusts_10m[i]),
+        temp: h.temperature_2m?.[i] == null ? null : Number(h.temperature_2m[i]),
+        rh: h.relative_humidity_2m?.[i] == null ? null : Number(h.relative_humidity_2m[i]),
+        precip: h.precipitation?.[i] == null ? null : Number(h.precipitation[i])
+      });
+    }
+    const filtered = filterRowsToPeriod(rows, period.start, period.end);
+    if (!filtered.length) throw new Error('в выбранном периоде нет почасовых точек.');
+    return {
+      rows: filtered,
+      url,
+      endpoint: endpoint === 'forecast' ? 'openmeteo_forecast' : 'openmeteo_archive',
+      sourceLabel: endpoint === 'forecast' ? 'Open‑Meteo Forecast API' : 'Open‑Meteo Historical Weather API',
+      meta: {
+        sourceName: endpoint === 'forecast' ? 'Open‑Meteo Forecast API' : 'Open‑Meteo Historical Weather API',
+        dataType: endpoint === 'forecast' ? 'прогнозные и недавние почасовые модельные данные для выбранной координаты' : 'архивные модельно-реаналитические данные для выбранной координаты',
+        station: 'этим источником не выдаётся',
+        distance: 'недоступно',
+        note: 'не прямое наблюдение с конкретной станции, а расчёт/модель для координаты'
+      }
+    };
+  }
+
+
+  async function fetchOpenMeteoGfs(period){
+    const nowLocal = floorToHourInput(toDateInput(new Date(), state.location?.timezone || undefined));
+    const startDate = new Date(period.start);
+    const endDate = new Date(period.end);
+    const nowDate = new Date(nowLocal);
+    const startDaysFromNow = (startDate - nowDate) / 86400000;
+    const endDaysFromNow = (endDate - nowDate) / 86400000;
+    if (startDaysFromNow < -7 || endDaysFromNow > 16) {
+      throw new Error('Open‑Meteo GFS/NOAA доступен как резерв для последних 7 дней и прогноза примерно на 16 дней. Для более старого архива используйте обычный Open‑Meteo Historical или NASA POWER.');
+    }
+    const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
+    const variables = 'wind_speed_10m,wind_direction_10m,wind_gusts_10m,temperature_2m,relative_humidity_2m,precipitation';
+    const params = new URLSearchParams({
+      latitude: lat,
+      longitude: lon,
+      hourly: variables,
+      wind_speed_unit: 'ms',
+      timezone: 'auto',
+      past_days: '7',
+      forecast_days: '16',
+      models: 'gfs_seamless'
+    });
+    const url = 'https://api.open-meteo.com/v1/forecast?' + params.toString();
+    const data = await fetchJson(url);
+    if (data.timezone && state.location) state.location.timezone = data.timezone;
+    const h = data.hourly;
+    if (!h || !h.time?.length) throw new Error('API не вернул почасовые данные GFS.');
+    const rows = [];
+    for (let i=0; i<h.time.length; i++) {
+      rows.push({
+        time: h.time[i],
+        speed: h.wind_speed_10m?.[i] == null ? null : Number(h.wind_speed_10m[i]),
+        dir: h.wind_direction_10m?.[i] == null ? null : Number(h.wind_direction_10m[i]),
+        gust: h.wind_gusts_10m?.[i] == null ? null : Number(h.wind_gusts_10m[i]),
+        temp: h.temperature_2m?.[i] == null ? null : Number(h.temperature_2m[i]),
+        rh: h.relative_humidity_2m?.[i] == null ? null : Number(h.relative_humidity_2m[i]),
+        precip: h.precipitation?.[i] == null ? null : Number(h.precipitation[i])
+      });
+    }
+    const filtered = filterRowsToPeriod(rows, period.start, period.end);
+    if (!filtered.length) throw new Error('в выбранном периоде нет почасовых точек GFS/NOAA.');
+    return {
+      rows: filtered,
+      url,
+      endpoint: 'openmeteo_gfs_noaa_forecast',
+      sourceLabel: 'Open‑Meteo GFS/NOAA Forecast API',
+      meta: {
+        sourceName: 'Open‑Meteo GFS/NOAA Forecast API',
+        dataType: 'почасовые данные модели NOAA GFS через Open‑Meteo; это резервная модель, отличная от режима Open‑Meteo Best Match',
+        station: 'этим источником не выдаётся',
+        distance: 'недоступно',
+        note: 'источник без ключа; подходит для последних 7 дней и прогноза, но не является независимым сайтом — данные отдаются через инфраструктуру Open‑Meteo'
+      }
+    };
+  }
+
+  async function fetchMetNo(period){
+    const lat = Number(state.location.latitude).toFixed(4), lon = Number(state.location.longitude).toFixed(4);
+    const url = 'https://api.met.no/weatherapi/locationforecast/2.0/compact?' + new URLSearchParams({lat, lon}).toString();
+    const data = await fetchJson(url);
+    const ts = data.properties?.timeseries || [];
+    if (!ts.length) throw new Error('API не вернул прогнозные точки.');
+    const tz = state.location?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+    const rows = ts.map(item => {
+      const det = item.data?.instant?.details || {};
+      const p1 = item.data?.next_1_hours?.details?.precipitation_amount;
+      const p6 = item.data?.next_6_hours?.details?.precipitation_amount;
+      return {
+        time: floorToHourInput(toDateInput(new Date(item.time), tz)),
+        speed: det.wind_speed == null ? null : Number(det.wind_speed),
+        dir: det.wind_from_direction == null ? null : Number(det.wind_from_direction),
+        gust: det.wind_speed_of_gust == null ? null : Number(det.wind_speed_of_gust),
+        temp: det.air_temperature == null ? null : Number(det.air_temperature),
+        rh: det.relative_humidity == null ? null : Number(det.relative_humidity),
+        precip: p1 == null ? (p6 == null ? null : Number(p6)) : Number(p1)
+      };
+    });
+    const filtered = filterRowsToPeriod(rows, period.start, period.end);
+    if (!filtered.length) throw new Error('в выбранном периоде нет данных; MET Norway подходит в основном для прогноза.');
+    return {
+      rows: filtered,
+      url,
+      endpoint: 'metno_forecast',
+      sourceLabel: 'MET Norway Locationforecast API',
+      meta: {
+        sourceName: 'MET Norway Locationforecast API',
+        dataType: 'прогнозные модельные данные для выбранной координаты',
+        station: 'этим источником не выдаётся',
+        distance: 'недоступно',
+        note: 'источник без ключа; в браузере нельзя задать User-Agent, поэтому сервис иногда может отклонять прямые запросы'
+      }
+    };
+  }
+
+  async function fetchNasaPower(period){
+    const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
+    const start = ymdForApi(period.start), end = ymdForApi(period.end);
+    const params = new URLSearchParams({
+      parameters: 'WS10M,WD10M,T2M,RH2M,PRECTOTCORR',
+      community: 'AG',
+      longitude: lon,
+      latitude: lat,
+      start,
+      end,
+      'time-standard': 'UTC',
+      format: 'JSON'
+    });
+    const url = 'https://power.larc.nasa.gov/api/temporal/hourly/point?' + params.toString();
+    const data = await fetchJson(url);
+    const p = data.properties?.parameter || {};
+    const speedObj = p.WS10M || {};
+    const dirObj = p.WD10M || {};
+    const keys = Object.keys(speedObj).sort();
+    if (!keys.length) throw new Error('NASA POWER не вернул WS10M.');
+    const tz = state.location?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+    const rows = keys.map(k => {
+      const speed = Number(speedObj[k]);
+      const dir = Number(dirObj[k]);
+      return {
+        time: utcKeyToLocalInput(k, tz),
+        speed: speed <= -900 ? null : speed,
+        dir: dir <= -900 ? null : dir,
+        gust: null,
+        temp: p.T2M?.[k] == null || Number(p.T2M[k]) <= -900 ? null : Number(p.T2M[k]),
+        rh: p.RH2M?.[k] == null || Number(p.RH2M[k]) <= -900 ? null : Number(p.RH2M[k]),
+        precip: p.PRECTOTCORR?.[k] == null || Number(p.PRECTOTCORR[k]) <= -900 ? null : Number(p.PRECTOTCORR[k])
+      };
+    });
+    const filtered = filterRowsToPeriod(rows, period.start, period.end);
+    if (!filtered.length) throw new Error('в выбранном периоде нет данных; NASA POWER обычно не подходит для будущего прогноза и может иметь задержку NRT.');
+    return {
+      rows: filtered,
+      url,
+      endpoint: 'nasa_power_hourly',
+      sourceLabel: 'NASA POWER Hourly API',
+      meta: {
+        sourceName: 'NASA POWER Hourly API',
+        dataType: 'сеточные MERRA‑2/POWER данные по координате; время запрошено в UTC и переведено в локальное отображение',
+        station: 'этим источником не выдаётся',
+        distance: 'недоступно',
+        note: 'это не ближайшая метеостанция; данные полезны как резервная архивная/недавняя сеточная оценка'
+      }
+    };
+  }
+
+
+  function visualCrossingStationMeta(data){
+    const stationsObj = data.stations || {};
+    const usedIds = new Set();
+    for (const day of (data.days || [])) {
+      (day.stations || []).forEach(id => usedIds.add(id));
+    }
+    const ids = [...usedIds];
+    const candidates = ids.map(id => ({id, ...(stationsObj[id] || {})})).filter(s => s.id);
+    if (!candidates.length) return {station:'не указана в ответе', distance:'недоступно'};
+    const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
+    for (const s of candidates) {
+      if (s.latitude != null && s.longitude != null && s.distance == null) s.distance = haversineKm(lat, lon, Number(s.latitude), Number(s.longitude));
+    }
+    candidates.sort((a,b) => (Number(a.distance) || Infinity) - (Number(b.distance) || Infinity));
+    const c = candidates[0];
+    const name = c.name || c.id;
+    const dist = c.distance == null ? 'недоступно' : `${round(Number(c.distance),1)} км`;
+    return {station:`${name} (${c.id})`, distance:dist};
+  }
+
+  async function fetchVisualCrossing(period){
+    const key = ($('visualCrossingKey')?.value || '').trim();
+    if (!key) throw new Error('для Visual Crossing нужен API‑ключ.');
+    const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
+    const startDate = datePart(period.start), endDate = datePart(period.end);
+    const loc = `${lat},${lon}`;
+    const url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${encodeURIComponent(loc)}/${startDate}/${endDate}?` + new URLSearchParams({
+      unitGroup: 'metric',
+      include: 'hours',
+      key,
+      contentType: 'json',
+      lang: 'ru'
+    }).toString();
+    const data = await fetchJson(url);
+    const rows = [];
+    for (const day of (data.days || [])) {
+      for (const h of (day.hours || [])) {
+        const dt = `${day.datetime}T${String(h.datetime || '00:00:00').slice(0,5)}`;
+        rows.push({
+          time: dt,
+          speed: h.windspeed == null ? null : Number(h.windspeed) / 3.6,
+          dir: h.winddir == null ? null : Number(h.winddir),
+          gust: h.windgust == null ? null : Number(h.windgust) / 3.6,
+          temp: h.temp == null ? null : Number(h.temp),
+          rh: h.humidity == null ? null : Number(h.humidity),
+          precip: h.precip == null ? null : Number(h.precip)
+        });
+      }
+    }
+    const filtered = filterRowsToPeriod(rows, period.start, period.end);
+    if (!filtered.length) throw new Error('в выбранном периоде нет почасовых данных.');
+    const st = visualCrossingStationMeta(data);
+    return {
+      rows: filtered,
+      url,
+      endpoint: 'visualcrossing_timeline',
+      sourceLabel: 'Visual Crossing Timeline API',
+      meta: {
+        sourceName: 'Visual Crossing Timeline API',
+        dataType: 'почасовые исторические/прогнозные данные; windspeed/windgust переведены из км/ч в м/с',
+        station: st.station,
+        distance: st.distance,
+        note: 'при исторических наблюдениях API может возвращать список использованных станций; для прогноза станция может отсутствовать'
+      }
+    };
+  }
+
+
+  async function fetchYandex(period){
+    const key = getKey('yandexKey');
+    if (!key) throw new Error('для Яндекс/Meteum нужен API‑ключ.');
+    const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
+    const params = new URLSearchParams({
+      lat: lat,
+      lon: lon,
+      lang: 'ru_RU',
+      hours: 'true',
+      extra: 'true',
+      limit: '7'
+    });
+    const url = 'https://api.weather.yandex.ru/v2/forecast?' + params.toString();
+    const data = await fetchJson(url, {headers:{'X-Yandex-API-Key': key}});
+    const tz = state.location?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+    const rows = [];
+    for (const day of (data.forecasts || [])) {
+      const date = day.date || (day.date_ts ? toDateInput(new Date(Number(day.date_ts)*1000), tz).slice(0,10) : null);
+      for (const h of (day.hours || [])) {
+        let time = null;
+        if (h.hour_ts != null) time = floorToHourInput(toDateInput(new Date(Number(h.hour_ts)*1000), tz));
+        else if (h.datetime) time = isoToLocalHour(h.datetime);
+        else if (date && h.hour != null) time = `${date}T${String(h.hour).padStart(2,'0')}:00`;
+        const dir = parseWindDirection(h.wind_dir ?? h.wind_direction ?? h.wind_dir_name);
+        rows.push({
+          time,
+          speed: firstFinite(h.wind_speed, h.windSpeed),
+          dir,
+          gust: firstFinite(h.wind_gust, h.windGust),
+          temp: firstFinite(h.temp, h.temperature),
+          rh: firstFinite(h.humidity),
+          precip: firstFinite(h.prec_mm, h.prec_period, h.prec)
+        });
+      }
+    }
+    const filtered = filterRowsToPeriod(rows, period.start, period.end);
+    if (!filtered.length) throw new Error('в выбранном периоде нет почасовых данных; Яндекс/Meteum обычно даёт прогноз, не длинный архив.');
+    return {
+      rows: filtered,
+      url,
+      endpoint: 'yandex_meteum_forecast',
+      sourceLabel: 'Яндекс/Meteum Forecast API',
+      meta: {
+        sourceName: 'Яндекс/Meteum Forecast API',
+        dataType: 'почасовой прогноз по координате; направление ветра разобрано из wind_dir, скорость в м/с',
+        station: 'этим источником не выдаётся в используемом endpoint’е',
+        distance: 'недоступно',
+        note: 'приоритетный РФ/СНГ‑источник при наличии ключа; в чистом HTML может быть ограничен CORS/тарифом'
+      }
+    };
+  }
+
+  function collectObjects(root, predicate, out=[]){
+    if (!root || typeof root !== 'object') return out;
+    if (predicate(root)) out.push(root);
+    if (Array.isArray(root)) root.forEach(x => collectObjects(x, predicate, out));
+    else Object.values(root).forEach(x => collectObjects(x, predicate, out));
+    return out;
+  }
+
+  async function fetchGismeteo(period){
+    const key = getKey('gismeteoKey');
+    if (!key) throw new Error('для Gismeteo нужен токен.');
+    const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
+    const params = new URLSearchParams({latitude: lat, longitude: lon, days: '10'});
+    const url = 'https://api.gismeteo.net/v2/weather/forecast/step3/?' + params.toString();
+    const data = await fetchJson(url, {headers:{'X-Gismeteo-Token': key}});
+    const objects = Array.isArray(data.response) ? data.response : collectObjects(data.response || data, o => o && o.date && o.wind);
+    const rows = objects.map(item => {
+      const date = item.date || {};
+      const wind = item.wind || {};
+      const speed = firstFinite(wind.speed?.m_s, wind.speed?.ms, wind.speed?.value, wind.speed);
+      const dir = parseWindDirection(firstFinite(wind.direction?.degree, wind.direction?.degrees, wind.direction?.value) ?? wind.direction?.scale_8 ?? wind.direction?.name ?? wind.direction);
+      const temp = item.temperature?.air?.C ?? item.temperature?.air?.c ?? item.temperature?.air ?? item.temp;
+      const precip = firstFinite(item.precipitation?.amount, item.precipitation?.water, item.precipitation?.mm, item.precipitation);
+      return {
+        time: isoToLocalHour(date.local || date.utc || date.UTC || item.datetime || item.date_time),
+        speed,
+        dir,
+        gust: firstFinite(wind.gust?.m_s, wind.gust?.ms, wind.gust?.value, wind.gust),
+        temp: firstFinite(temp),
+        rh: firstFinite(item.humidity?.percent, item.humidity),
+        precip
+      };
+    });
+    const filtered = filterRowsToPeriod(rows, period.start, period.end);
+    if (!filtered.length) throw new Error('в выбранном периоде нет данных; Gismeteo step3 — прогноз с шагом около 3 часов.');
+    return {
+      rows: filtered,
+      url,
+      endpoint: 'gismeteo_forecast_step3',
+      sourceLabel: 'Gismeteo Forecast API step3',
+      meta: {
+        sourceName: 'Gismeteo Forecast API step3',
+        dataType: 'прогноз с шагом около 3 часов по координате; скорость в м/с',
+        station: 'этим endpoint’ом не выдаётся',
+        distance: 'недоступно',
+        note: 'приоритетный РФ/СНГ‑источник при наличии токена; структура B2B‑ответа может отличаться по тарифу'
+      }
+    };
+  }
+
+  async function fetchDanio(period){
+    const cid = getKey('danioCid');
+    if (!cid) throw new Error('для ДАНИО/HMN нужен cid.');
+    const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
+    const params = new URLSearchParams({
+      type: '1',
+      mode: 'point',
+      format: 'json',
+      lat: lat,
+      lon: lon,
+      cid: cid
+    });
+    const url = 'http://lb1.hmn.ru/api/dw_api_v1.php?' + params.toString();
+    const data = await fetchJson(url);
+    const objects = collectObjects(data, o => o && (o.wind_dir != null || o.wind_direction != null || o.wind_speed != null || o.wind_speed_avg != null) && (o.date || o.valid_date || o.obs_time || o.time));
+    const rows = objects.map(item => {
+      const timeRaw = item.date || item.valid_date || item.obs_time || item.time || item.dt;
+      const speed = firstFinite(item.wind_speed, item.wind_speed_avg, item.wind_avg, item.ws);
+      const gust = firstFinite(item.wind_gust, item.wind_speed_max, item.wind_max, item.gust);
+      const dir = parseWindDirection(item.wind_dir ?? item.wind_direction ?? item.wd);
+      return {
+        time: isoToLocalHour(timeRaw),
+        speed,
+        dir,
+        gust,
+        temp: firstFinite(item.temp, item.temperature, item.t),
+        rh: firstFinite(item.humidity, item.rh),
+        precip: firstFinite(item.precipitation, item.precip, item.rain)
+      };
+    });
+    const filtered = filterRowsToPeriod(rows, period.start, period.end);
+    if (!filtered.length) throw new Error('ДАНИО/HMN ответил, но в выбранном периоде не удалось выделить почасовые точки ветра.');
+    const stationName = data?.fact?.station_name || data?.station?.name || data?.info?.name || 'ближайшая фактическая/расчётная точка ДАНИО/HMN';
+    const distRaw = firstFinite(data?.fact?.dist, data?.station?.dist, data?.info?.dist, data?.point?.dist);
+    return {
+      rows: filtered,
+      url,
+      endpoint: 'danio_hmn_point',
+      sourceLabel: 'ДАНИО/HMN Weather API',
+      meta: {
+        sourceName: 'ДАНИО/HMN Weather API',
+        dataType: 'российский API факт/прогноз по точке; структура ответа зависит от доступного блока и cid',
+        station: stationName,
+        distance: distRaw == null ? 'недоступно' : `${round(distRaw,1)} км`,
+        note: 'API в документации указан по HTTP; из некоторых браузеров/сетей запрос может блокироваться как смешанный контент или CORS'
+      }
+    };
+  }
+
+  async function fetchOpenWeather(period){
+    const key = getKey('openWeatherKey');
+    if (!key) throw new Error('для OpenWeather нужен API‑ключ.');
+    const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
+    const params = new URLSearchParams({lat: lat, lon: lon, appid: key, units: 'metric', lang: 'ru'});
+    const url = 'https://api.openweathermap.org/data/2.5/forecast?' + params.toString();
+    const data = await fetchJson(url);
+    const tz = state.location?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+    const rows = (data.list || []).map(item => {
+      const time = item.dt != null ? floorToHourInput(toDateInput(new Date(Number(item.dt)*1000), tz)) : isoToLocalHour(item.dt_txt);
+      return {
+        time,
+        speed: firstFinite(item.wind?.speed),
+        dir: parseWindDirection(item.wind?.deg),
+        gust: firstFinite(item.wind?.gust),
+        temp: firstFinite(item.main?.temp),
+        rh: firstFinite(item.main?.humidity),
+        precip: firstFinite(item.rain?.['3h'], item.snow?.['3h'], item.rain?.['1h'], item.snow?.['1h'])
+      };
+    });
+    const filtered = filterRowsToPeriod(rows, period.start, period.end);
+    if (!filtered.length) throw new Error('в выбранном периоде нет данных; OpenWeather Forecast даёт 5 дней с шагом около 3 часов.');
+    return {
+      rows: filtered,
+      url,
+      endpoint: 'openweather_forecast_5day',
+      sourceLabel: 'OpenWeather 5 day / 3 hour Forecast API',
+      meta: {
+        sourceName: 'OpenWeather 5 day / 3 hour Forecast API',
+        dataType: 'прогноз по координате с шагом около 3 часов; скорость ветра в м/с',
+        station: data.city?.name ? `расчётная точка/город: ${data.city.name}` : 'этим endpoint’ом не выдаётся',
+        distance: 'недоступно',
+        note: 'не СНГ‑источник, но полезный резерв при наличии ключа'
+      }
+    };
+  }
+
+
+  async function fetchWeatherApi(period){
+    const key = getKey('weatherApiKey');
+    if (!key) throw new Error('для WeatherAPI.com нужен API‑ключ.');
+    const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
+    const q = `${lat},${lon}`;
+    const nowLocal = floorToHourInput(toDateInput(new Date(), state.location?.timezone || undefined));
+    const startDate = datePart(period.start), endDate = datePart(period.end);
+    let url;
+    if (period.end < nowLocal) {
+      url = 'https://api.weatherapi.com/v1/history.json?' + new URLSearchParams({key, q, dt:startDate, end_dt:endDate, aqi:'no', alerts:'no'}).toString();
+    } else {
+      const days = Math.max(1, Math.min(14, Math.ceil((new Date(endDate) - new Date(datePart(nowLocal))) / 86400000) + 1));
+      url = 'https://api.weatherapi.com/v1/forecast.json?' + new URLSearchParams({key, q, days:String(days), aqi:'no', alerts:'no'}).toString();
+    }
+    const data = await fetchJson(url);
+    const rows = [];
+    for (const day of (data.forecast?.forecastday || [])) {
+      for (const h of (day.hour || [])) {
+        rows.push({
+          time: isoToLocalHour(h.time),
+          speed: firstFinite(h.wind_kph) == null ? null : Number(h.wind_kph) / 3.6,
+          dir: parseWindDirection(h.wind_degree ?? h.wind_dir),
+          gust: firstFinite(h.gust_kph) == null ? null : Number(h.gust_kph) / 3.6,
+          temp: firstFinite(h.temp_c),
+          rh: firstFinite(h.humidity),
+          precip: firstFinite(h.precip_mm)
+        });
+      }
+    }
+    const filtered = filterRowsToPeriod(rows, period.start, period.end);
+    if (!filtered.length) throw new Error('в выбранном периоде нет почасовых данных; проверьте тариф/доступность forecast/history WeatherAPI.com.');
+    return {
+      rows: filtered,
+      url,
+      endpoint: period.end < nowLocal ? 'weatherapi_history' : 'weatherapi_forecast',
+      sourceLabel: 'WeatherAPI.com',
+      meta: {
+        sourceName: 'WeatherAPI.com',
+        dataType: 'почасовые прогнозные или исторические данные; wind_kph/gust_kph переведены в м/с',
+        station: data.location?.name ? `расчётная точка: ${data.location.name}` : 'этим endpoint’ом не выдаётся',
+        distance: 'недоступно',
+        note: 'глобальный резервный источник при наличии ключа; для истории могут действовать тарифные ограничения'
+      }
+    };
+  }
+
+  function directionFromUV(u, v){
+    if (!Number.isFinite(u) || !Number.isFinite(v)) return null;
+    // u/v задают, куда движется воздух. Метеонаправление «откуда дует» — обратное.
+    return normDeg(Math.atan2(-u, -v) * 180 / Math.PI);
+  }
+
+  async function fetchWindy(period){
+    const key = getKey('windyKey');
+    if (!key) throw new Error('для Windy Point Forecast нужен API‑ключ.');
+    const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
+    const url = 'https://api.windy.com/api/point-forecast/v2';
+    const body = {
+      lat,
+      lon,
+      model: 'gfs',
+      parameters: ['wind','windGust','temp','rh'],
+      levels: ['surface'],
+      key
+    };
+    const data = await fetchJson(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    const ts = data.ts || data.timestamps || [];
+    const u = data['wind_u-surface'] || data['wind_u_10m-surface'] || data['wind_u-10m'] || data.wind_u || [];
+    const v = data['wind_v-surface'] || data['wind_v_10m-surface'] || data['wind_v-10m'] || data.wind_v || [];
+    const gustArr = data['gust-surface'] || data['windGust-surface'] || data['wind_gust-surface'] || [];
+    const tempArr = data['temp-surface'] || data.temp || [];
+    const rhArr = data['rh-surface'] || data.rh || [];
+    const tz = state.location?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || undefined;
+    const rows = ts.map((t,i) => {
+      const uu = Number(u[i]), vv = Number(v[i]);
+      const speed = Number.isFinite(uu) && Number.isFinite(vv) ? Math.sqrt(uu*uu + vv*vv) : null;
+      const tempRaw = firstFinite(tempArr[i]);
+      return {
+        time: floorToHourInput(toDateInput(new Date(Number(t)), tz)),
+        speed,
+        dir: directionFromUV(uu, vv),
+        gust: firstFinite(gustArr[i]),
+        temp: tempRaw == null ? null : (tempRaw > 100 ? tempRaw - 273.15 : tempRaw),
+        rh: firstFinite(rhArr[i]),
+        precip: null
+      };
+    });
+    const filtered = filterRowsToPeriod(rows, period.start, period.end);
+    if (!filtered.length) throw new Error('в выбранном периоде нет данных; Windy Point Forecast подходит в основном для прогноза.');
+    return {
+      rows: filtered,
+      url,
+      endpoint: 'windy_point_forecast_gfs',
+      sourceLabel: 'Windy Point Forecast API',
+      meta: {
+        sourceName: 'Windy Point Forecast API',
+        dataType: 'прогноз GFS по координате; направление вычислено из U/V-компонент ветра',
+        station: 'этим источником не выдаётся',
+        distance: 'недоступно',
+        note: 'резервный прогнозный источник при наличии ключа'
+      }
+    };
+  }
+
+  async function fetchWeatherForSource(id, period){
+    if (id === 'yandex') return await fetchYandex(period);
+    if (id === 'gismeteo') return await fetchGismeteo(period);
+    if (id === 'danio') return await fetchDanio(period);
+    if (id === 'openweather') return await fetchOpenWeather(period);
+    if (id === 'weatherapi') return await fetchWeatherApi(period);
+    if (id === 'windy') return await fetchWindy(period);
+    if (id === 'visualcrossing') return await fetchVisualCrossing(period);
+    if (id === 'openmeteo') return await fetchOpenMeteo(period);
+    if (id === 'metno') return await fetchMetNo(period);
+    if (id === 'nasa') return await fetchNasaPower(period);
+    if (id === 'openmeteogfs') return await fetchOpenMeteoGfs(period);
+    throw new Error('неизвестный источник данных.');
+  }
+
+  async function loadWeather(){
+    const period = getPeriodWindow();
+    const sources = selectedSourceIds(period.start, period.end);
+    const manual = ($('sourceSelect')?.value || 'auto') !== 'auto';
+    const errors = [];
+    state.lastTriedSources = [];
+    state.lastSourceMeta = null;
+    for (const id of sources) {
+      state.lastTriedSources.push({id, status:'trying'});
+      setStatus($('loadStatus'), `Пробую источник: ${sourceHumanName(id)}…`);
+      try {
+        const result = await fetchWeatherForSource(id, period);
+        if (!result.rows?.length) throw new Error('источник ответил, но не дал подходящих почасовых точек.');
+        state.rows = result.rows;
+        state.lastApiUrl = result.url;
+        state.lastEndpoint = result.endpoint;
+        state.lastSourceLabel = result.sourceLabel;
+        state.lastSourceMeta = result.meta;
+        const last = state.lastTriedSources[state.lastTriedSources.length-1];
+        last.status = 'ok';
+        last.message = `${result.rows.length} ч`;
+        updatePlaceStatus();
+        state.stats = analyze(result.rows);
+        renderAll();
+        const triedText = state.lastTriedSources.map(x => `${sourceHumanName(x.id)}: ${x.status === 'ok' ? 'успех' : 'ошибка'}`).join('; ');
+        setStatus($('loadStatus'), `Готово. Получено ${result.rows.length} почасовых точек. Источник: ${result.sourceLabel}.\nПроверка источников: ${triedText}.`, 'good');
+        return;
+      } catch(e) {
+        console.warn(id, e);
+        const msg = e.name === 'AbortError' ? 'тайм-аут запроса' : e.message;
+        const last = state.lastTriedSources[state.lastTriedSources.length-1];
+        last.status = 'error';
+        last.message = msg;
+        errors.push(`${sourceHumanName(id)}: ${msg}`);
+        if (manual) break;
+      }
+    }
+    const suffix = errors.length ? '\n' + errors.map(x => '• ' + x).join('\n') : '';
+    setStatus($('loadStatus'), 'Нет доступа к источникам информации или ни один источник не вернул данные для выбранного периода.' + suffix, 'bad');
+    renderSourceInfo();
+  }
+
+  function clamp(n, min, max){ return Math.min(max, Math.max(min, n)); }
+
+  function localDateFromHour(time){
+    const m = String(time || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (!m) return null;
+    return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]), Number(m[4]), Number(m[5]));
+  }
+
+  function dayOfYear(d){
+    const start = new Date(d.getFullYear(), 0, 0);
+    return Math.floor((d - start) / 86400000);
+  }
+
+  function estimateSolarElevation(time, lat){
+    const d = localDateFromHour(time);
+    if (!d || !Number.isFinite(lat)) return null;
+    const n = dayOfYear(d);
+    const decl = 23.44 * Math.sin((360 / 365) * (n - 81) * Math.PI / 180);
+    const hour = d.getHours() + d.getMinutes()/60;
+    const ha = 15 * (hour - 12);
+    const toRad = x => x * Math.PI / 180;
+    const sinEl = Math.sin(toRad(lat))*Math.sin(toRad(decl)) + Math.cos(toRad(lat))*Math.cos(toRad(decl))*Math.cos(toRad(ha));
+    return Math.asin(clamp(sinEl, -1, 1)) * 180 / Math.PI;
+  }
+
+  function scentFactorForRow(r){
+    const lat = Number(state.location?.latitude);
+    const sun = estimateSolarElevation(r.time, lat);
+    const speed = Number(r.speed || 0);
+    const gust = Number(r.gust || 0);
+    const temp = Number(r.temp);
+    const rh = Number(r.rh);
+    const precip = Number(r.precip || 0);
+    let factor = 1;
+    const reasons = [];
+
+    if (Number.isFinite(rh)) {
+      if (rh >= 55 && rh <= 90) { factor *= 1.18; reasons.push('рабочая влажность'); }
+      else if (rh > 90) { factor *= 1.03; reasons.push('очень высокая влажность'); }
+      else if (rh < 35) { factor *= 0.68; reasons.push('сухой воздух'); }
+      else { factor *= 0.92; }
+    }
+    if (Number.isFinite(temp)) {
+      if (temp >= 5 && temp <= 18) factor *= 1.12;
+      else if (temp > 25 && temp <= 30) { factor *= 0.78; reasons.push('тепло ускоряет распад'); }
+      else if (temp > 30) { factor *= 0.58; reasons.push('жара ускоряет распад'); }
+      else if (temp < -5) { factor *= 0.72; reasons.push('мороз снижает летучесть'); }
+    }
+    if (sun != null) {
+      if (sun > 45) { factor *= 0.58; reasons.push('активное солнце'); }
+      else if (sun > 25) { factor *= 0.75; reasons.push('солнечная нагрузка'); }
+      else if (sun < -3) { factor *= 1.15; reasons.push('ночной режим'); }
+    }
+    if (precip > 0) {
+      if (precip >= 5) { factor *= 0.25; reasons.push('сильный дождь/смыв'); }
+      else if (precip >= 1) { factor *= 0.45; reasons.push('дождь'); }
+      else { factor *= 0.82; reasons.push('слабые осадки'); }
+    }
+    if (speed < 0.5) { factor *= 0.70; reasons.push('почти штиль'); }
+    else if (speed >= 0.5 && speed <= 4) factor *= 1.05;
+    else if (speed > 8) { factor *= 0.62; reasons.push('сильный ветер рассеивает'); }
+    else if (speed > 4) factor *= 0.85;
+    if (gust && speed && gust / Math.max(speed,0.1) >= 2.5) { factor *= 0.86; reasons.push('порывистость'); }
+    return {factor:clamp(factor, 0.05, 1.55), sun, reasons};
+  }
+
+  function prepareScentWeights(rows){
+    const times = rows.map(r => localDateFromHour(r.time)).filter(Boolean).map(d => d.getTime());
+    const maxT = times.length ? Math.max(...times) : null;
+    const enriched = rows.map(r => {
+      const sf = scentFactorForRow(r);
+      const t = localDateFromHour(r.time)?.getTime();
+      const ageH = maxT && t ? Math.max(0, (maxT - t) / 3600000) : 0;
+      const halfLife = 2.5 + 12 * clamp(sf.factor / 1.2, 0.05, 1.25);
+      const ageWeight = Math.exp(-ageH / halfLife);
+      r.scentFactor = sf.factor;
+      r.scentAgeHours = ageH;
+      r.scentWeight = clamp(sf.factor * ageWeight, 0.02, 1.55);
+      r.solarElevation = sf.sun;
+      r.scentReasons = sf.reasons;
+      return r;
+    });
+    return enriched;
+  }
+
+  function scentDurabilityLabel(score){
+    if (score >= 72) return {text:'хорошая', cls:'good'};
+    if (score >= 52) return {text:'средняя', cls:'warn'};
+    if (score >= 32) return {text:'низкая', cls:'warn'};
+    return {text:'плохая', cls:'bad'};
+  }
+
+  function describeScentDurability(rows){
+    const n = rows.length || 1;
+    const avgWeight = rows.reduce((a,r)=>a+(r.scentWeight ?? 1),0)/n;
+    const avgFactor = rows.reduce((a,r)=>a+(r.scentFactor ?? 1),0)/n;
+    const precipHours = rows.filter(r => (r.precip || 0) > 0).length;
+    const heavyRainHours = rows.filter(r => (r.precip || 0) >= 1).length;
+    const sunHours = rows.filter(r => Number.isFinite(r.solarElevation) && r.solarElevation > 25).length;
+    const strongSunHours = rows.filter(r => Number.isFinite(r.solarElevation) && r.solarElevation > 45).length;
+    const nightHours = rows.filter(r => Number.isFinite(r.solarElevation) && r.solarElevation < -3).length;
+    const hotHours = rows.filter(r => Number.isFinite(r.temp) && r.temp > 25).length;
+    const dryHours = rows.filter(r => Number.isFinite(r.rh) && r.rh < 35).length;
+    const humidGoodHours = rows.filter(r => Number.isFinite(r.rh) && r.rh >= 55 && r.rh <= 90).length;
+    const strongWindHours = rows.filter(r => (r.speed || 0) > 8).length;
+    const calmHours = rows.filter(r => (r.speed || 0) < 0.5).length;
+    let score = 55 + (avgFactor - 1) * 38;
+    score += humidGoodHours/n * 12;
+    score += nightHours/n * 8;
+    score -= sunHours/n * 13;
+    score -= strongSunHours/n * 10;
+    score -= hotHours/n * 9;
+    score -= dryHours/n * 12;
+    score -= precipHours/n * 10;
+    score -= heavyRainHours/n * 18;
+    score -= strongWindHours/n * 10;
+    score -= calmHours/n * 4;
+    score = clamp(score, 5, 95);
+    const label = scentDurabilityLabel(score);
+    const halfLife = 2.5 + 12 * (score/100);
+    const usefulHours = Math.max(1, Math.round(halfLife * 1.3));
+    const details = [];
+    if (humidGoodHours) details.push(`рабочая влажность ${humidGoodHours} ч`);
+    if (nightHours) details.push(`ночной/низкосолнечный режим ${nightHours} ч`);
+    if (sunHours) details.push(`солнечная нагрузка ${sunHours} ч`);
+    if (hotHours) details.push(`температура выше 25°C ${hotHours} ч`);
+    if (dryHours) details.push(`сухой воздух ${dryHours} ч`);
+    if (precipHours) details.push(`осадки ${precipHours} ч, из них заметные ${heavyRainHours} ч`);
+    if (strongWindHours) details.push(`сильный ветер ${strongWindHours} ч`);
+    if (calmHours) details.push(`почти штиль ${calmHours} ч`);
+    return {score, label, halfLife, usefulHours, avgWeight, details, counts:{precipHours, heavyRainHours, sunHours, strongSunHours, nightHours, hotHours, dryHours, humidGoodHours, strongWindHours, calmHours}};
+  }
+
+  function vectorStats(rows, mode, minSpeed){
+    let x=0, y=0, wsum=0;
+    for (const r of rows) {
+      const speed = r.speed || 0;
+      if (speed < minSpeed) continue;
+      const scentWeight = mode === 'scent' ? (r.scentWeight ?? 1) : 1;
+      const w = Math.max(speed, 0.1) * scentWeight;
+      const deg = mode === 'scent' ? normDeg(r.dir + 180) : normDeg(r.dir);
+      const rad = deg * Math.PI / 180;
+      x += Math.sin(rad) * w;
+      y += Math.cos(rad) * w;
+      wsum += w;
+    }
+    if (wsum <= 0) return {mean:null, r:0};
+    const mean = normDeg(Math.atan2(x, y) * 180 / Math.PI);
+    const res = Math.sqrt(x*x + y*y) / wsum;
+    return {mean, r:res};
+  }
+
+  function sectorStats(rows, mode, bins, minSpeed){
+    const shortList = bins === 8 ? DIR8 : DIR16;
+    const fullList = bins === 8 ? DIR8_FULL : DIR16_FULL;
+    const sectors = Array.from({length:bins}, (_,i)=>({
+      index:i, name:fullList[i], short:shortList[i], center:i*360/bins, count:0, speedSum:0, weighted:0, gustMax:null, classes:Array(SPEED_CLASSES.length).fill(0)
+    }));
+    let calm = 0, ignored = 0;
+    for (const r of rows) {
+      const speed = r.speed || 0;
+      if (speed < minSpeed) { ignored++; if (speed < 0.5) calm++; continue; }
+      const scentWeight = mode === 'scent' ? (r.scentWeight ?? 1) : 1;
+      const durationWeight = mode === 'scent' ? scentWeight : 1;
+      const deg = mode === 'scent' ? normDeg(r.dir + 180) : normDeg(r.dir);
+      const i = binIndex(deg, bins);
+      const s = sectors[i];
+      s.count += durationWeight;
+      s.speedSum += speed * durationWeight;
+      s.weighted += speed * durationWeight;
+      s.gustMax = s.gustMax == null ? r.gust : Math.max(s.gustMax, r.gust ?? 0);
+      s.classes[classIndex(speed)] += durationWeight;
+    }
+    for (const s of sectors) s.avgSpeed = s.count ? s.speedSum / s.count : 0;
+    return {sectors, calm, ignored};
+  }
+
+  function analyze(rows){
+    rows = prepareScentWeights(rows);
+    const bins = Number($('binCount').value);
+    const minSpeed = Number($('minSpeed').value);
+    const speeds = rows.map(r=>r.speed).filter(Number.isFinite).sort((a,b)=>a-b);
+    const gusts = rows.map(r=>r.gust).filter(Number.isFinite);
+    const sum = speeds.reduce((a,b)=>a+b,0);
+    const avg = speeds.length ? sum / speeds.length : 0;
+    const median = speeds.length ? speeds[Math.floor(speeds.length/2)] : 0;
+    const max = speeds.length ? speeds[speeds.length-1] : 0;
+    const maxGust = gusts.length ? Math.max(...gusts) : null;
+    const calmCount = rows.filter(r=>(r.speed||0)<0.5).length;
+    const weakCount = rows.filter(r=>(r.speed||0)<2).length;
+    const rhValues = rows.map(r=>r.rh).filter(Number.isFinite);
+    const avgRh = rhValues.length ? rhValues.reduce((a,b)=>a+b,0) / rhValues.length : null;
+    const tempValues = rows.map(r=>r.temp).filter(Number.isFinite);
+    const avgTemp = tempValues.length ? tempValues.reduce((a,b)=>a+b,0) / tempValues.length : null;
+    const precipValues = rows.map(r=>r.precip).filter(Number.isFinite);
+    const precipTotal = precipValues.reduce((a,b)=>a+b,0);
+    const precipHours = rows.filter(r=>(r.precip||0) > 0).length;
+    let directionSwitches = 0, prevSector = null;
+    for (const r of rows) {
+      if ((r.speed||0) < minSpeed) continue;
+      const idx = binIndex(r.dir, bins);
+      if (prevSector !== null && idx !== prevSector) directionSwitches++;
+      prevSector = idx;
+    }
+
+    const windVec = vectorStats(rows,'wind',minSpeed);
+    const scentVec = vectorStats(rows,'scent',minSpeed);
+    const windSec = sectorStats(rows,'wind',bins,minSpeed);
+    const scentSec = sectorStats(rows,'scent',bins,minSpeed);
+
+    const dominantWind = [...windSec.sectors].sort((a,b)=>b.count-a.count || b.weighted-a.weighted)[0];
+    const dominantScent = [...scentSec.sectors].sort((a,b)=>b.count-a.count || b.weighted-a.weighted)[0];
+    const scentDurability = describeScentDurability(rows);
+
+    return {bins,minSpeed,total:rows.length,avg,median,max,maxGust,calmCount,weakCount,avgRh,avgTemp,precipTotal,precipHours,directionSwitches,windVec,scentVec,windSec,scentSec,dominantWind,dominantScent,scentDurability};
+  }
+
+  function stabilityLabel(r){
+    if (r >= 0.75) return {text:'высокая', cls:'good'};
+    if (r >= 0.50) return {text:'средняя', cls:'warn'};
+    if (r >= 0.25) return {text:'низкая', cls:'warn'};
+    return {text:'переменный ветер', cls:'bad'};
+  }
+
+  function renderAll(){
+    renderMetrics();
+    drawRose($('roseCanvas'));
+    renderLegend($('legendRose'));
+  updateActionState();
+    renderDataPanel();
+    renderScentDetails();
+    buildReport();
+  }
+
+  function renderMetrics(){
+    const s = state.stats;
+    if (!s) return;
+    const stability = stabilityLabel(s.scentVec.r);
+    const durability = s.scentDurability?.label || {text:'—', cls:''};
+    const windMean = formatDir(s.windVec.mean, s.bins);
+    const scentMean = formatDir(s.scentVec.mean, s.bins);
+    const calmPct = s.calmCount / s.total * 100;
+    const weakPct = s.weakCount / s.total * 100;
+    const topScent = [...s.scentSec.sectors].sort((a,b)=>b.count-a.count || b.weighted-a.weighted)[0];
+    const topWind = [...s.windSec.sectors].sort((a,b)=>b.count-a.count || b.weighted-a.weighted)[0];
+    const topScentPct = topScent ? topScent.count / Math.max(0.01, s.scentSec.sectors.reduce((a,b)=>a+b.count,0)) * 100 : 0;
+    const switchRate = s.total > 1 ? s.directionSwitches / (s.total-1) * 100 : 0;
+
+    $('metrics').innerHTML = `
+      <div class="metric"><span class="metricLabel">Усредненное направление ветра</span><b>${windMean}</b></div>
+      <div class="metric primary"><span class="metricLabel">Усредненное направление переноса запаха</span><b>${scentMean}</b></div>
+      <div class="metric ${durability.cls === 'good' ? 'goodish' : durability.cls === 'bad' ? 'badish' : 'warnish'}"><span class="metricLabel">Устойчивость запаха</span><b>${durability.text}</b></div>
+      <div class="metric ${stability.cls === 'good' ? 'goodish' : stability.cls === 'bad' ? 'badish' : 'warnish'}"><span class="metricLabel">Стабильность переноса</span><b>${stability.text}</b></div>
+      <div class="metric"><span class="metricLabel">Скорость ветра</span><b>${round(s.avg,1)} м/с</b><span>медиана ${round(s.median,1)} м/с</span></div>
+      <div class="metric"><span class="metricLabel">Осадки и влажность</span><b>${s.precipTotal ? round(s.precipTotal,1)+' мм' : 'без осадков'}</b><span>RH≈${s.avgRh == null ? '—' : round(s.avgRh,0)+'%'}</span></div>
+    `;
+
+    const lines = [];
+    lines.push(`Основной расчётный перенос запаха: ${scentMean}. Ветер в среднем дул из сектора: ${windMean}.`);
+    if (topWind && topScent) lines.push(`Чаще всего ветер приходил из сектора ${topWind.name}; после учёта возраста следа и погоды основной сектор переноса запаха — ${topScent.name}.`);
+    lines.push(`Устойчивость запаха: ${durability.text} (оценка ${round(s.scentDurability.score,0)}/100). Ориентировочный полезный хвост после смены ветра: около ${s.scentDurability.usefulHours} ч, но в лесу/низинах возможны локальные сохранения.`);
+    lines.push(`Стабильность переноса: ${stability.text}; смен сектора за период — ${s.directionSwitches}.`);
+    if (s.avg >= 2 && s.scentVec.r >= 0.65 && topScentPct >= 35 && s.scentDurability.score >= 52) {
+      lines.push('Картина пригодна для выбора основного сектора работы. Границы сектора держать с запасом по рельефу, растительности и возможным завихрениям.');
+    } else if (s.avg < 1 || calmPct >= 35) {
+      lines.push(`Ветер слабый: штиль/почти штиль ${round(calmPct,0)}% периода. В низинах, лесу и ночью запах может лежать пятнами, а не ровным шлейфом.`);
+    } else if (s.scentVec.r < 0.35 || switchRate >= 45) {
+      lines.push('Направление заметно гуляло. Смотрите почасовую динамику и несколько верхних секторов, не одну среднюю стрелку.');
+    } else if (weakPct >= 60) {
+      lines.push(`Слабый ветер до 2 м/с занимает ${round(weakPct,0)}% периода: в закрытой местности фактический перенос у земли может отличаться от модели 10 м.`);
+    }
+    if (s.maxGust != null && s.avg > 0 && s.maxGust / s.avg >= 2.5) lines.push('Порывы выражены: возможны короткие выбросы запаха дальше основного сектора, особенно на открытых местах и просеках.');
+    if (s.precipHours >= 2 || s.precipTotal >= 1) lines.push(`Осадки отмечены ${s.precipHours} ч, сумма ${round(s.precipTotal,1)} мм: слабое увлажнение может поддерживать запах, но заметный дождь снижает читаемость старого следа и смывает часть материала.`);
+    if (s.avgRh != null && s.avgRh >= 85 && s.avg < 2) lines.push(`Высокая влажность при слабом ветре (RH≈${round(s.avgRh,0)}%) усиливает зависимость от микрорельефа, ночного стока воздуха и закрытых участков.`);
+    setStatus($('analysisText'), lines.join('\n'), stability.cls);
+    renderSourceInfo();
+
+    const flags = [];
+    flags.push(`<span class="pill">точек данных: ${s.total}</span>`);
+    flags.push(`<span class="pill">штиль: ${round(calmPct,0)}%</span>`);
+    flags.push(`<span class="pill">слабее 2 м/с: ${round(weakPct,0)}%</span>`);
+    flags.push(`<span class="pill">смен сектора: ${s.directionSwitches}</span>`);
+    flags.push(`<span class="pill">R=${round(s.scentVec.r,2)}</span>`);
+    flags.push(`<span class="pill">запах: ${round(s.scentDurability.score,0)}/100</span>`);
+    flags.push(`<span class="pill">секторов: ${s.bins}</span>`);
+    flags.push(`<span class="pill">порог: ${s.minSpeed} м/с</span>`);
+    if (state.location?.timezone) flags.push(`<span class="pill">${escapeHtml(state.location.timezone)}</span>`);
+    $('flags').innerHTML = flags.join('');
+  }
+
+  function renderSourceInfo(){
+    const el = $('sourceInfo');
+    if (!el) return;
+    const l = state.location || {};
+    const meta = state.lastSourceMeta || {};
+    const source = meta.sourceName || state.lastSourceLabel || '—';
+    const dataType = meta.dataType || 'данные пока не загружены';
+    const station = meta.station || '—';
+    const distance = meta.distance || '—';
+    const note = meta.note || '';
+    const tried = (state.lastTriedSources || []).map(x => {
+      const mark = x.status === 'ok' ? '✓' : x.status === 'error' ? '×' : '…';
+      return `<span class="pill">${mark} ${escapeHtml(sourceHumanName(x.id))}${x.message ? ': ' + escapeHtml(x.message) : ''}</span>`;
+    }).join('');
+    el.innerHTML = `
+      <p><b>Источник данных:</b> ${escapeHtml(source)}.</p>
+      <p><b>Тип данных:</b> ${escapeHtml(dataType)}.</p>
+      <p><b>Точка расчёта:</b> ${round(l.latitude,5)}, ${round(l.longitude,5)}${l.timezone ? ` · ${escapeHtml(l.timezone)}` : ''}.</p>
+      <p><b>Метеостанция:</b> ${escapeHtml(station)}; <b>расстояние до станции:</b> ${escapeHtml(distance)}.</p>
+      ${note ? `<p><b>Примечание:</b> ${escapeHtml(note)}.</p>` : ''}
+      ${tried ? `<div class="pillbar">${tried}</div>` : ''}
+    `;
+  }
+
+  function renderScentDetails(){
+    const el = $('scentDetails');
+    const s = state.stats;
+    if (!el || !s?.scentDurability) return;
+    const d = s.scentDurability;
+    const c = d.counts || {};
+    const parts = [];
+    parts.push(`<p><b>Оценка:</b> ${escapeHtml(d.label.text)} · ${round(d.score,0)}/100. Ориентировочная половина полезности старой запаховой картины: около ${round(d.halfLife,1)} ч; практический хвост после переноса/смены ветра: примерно ${d.usefulHours} ч при сходных условиях.</p>`);
+    if (d.details.length) parts.push(`<p><b>Факторы периода:</b> ${escapeHtml(d.details.join('; '))}.</p>`);
+    parts.push(`<p><b>Что учитывается:</b> программа по каждому часу оценивает влажность, температуру, осадки, силу ветра, порывы, примерную солнечную нагрузку, ночной режим и возраст точки относительно самых свежих данных. Это не лабораторная модель запаховых молекул, а рабочая эвристика для быстрого решения в поле.</p>`);
+    parts.push(`<p><b>Влажность:</b> диапазон примерно 55–90% считается поддерживающим: поверхность и растительность меньше пересыхают, запаховая картина обычно дольше читается. Очень сухой воздух снижает вес старых часов. Очень высокая влажность не всегда означает «лучше»: в низинах и густом лесу запах может лежать пятнами, а не давать ровный шлейф.</p>`);
+    parts.push(`<p><b>Солнце и температура:</b> дневная солнечная нагрузка, особенно при высокой температуре, ускоряет пересыхание поверхности и разрушение старой картины. Ночь, тень и прохладное утро обычно помогают сохранности, но могут дать сток воздуха по склонам и локальные карманы запаха.</p>`);
+    parts.push(`<p><b>Осадки:</b> слабое увлажнение иногда поддерживает запах, но заметный дождь и особенно длительный/сильный дождь уменьшают вклад старых часов: часть материала смывается, перераспределяется и перестаёт соответствовать прежней розе переноса.</p>`);
+    parts.push(`<p><b>Ветер:</b> умеренный ветер помогает формировать читаемый сектор переноса. Почти штиль делает картину локальной и пятнистой; сильный ветер и порывы рассеивают запах, дают короткие выбросы и снижают надёжность старого сектора.</p>`);
+    parts.push(`<p><b>Возраст запаховой картины:</b> на вкладке «Перенос запаха» свежие часы имеют больший вес. Старые часы не исчезают сразу, но постепенно ослабляются; чем хуже погода для сохранности, тем быстрее они становятся малополезными на графике.</p>`);
+    parts.push(`<p><b>После смены ветра:</b> свежий перенос важнее для выбора первого рабочего сектора. Старый сектор может сохраняться в тени, подстилке, низинах, у препятствий, в закрытом лесу, в колеях, у кромок растительности и на влажных участках. Открытая продуваемая местность обычно теряет читаемость быстрее.</p>`);
+    parts.push(`<p><b>Как применять:</b> высокая устойчивость — повод учитывать не только последнюю стрелку, но и предыдущие секторы. Низкая устойчивость — повод сильнее опираться на последние часы, фактический ветер у земли, рельеф и поведение собаки, а старый перенос читать осторожно.</p>`);
+    el.innerHTML = parts.join('');
+  }
+
+  function renderLegend(el){
+    const wind = SPEED_CLASSES.map(c=>`<span><i class="swatch" style="background:${c.color}"></i>${c.name} м/с · ${c.label}</span>`).join('');
+    const scent = state.roseMode === 'both' ? `<span><i class="swatch" style="background:#a78bfa; opacity:.55"></i>бледно-фиолетовый слой: куда несло запах</span>` : '';
+    const arrows = state.roseMode === 'scent'
+      ? '<span>➜ стрелка: средневзвешенный перенос запаха</span>'
+      : state.roseMode === 'both'
+        ? '<span>⇥ белая стрелка: откуда дуло</span><span>➜ светлая стрелка: куда несло запах</span>'
+        : '<span>⇥ белая стрелка: средневзвешенно откуда дуло</span>';
+    el.innerHTML = wind + scent + arrows;
+  }
+
+  function drawBaseRose(ctx, cssSize, R, bins){
+    const cx = cssSize/2, cy = cssSize/2;
+    ctx.fillStyle = '#08101f';
+    ctx.fillRect(0,0,cssSize,cssSize);
+    ctx.strokeStyle = '#273654';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = '#9fb2d8';
+    ctx.font = '12px system-ui';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let rr=R/4; rr<=R; rr+=R/4) {
+      ctx.beginPath(); ctx.arc(cx,cy,rr,0,Math.PI*2); ctx.stroke();
+    }
+    const dirs = bins === 8 ? DIR8 : DIR16;
+    for (let i=0;i<bins;i++){
+      const deg = i*360/bins;
+      const rad = (deg-90)*Math.PI/180;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(rad)*R, cy+Math.sin(rad)*R); ctx.stroke();
+      const labelR = R+26;
+      ctx.fillText(dirs[i], cx+Math.cos(rad)*labelR, cy+Math.sin(rad)*labelR);
+    }
+  }
+
+  function drawRoseLayer(ctx, sec, classes, opts){
+    const {R, bins, alpha=0.88, radiusScale=1, stroke='rgba(5,10,20,.55)'} = opts;
+    const cx = opts.cssSize/2, cy = opts.cssSize/2;
+    const maxSector = Math.max(1, ...sec.sectors.map(x => x.count));
+    const width = 360/bins;
+    const gap = Math.min(2.2, width*0.08);
+    const layerR = R * radiusScale;
+    for (const sector of sec.sectors) {
+      let cum = 0;
+      for (let ci=0; ci<SPEED_CLASSES.length; ci++) {
+        const val = sector.classes[ci];
+        if (!val) continue;
+        const inner = layerR * Math.sqrt(cum / maxSector);
+        cum += val;
+        const outer = layerR * Math.sqrt(cum / maxSector);
+        const start = (sector.center - width/2 + gap - 90) * Math.PI/180;
+        const end = (sector.center + width/2 - gap - 90) * Math.PI/180;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(start)*inner, cy + Math.sin(start)*inner);
+        ctx.arc(cx,cy,outer,start,end,false);
+        ctx.lineTo(cx + Math.cos(end)*inner, cy + Math.sin(end)*inner);
+        ctx.arc(cx,cy,inner,end,start,true);
+        ctx.closePath();
+        ctx.fillStyle = classes[ci]?.color || SPEED_CLASSES[ci].color;
+        ctx.globalAlpha = alpha;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.strokeStyle = stroke;
+        ctx.stroke();
+      }
+    }
+    return maxSector;
+  }
+
+  function drawArrowHead(ctx, x, y, rad, size){
+    const a1 = rad + Math.PI*0.82, a2 = rad - Math.PI*0.82;
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.lineTo(x+Math.cos(a1)*size, y+Math.sin(a1)*size);
+    ctx.lineTo(x+Math.cos(a2)*size, y+Math.sin(a2)*size);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawArrowLabel(ctx, text, x1, y1, x2, y2, color){
+    if (!text) return;
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+    let angle = Math.atan2(y2 - y1, x2 - x1);
+    if (angle > Math.PI/2 || angle < -Math.PI/2) angle += Math.PI;
+    ctx.save();
+    ctx.translate(mx, my);
+    ctx.rotate(angle);
+    const maxWidth = Math.max(120, Math.hypot(x2-x1, y2-y1) + 90);
+    let fontSize = 12;
+    ctx.font = `700 ${fontSize}px system-ui`;
+    while (ctx.measureText(text).width > maxWidth && fontSize > 9) {
+      fontSize -= 1;
+      ctx.font = `700 ${fontSize}px system-ui`;
+    }
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(0,0,0,.72)';
+    ctx.fillStyle = color;
+    ctx.strokeText(text, 0, -13);
+    ctx.fillText(text, 0, -13);
+    ctx.restore();
+  }
+
+  function drawMeanArrow(ctx, deg, rValue, kind, opts){
+    if (deg == null || rValue <= 0.05) return;
+    const {cssSize, R, label=''} = opts;
+    const cx = cssSize/2, cy = cssSize/2;
+    const rad = (deg - 90)*Math.PI/180;
+    const len = R * Math.max(0.32, Math.min(1, rValue));
+    ctx.lineWidth = kind === 'wind' ? 4.5 : 4;
+    ctx.strokeStyle = kind === 'wind' ? '#ffffff' : '#d9f99d';
+    ctx.fillStyle = ctx.strokeStyle;
+    ctx.shadowColor = 'rgba(0,0,0,.55)';
+    ctx.shadowBlur = 4;
+    if (kind === 'wind') {
+      // Метеорологическое направление — это сектор, ОТКУДА дуло.
+      // Поэтому стрелка идёт из этого сектора к центру.
+      const startR = Math.max(R * 0.92, len);
+      const endR = R * 0.12;
+      const sx = cx + Math.cos(rad)*startR, sy = cy + Math.sin(rad)*startR;
+      const ex = cx + Math.cos(rad)*endR, ey = cy + Math.sin(rad)*endR;
+      const flowRad = rad + Math.PI;
+      ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(ex,ey); ctx.stroke();
+      drawArrowHead(ctx, ex, ey, flowRad, 15);
+      ctx.shadowBlur = 0;
+      drawArrowLabel(ctx, label, sx, sy, ex, ey, '#ffffff');
+    } else {
+      const ex = cx + Math.cos(rad)*len, ey = cy + Math.sin(rad)*len;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(ex,ey); ctx.stroke();
+      drawArrowHead(ctx, ex, ey, rad, 15);
+      ctx.shadowBlur = 0;
+      drawArrowLabel(ctx, label, cx, cy, ex, ey, '#d9f99d');
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  function drawRose(canvas){
+    const s = state.stats;
+    if (!s) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const cssSize = 620;
+    canvas.width = cssSize * dpr;
+    canvas.height = cssSize * dpr;
+    canvas.style.width = '100%';
+    canvas.style.maxWidth = cssSize + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,cssSize,cssSize);
+
+    const R = 235;
+    drawBaseRose(ctx, cssSize, R, s.bins);
+    let maxSector = 1;
+    if (state.roseMode === 'wind') {
+      maxSector = drawRoseLayer(ctx, s.windSec, SPEED_CLASSES, {cssSize,R,bins:s.bins,alpha:.9});
+      drawMeanArrow(ctx, s.windVec.mean, s.windVec.r, 'wind', {cssSize,R,label:'Усредненное направление ветра'});
+    } else if (state.roseMode === 'scent') {
+      maxSector = drawRoseLayer(ctx, s.scentSec, SCENT_CLASSES, {cssSize,R,bins:s.bins,alpha:.9});
+      drawMeanArrow(ctx, s.scentVec.mean, s.scentVec.r, 'scent', {cssSize,R,label:'Усредненное направление переноса запаха'});
+    } else {
+      const maxWind = drawRoseLayer(ctx, s.windSec, SPEED_CLASSES, {cssSize,R,bins:s.bins,alpha:.82});
+      const maxScent = drawRoseLayer(ctx, s.scentSec, SCENT_CLASSES, {cssSize,R,bins:s.bins,alpha:.42,radiusScale:.96,stroke:'rgba(255,255,255,.18)'});
+      maxSector = Math.max(maxWind, maxScent);
+      drawMeanArrow(ctx, s.windVec.mean, s.windVec.r, 'wind', {cssSize,R});
+      drawMeanArrow(ctx, s.scentVec.mean, s.scentVec.r, 'scent', {cssSize,R});
+    }
+
+    ctx.font = '12px system-ui';
+    ctx.fillStyle = '#a9b6d3';
+    ctx.textAlign = 'center';
+    ctx.fillText(`макс. сектор: ${state.roseMode === 'scent' ? round(maxSector,1) + ' усл.ч' : round(maxSector,1) + ' ч'}`, cssSize/2, cssSize/2+12);
+  }
+
+  function renderDataPanel(){
+    if (state.dataMode === 'hourly') renderHourlyTable();
+    else renderSectorSummary();
+  }
+
+  function renderSectorSummary(){
+    const s = state.stats;
+    const sectors = [...s.windSec.sectors]
+      .filter(x=>x.count>0)
+      .sort((a,b)=>b.count-a.count || b.weighted-a.weighted)
+      .slice(0,8);
+    const rows = sectors.map((w,i)=>`<tr>
+        <td>${i+1}</td>
+        <td><b>${w.name}</b><br><span class="mini">${w.short} · центр ${round(w.center,0)}°</span></td>
+        <td>${w.count} ч</td>
+        <td>${round(w.count/s.total*100,0)}%</td>
+        <td>${round(w.avgSpeed,1)} м/с</td>
+        <td>${w.gustMax == null ? '—' : round(w.gustMax,1)}</td>
+      </tr>`);
+    $('dataPanel').innerHTML = `<table><thead><tr><th>#</th><th>Ветер: откуда</th><th>Часы</th><th>Доля</th><th>Ср. скорость</th><th>Макс. порыв</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+  }
+
+  function renderHourlyTable(){
+    const bins = state.stats?.bins || 16;
+    const rows = state.rows.map(r => {
+      const scent = normDeg(r.dir + 180);
+      return `<tr>
+        <td>${escapeHtml(r.time.replace('T',' '))}</td>
+        <td>${round(r.speed,1)}</td>
+        <td>${formatDir(r.dir,bins)}</td>
+        <td>${formatDir(scent,bins)}</td>
+        <td>${r.gust == null ? '—' : round(r.gust,1)}</td>
+        <td>${r.temp == null ? '—' : round(r.temp,1)}</td>
+        <td>${r.rh == null ? '—' : round(r.rh,0)}</td>
+        <td>${r.precip == null ? '—' : round(r.precip,1)}</td>
+      </tr>`;
+    });
+    $('dataPanel').innerHTML = `<table><thead><tr><th>Время</th><th>м/с</th><th>Откуда</th><th>Куда запах</th><th>Порыв</th><th>°C</th><th>RH%</th><th>Осадки</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+  }
+
+  function buildReport(){
+    const l = state.location || {};
+    const s = state.stats;
+    if (!s) return '';
+    const windMean = s.windVec.mean == null ? '—' : `${dirName(s.windVec.mean,s.bins)} ${round(s.windVec.mean,0)}°`;
+    const scentMean = s.scentVec.mean == null ? '—' : `${dirName(s.scentVec.mean,s.bins)} ${round(s.scentVec.mean,0)}°`;
+    const stabilityInfo = stabilityLabel(s.scentVec.r);
+    const durability = s.scentDurability?.label?.text || '—';
+
+    const totalWindHours = Math.max(0.01, s.windSec.sectors.reduce((a,b)=>a+b.count,0));
+    const totalScentHours = Math.max(0.01, s.scentSec.sectors.reduce((a,b)=>a+b.count,0));
+    const topWind = [...s.windSec.sectors].filter(x=>x.count>0).sort((a,b)=>b.count-a.count || b.weighted-a.weighted).slice(0,4)
+      .map(x=>`${x.name}: ${round(x.count,1)} ч (${round(x.count/totalWindHours*100,0)}%), ср. ${round(x.avgSpeed,1)} м/с`).join('; ') || 'нет данных';
+    const topScent = [...s.scentSec.sectors].filter(x=>x.count>0).sort((a,b)=>b.count-a.count || b.weighted-a.weighted).slice(0,4)
+      .map(x=>`${x.name}: ${round(x.count,1)} усл.ч (${round(x.count/totalScentHours*100,0)}%), ср. ${round(x.avgSpeed,1)} м/с`).join('; ') || 'нет данных';
+
+    const meta = state.lastSourceMeta || {};
+    const source = meta.sourceName || state.lastSourceLabel || '—';
+    const station = meta.station || '—';
+    const distance = meta.distance || '—';
+    const tried = (state.lastTriedSources || []).map(x => `${sourceHumanName(x.id)}: ${x.status === 'ok' ? 'успех' : 'ошибка'}${x.message ? ' (' + x.message + ')' : ''}`).join('; ') || '—';
+    const scentFactors = s.scentDurability?.details?.length ? s.scentDurability.details.join('; ') : 'без выраженных дополнительных факторов';
+    const analysis = $('analysisText')?.textContent?.trim() || '';
+
+    state.reportText = [
+      'ПСР — краткий отчёт по ветру и переносу запаха',
+      '',
+      '1. Точка и период',
+      `Место/точка: ${l.name || 'точка'}`,
+      `Координаты: ${round(l.latitude,5)}, ${round(l.longitude,5)}`,
+      `Период анализа: ${$('startTime').value} — ${$('endTime').value}${l.timezone ? ' ('+l.timezone+')' : ''}`,
+      `Источник данных: ${source}`,
+      `Метеостанция/расчётная точка: ${station}; расстояние: ${distance}`,
+      '',
+      '2. Основной вывод для кинолога',
+      `Усреднённое направление ветра: ${windMean} — откуда дуло.`,
+      `Усреднённое направление переноса запаха: ${scentMean} — куда относило запах.`,
+      `Стабильность переноса: ${stabilityInfo.text}, R=${round(s.scentVec.r,2)}. Чем ниже R, тем осторожнее надо читать единственную среднюю стрелку.`,
+      `Устойчивость запаха: ${durability}, ${round(s.scentDurability?.score,0)}/100. Ориентировочный полезный хвост после смены ветра: около ${s.scentDurability?.usefulHours || '—'} ч при сходных условиях.`,
+      '',
+      '3. Погодные условия',
+      `Скорость ветра: средняя ${round(s.avg,1)} м/с, медиана ${round(s.median,1)} м/с, максимум ${round(s.max,1)} м/с${s.maxGust == null ? '' : ', порыв до '+round(s.maxGust,1)+' м/с'}.`,
+      `Осадки: ${s.precipTotal ? round(s.precipTotal,1)+' мм' : 'без осадков'}; часов с осадками: ${s.precipHours}.`,
+      `Влажность: RH≈${s.avgRh == null ? '—' : round(s.avgRh,0)+'%'}; температура: ${s.avgTemp == null ? '—' : round(s.avgTemp,1)+'°C'}.`,
+      `Штиль/почти штиль: ${round(s.calmCount/s.total*100,0)}%; ветер слабее 2 м/с: ${round(s.weakCount/s.total*100,0)}%; смен сектора: ${s.directionSwitches}.`,
+      '',
+      '4. Секторы',
+      `Главные секторы ветра — откуда дуло: ${topWind}.`,
+      `Главные секторы переноса запаха с учётом возраста и погоды: ${topScent}.`,
+      '',
+      '5. Практическая интерпретация',
+      analysis || 'Нет дополнительного текстового вывода.',
+      '',
+      '6. Оценка устойчивости запаха',
+      `Факторы периода: ${scentFactors}.`,
+      'Свежие часы в розе переноса имеют больший вес. Старые часы ослабляются по возрасту, а также сильнее ослабляются при жаре, солнце, заметном дожде, сухом воздухе, сильном ветре и порывах. Влажность, тень, ночь/утро и умеренный ветер повышают практическую ценность более старых секторов.',
+      'После смены ветра старый сектор не обнуляется мгновенно: он может сохраняться пятнами в тени, подстилке, низинах, у препятствий, в закрытом лесу, на влажных участках и кромках растительности. На открытой продуваемой местности старый перенос обычно становится малополезным быстрее.',
+      '',
+      '7. Техническая справка',
+      `Проанализировано почасовых точек: ${s.total}; секторов розы: ${s.bins}; порог отсечения слабого ветра: ${s.minSpeed} м/с.`,
+      `Тип данных: ${meta.dataType || '—'}.`,
+      `Проверка источников: ${tried}.`,
+      'Ограничение: это штабная подсказка. Ветер на 10 м и модельные/сеточные данные не равны фактическому ветру у земли в лесу, овраге, у воды, на просеке или в застройке. Рабочее решение сверяется с рельефом, фактическим ветром и поведением собаки.'
+    ].join('\n');
+    return state.reportText;
+  }
+
+  function exportCsv(){
+    if (!state.rows.length) return setStatus($('loadStatus'), 'Нет данных для CSV.', 'warn');
+    const lines = [['time','wind_speed_ms','wind_from_deg','wind_from_sector','scent_to_deg','scent_to_sector','gust_ms','temperature_c','relative_humidity_pct','precipitation_mm']];
+    const bins = state.stats?.bins || 16;
+    for (const r of state.rows) {
+      const scent = normDeg(r.dir + 180);
+      lines.push([r.time, r.speed, r.dir, dirName(r.dir,bins), scent, dirName(scent,bins), r.gust ?? '', r.temp ?? '', r.rh ?? '', r.precip ?? '']);
+    }
+    const csv = lines.map(row => row.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(';')).join('\n');
+    downloadBlob(csv, `psr_windrose_${datePart($('startTime').value)}_${datePart($('endTime').value)}.csv`, 'text/csv;charset=utf-8');
+  }
+
+  async function copyReport(){
+    if (!state.stats) return setStatus($('loadStatus'), 'Нет отчёта для копирования.', 'warn');
+    buildReport();
+    try {
+      await navigator.clipboard.writeText(state.reportText);
+      setStatus($('loadStatus'), 'Текст отчёта скопирован в буфер обмена.', 'good');
+      showToast('Текст отчёта скопирован в буфер обмена');
+    } catch(e) {
+      prompt('Скопируйте текст отчёта:', state.reportText);
+      showToast('Автокопирование недоступно — текст открыт для ручного копирования', 'warn');
+    }
+  }
+
+  function pngCaptionLines(){
+    const l = state.location || {};
+    const s = state.stats;
+    if (!s) return [];
+    const windMean = s.windVec.mean == null ? '—' : `${dirName(s.windVec.mean,s.bins)} ${round(s.windVec.mean,0)}°`;
+    const scentMean = s.scentVec.mean == null ? '—' : `${dirName(s.scentVec.mean,s.bins)} ${round(s.scentVec.mean,0)}°`;
+    const source = state.lastSourceMeta?.sourceName || state.lastSourceLabel || '—';
+    return [
+      `Точка: ${l.name || 'точка'} · координаты ${round(l.latitude,5)}, ${round(l.longitude,5)}`,
+      `Период: ${$('startTime').value} — ${$('endTime').value}${l.timezone ? ' · ' + l.timezone : ''}`,
+      `Ветер: ${windMean} · перенос запаха: ${scentMean} · устойчивость запаха: ${s.scentDurability?.label?.text || '—'} (${round(s.scentDurability?.score,0)}/100)`,
+      `Источник: ${source}`
+    ];
+  }
+
+  function exportCanvas(canvas, name){
+    if (!state.stats) return setStatus($('loadStatus'), 'Сначала постройте розу.', 'warn');
+    const dpr = window.devicePixelRatio || 1;
+    const lines = pngCaptionLines();
+    const lineH = Math.round(20 * dpr);
+    const pad = Math.round(18 * dpr);
+    const footerH = pad * 2 + lineH * lines.length;
+    const out = document.createElement('canvas');
+    out.width = canvas.width;
+    out.height = canvas.height + footerH;
+    const ctx = out.getContext('2d');
+    ctx.fillStyle = '#08101f';
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.drawImage(canvas, 0, 0);
+    ctx.fillStyle = '#0d1528';
+    ctx.fillRect(0, canvas.height, out.width, footerH);
+    ctx.strokeStyle = '#2d3a59';
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height + 0.5);
+    ctx.lineTo(out.width, canvas.height + 0.5);
+    ctx.stroke();
+    ctx.font = `${13 * dpr}px system-ui, -apple-system, Segoe UI, sans-serif`;
+    ctx.fillStyle = '#dce6ff';
+    ctx.textBaseline = 'top';
+    lines.forEach((line, i) => {
+      ctx.fillText(line, pad, canvas.height + pad + i * lineH);
+    });
+    out.toBlob(blob => downloadBlob(blob, name, 'image/png'));
+  }
+
+  function downloadBlob(data, filename, type){
+    const blob = data instanceof Blob ? data : new Blob([data], {type});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }
+
+  function setupCollapsibleCards(){
+    document.querySelectorAll('.card').forEach((card, idx) => {
+      const h2 = card.querySelector(':scope > h2');
+      if (!h2 || card.querySelector(':scope > .cardHead')) return;
+      const header = document.createElement('div');
+      header.className = 'cardHead';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'collapseBtn';
+      btn.title = 'Свернуть / развернуть блок';
+      btn.textContent = '−';
+      card.insertBefore(header, h2);
+      header.appendChild(h2);
+      header.appendChild(btn);
+      const body = document.createElement('div');
+      body.className = 'cardBody';
+      let node = header.nextSibling;
+      while (node) {
+        const next = node.nextSibling;
+        body.appendChild(node);
+        node = next;
+      }
+      card.appendChild(body);
+      btn.addEventListener('click', () => {
+        card.classList.toggle('collapsed');
+        btn.textContent = card.classList.contains('collapsed') ? '+' : '−';
+      });
+    });
+  }
+
+  function setSwitchActive(containerId, attr, value){
+    document.querySelectorAll(`#${containerId} button`).forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute(attr) === value);
+    });
+  }
+
+  function setUiMode(mode){
+    state.uiMode = mode === 'advanced' ? 'advanced' : 'simple';
+    document.body.classList.toggle('simple-mode', state.uiMode === 'simple');
+    $('simpleModeBtn')?.classList.toggle('active', state.uiMode === 'simple');
+    $('advancedModeBtn')?.classList.toggle('active', state.uiMode === 'advanced');
+    if (state.uiMode === 'simple') {
+      if ($('sourceSelect')) $('sourceSelect').value = 'auto';
+      state.roseMode = 'wind';
+      setSwitchActive('roseModeSwitch', 'data-rose-mode', 'wind');
+    }
+    if (state.stats) {
+      drawRose($('roseCanvas'));
+      renderLegend($('legendRose'));
+    }
+    setTimeout(() => { if (state.map) state.map.invalidateSize(); }, 80);
+  }
+
+
+  function loadSourceKeys(){
+    for (const field of KEY_FIELDS) {
+      const val = localStorage.getItem(KEY_STORAGE[field] || field);
+      if (val && $(field)) $(field).value = val;
+    }
+  }
+
+  function saveSourceKeys(){
+    for (const field of KEY_FIELDS) {
+      const el = $(field);
+      if (!el) continue;
+      localStorage.setItem(KEY_STORAGE[field] || field, el.value || '');
+    }
+    setStatus($('loadStatus'), 'Ключи источников сохранены в браузере.', 'good');
+    closeSourceSettings();
+  }
+
+  function clearSourceKeys(){
+    for (const field of KEY_FIELDS) {
+      const el = $(field);
+      if (el) el.value = '';
+      localStorage.removeItem(KEY_STORAGE[field] || field);
+    }
+    setStatus($('loadStatus'), 'Ключи источников очищены.', 'warn');
+  }
+
+  function openSourceSettings(){
+    $('sourceSettingsModal')?.classList.remove('hidden');
+    setTimeout(() => $('yandexKey')?.focus(), 30);
+  }
+
+  function closeSourceSettings(){
+    $('sourceSettingsModal')?.classList.add('hidden');
+  }
+
+  function openTechnicalInfo(){
+    renderSourceInfo();
+    $('technicalInfoModal')?.classList.remove('hidden');
+  }
+
+  function closeTechnicalInfo(){
+    $('technicalInfoModal')?.classList.add('hidden');
+  }
+
+  function openHelpInfo(){
+    $('helpInfoModal')?.classList.remove('hidden');
+  }
+
+  function closeHelpInfo(){
+    $('helpInfoModal')?.classList.add('hidden');
+  }
+
+  function openCoordHelp(){
+    $('coordHelpModal')?.classList.remove('hidden');
+  }
+
+  function closeCoordHelp(){
+    $('coordHelpModal')?.classList.add('hidden');
+  }
+
+  function sourceKeyField(id){
+    return {
+      yandex:'yandexKey',
+      gismeteo:'gismeteoKey',
+      danio:'danioCid',
+      openweather:'openWeatherKey',
+      weatherapi:'weatherApiKey',
+      windy:'windyKey',
+      visualcrossing:'visualCrossingKey'
+    }[id] || null;
+  }
+
+  function setupSourceSettings(){
+    loadSourceKeys();
+    $('sourceSettingsBtn')?.addEventListener('click', openSourceSettings);
+    $('sourceSettingsClose')?.addEventListener('click', closeSourceSettings);
+    $('saveSourceSettingsBtn')?.addEventListener('click', saveSourceKeys);
+    $('clearSourceSettingsBtn')?.addEventListener('click', clearSourceKeys);
+    $('sourceSettingsModal')?.addEventListener('click', e => {
+      if (e.target && e.target.id === 'sourceSettingsModal') closeSourceSettings();
+    });
+    $('technicalInfoBtn')?.addEventListener('click', openTechnicalInfo);
+    $('technicalInfoClose')?.addEventListener('click', closeTechnicalInfo);
+    $('technicalInfoModal')?.addEventListener('click', e => {
+      if (e.target && e.target.id === 'technicalInfoModal') closeTechnicalInfo();
+    });
+    $('helpInfoBtn')?.addEventListener('click', openHelpInfo);
+    $('helpInfoClose')?.addEventListener('click', closeHelpInfo);
+    $('helpInfoModal')?.addEventListener('click', e => {
+      if (e.target && e.target.id === 'helpInfoModal') closeHelpInfo();
+    });
+    $('coordHelpBtn')?.addEventListener('click', openCoordHelp);
+    $('coordHelpClose')?.addEventListener('click', closeCoordHelp);
+    $('coordHelpModal')?.addEventListener('click', e => {
+      if (e.target && e.target.id === 'coordHelpModal') closeCoordHelp();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if (!$('sourceSettingsModal')?.classList.contains('hidden')) closeSourceSettings();
+        if (!$('technicalInfoModal')?.classList.contains('hidden')) closeTechnicalInfo();
+        if (!$('helpInfoModal')?.classList.contains('hidden')) closeHelpInfo();
+        if (!$('coordHelpModal')?.classList.contains('hidden')) closeCoordHelp();
+      }
+    });
+    for (const field of KEY_FIELDS) {
+      $(field)?.addEventListener('change', () => {
+        localStorage.setItem(KEY_STORAGE[field] || field, $(field).value || '');
+      });
+    }
+  }
+
+  let searchTimer = null;
+  $('simpleModeBtn')?.addEventListener('click', () => setUiMode('simple'));
+  $('advancedModeBtn')?.addEventListener('click', () => setUiMode('advanced'));
+  $('placeInput').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(searchPlace, 450);
+  });
+  $('searchPlaceBtn').addEventListener('click', searchPlace);
+  $('parseCoordBtn').addEventListener('click', applyCoordinates);
+  $('geoBtn').addEventListener('click', getBrowserGeolocation);
+  $('savePointBtn')?.addEventListener('click', savePoint);
+  $('loadPointBtn')?.addEventListener('click', loadPoint);
+  $('presetSelect').addEventListener('change', applyPreset);
+  $('binCount').addEventListener('change', () => { if (state.rows.length) { state.stats = analyze(state.rows); renderAll(); }});
+  $('minSpeed').addEventListener('change', () => { if (state.rows.length) { state.stats = analyze(state.rows); renderAll(); }});
+  $('sourceSelect')?.addEventListener('change', () => {
+    const src = $('sourceSelect').value;
+    const timeout = getSourceTimeoutMs()/1000;
+    const keyField = sourceKeyField(src);
+    if (keyField && !hasKey(keyField)) {
+      setStatus($('loadStatus'), `Выбран источник: ${sourceHumanName(src)}. Для него нужен ключ — откройте шестерёнку и добавьте его. Таймаут: ${timeout} сек.`, 'warn');
+      openSourceSettings();
+    } else {
+      setStatus($('loadStatus'), src === 'auto' ? `Автовыбор источника включён. Таймаут: ${timeout} сек на источник.` : `Выбран источник: ${sourceHumanName(src)}. Таймаут: ${timeout} сек.`, '');
+    }
+  });
+  $('sourceTimeout')?.addEventListener('change', () => {
+    localStorage.setItem('psr_source_timeout_sec', $('sourceTimeout').value || '5');
+    setStatus($('loadStatus'), `Таймаут источников: ${getSourceTimeoutMs()/1000} сек на каждый источник.`, '');
+  });
+  $('loadWeatherBtn').addEventListener('click', () => loadWeather().catch(e => setStatus($('loadStatus'), 'Ошибка: ' + e.message, 'bad')));
+  $('exportCsvBtn').addEventListener('click', exportCsv);
+  $('copyReportBtn').addEventListener('click', copyReport);
+  $('exportRosePngBtn').addEventListener('click', () => exportCanvas($('roseCanvas'), 'psr_windrose_scent.png'));
+  document.querySelectorAll('#roseModeSwitch button').forEach(btn => btn.addEventListener('click', () => {
+    state.roseMode = btn.dataset.roseMode || 'wind';
+    setSwitchActive('roseModeSwitch', 'data-rose-mode', state.roseMode);
+    if (state.stats) { drawRose($('roseCanvas')); renderLegend($('legendRose')); }
+  }));
+  document.querySelectorAll('#dataModeSwitch button').forEach(btn => btn.addEventListener('click', () => {
+    state.dataMode = btn.dataset.dataMode || 'sectors';
+    setSwitchActive('dataModeSwitch', 'data-data-mode', state.dataMode);
+    if (state.stats) renderDataPanel();
+  }));
+  window.addEventListener('resize', () => { if (state.stats) drawRose($('roseCanvas')); });
+
+  const savedTimeout = localStorage.getItem('psr_source_timeout_sec');
+  if (savedTimeout && $('sourceTimeout') && [...$('sourceTimeout').options].some(o => o.value === savedTimeout)) $('sourceTimeout').value = savedTimeout;
+  setupSourceSettings();
+  setupCollapsibleCards();
+  setUiMode('simple');
+  initMap();
+  applyPreset();
+  drawEmpty($('roseCanvas'), 'Роза ветров / перенос запаха');
+  renderLegend($('legendRose'));
+  updateActionState();
+
+  function drawEmpty(canvas, title){
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#08101f'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#a9b6d3'; ctx.font = '22px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline='middle';
+    ctx.fillText(title, canvas.width/2, canvas.height/2 - 14);
+    ctx.font = '15px system-ui'; ctx.fillText('выберите место и период', canvas.width/2, canvas.height/2 + 18);
+  }
+})();
+</script>
+</body>
+</html>
