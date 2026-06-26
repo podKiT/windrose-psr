@@ -1,0 +1,1003 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Генератор сетки — v0.14.12</title>
+  <style>
+    :root{--bg:#eaf6fb;--panel:#f9fdff;--line:#bcd7e6;--ink:#071923;--muted:#607888;--blue:#1967d2;--blue2:#0d47a1;--soft:#d8edf8;--danger:#b42318;--ok:#0f7b4f;--warn:#9a5b00;--shadow:0 10px 30px rgba(7,25,35,.14);--radius:16px}
+    *{box-sizing:border-box} html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)} body{overflow:hidden}
+    .app{height:100%;display:grid;grid-template-columns:minmax(360px,440px) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+    .topbar{grid-column:1/3;background:#ffffffdf;backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;padding:6px 10px;z-index:1000;min-height:54px;flex-wrap:wrap}.brand{display:flex;align-items:center;gap:8px;min-width:165px;flex:0 0 auto}.logo{width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,#cfeeff,#fff 50%,#88b9ff);box-shadow:inset 0 0 0 1px #a6cbe4;display:grid;place-items:center;font-weight:900;color:var(--blue2)}.title{line-height:1.08}.title b{display:block;font-size:16px;white-space:nowrap}.title span{display:none}
+    .coordbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;flex:1 1 auto;min-width:0}.topAuthor{margin-left:auto;font-size:11px;color:#607888;opacity:.38;white-space:nowrap;flex:0 0 auto;text-decoration:none}.topAuthor:hover{opacity:.78;color:#314856;text-decoration:underline}.coordbar label{display:flex;align-items:center;gap:4px;white-space:nowrap;color:var(--muted)}.projectTools{display:flex;align-items:center;gap:5px;flex:0 0 auto}.projectToolBtn{width:32px;height:32px;padding:0;border-radius:10px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;position:relative;font-weight:900}.projectToolBtn:hover{background:#eaf6ff}.projectToolBtn[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;top:calc(100% + 9px);transform:translateX(-50%);width:clamp(230px,32vw,380px);max-width:calc(100vw - 24px);white-space:normal;overflow-wrap:anywhere;text-align:left;background:#09202f;color:#fff;border-radius:10px;padding:9px 11px;font-size:12px;line-height:1.35;opacity:0;visibility:hidden;transition:.12s;transition-delay:0s;z-index:8000;box-shadow:var(--shadow);pointer-events:none}.projectToolBtn[data-tip]:hover::after{opacity:1;visibility:visible;transition-delay:1s}
+    input,select,textarea,button{font:inherit} input[type="number"],input[type="text"],input[type="search"],select,textarea{border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 8px;color:var(--ink);outline:none;transition:.15s border,.15s box-shadow} input:focus,select:focus,textarea:focus{border-color:#78aef0;box-shadow:0 0 0 3px rgba(25,103,210,.12)} input.tiny{width:58px} input.mid{width:104px} input.placeTop{width:min(300px,26vw)}
+    button{border:0;border-radius:11px;padding:7px 10px;cursor:pointer;background:var(--soft);color:var(--ink);font-weight:700;transition:.15s background,.15s box-shadow;white-space:nowrap} button:hover{background:#c7e3f6} button:active{transform:translateY(1px)} button.primary{background:var(--soft);color:var(--ink);box-shadow:none} button.primary:hover{background:#c7e3f6} button.active{background:var(--blue)!important;color:#fff!important;box-shadow:0 5px 16px rgba(25,103,210,.22)} button.active:hover{background:#1558b8!important}.ghost{background:#fff;border:1px solid var(--line)}.danger{background:#ffe8e5;color:var(--danger)}
+    .sidebar{background:linear-gradient(180deg,var(--panel),#edf7fd);border-right:1px solid var(--line);overflow:auto;padding:10px;z-index:900}.section{background:#ffffffd8;border:1px solid var(--line);border-radius:var(--radius);padding:9px;margin-bottom:9px;box-shadow:0 3px 16px rgba(7,25,35,.05)}.section h2{margin:0 0 7px;font-size:13px;letter-spacing:.01em;display:flex;align-items:center;justify-content:space-between;gap:8px}.section h2 .hint{font-size:11px;color:var(--muted);font-weight:500}
+    .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:5px 0}.row.nowrap{flex-wrap:nowrap}.field{display:grid;gap:4px;min-width:98px;flex:1}.field label{font-size:12px;color:var(--muted)}.field input,.field select{width:100%}.check{display:flex;align-items:center;gap:7px;font-size:13px}.check input{accent-color:var(--blue)}.divider{height:1px;background:var(--line);margin:10px 0}.note{font-size:12px;line-height:1.38;color:var(--muted);background:#f4fbff;border:1px solid var(--line);border-radius:12px;padding:9px}.note strong{color:var(--ink)}.note a{color:var(--blue2);font-weight:700;text-decoration:none}.note a:hover{text-decoration:underline}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;color:var(--muted)}
+    .settingsCard{border:1px solid var(--line);background:#fafdff;border-radius:14px;padding:9px;margin:8px 0;box-shadow:0 2px 10px rgba(7,25,35,.04)}.settingsCardTitle{font-size:12px;font-weight:900;color:#314856;margin-bottom:7px}.mbtilesCard{background:#f3fbff;border-color:#9fc9df}.mbtilesCard .row{margin:0}.mbtilesCard button{padding-left:12px;padding-right:12px}.helpSteps{margin:6px 0 0 18px;padding:0}.helpSteps li{margin:4px 0}.helpBlock{margin-top:8px}.helpBlock b{color:var(--ink)}
+
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{border:1px solid var(--line);background:#fafdff;border-radius:13px;padding:9px}.stat b{display:block;font-size:16px}.stat span{font-size:11px;color:var(--muted)}
+
+    .second-tile-pane{z-index:2;pointer-events:none;opacity:.45}
+    .secondLayerCard{background:#fbfdff;border-color:#c9dfea}
+    .angleResultField .big{font-size:20px;font-weight:900;line-height:1;color:#071923;background:#fafdff;border:1px solid var(--line);border-radius:10px;padding:6px 8px;text-align:center;min-height:32px}
+    .mapwrap{position:relative;min-width:0;min-height:0;background:#dfeaf0;overflow:hidden;touch-action:none}#map{position:absolute;inset:0;height:100%;width:100%;background:#dfeaf0;z-index:1;overflow:hidden;cursor:grab}.panning #map{cursor:grabbing}.tile-pane,.static-pane{position:absolute;inset:0;overflow:hidden}.map-tile{position:absolute;width:256px;height:256px;max-width:none;max-height:none;user-select:none;-webkit-user-drag:none;pointer-events:none}.static-map-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;user-select:none;-webkit-user-drag:none;pointer-events:none}.static-message{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#ffffffea;border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);max-width:520px;font-size:13px;line-height:1.4;color:var(--ink)}
+    .zoomCtl{position:absolute;left:12px;top:12px;z-index:520;display:grid;gap:6px}.zoomCtl button{width:34px;height:34px;padding:0;border:1px solid var(--line);background:#fff;font-size:22px;line-height:1}.attribution{position:absolute;right:8px;bottom:6px;z-index:510;background:#ffffffd8;border-radius:7px;padding:3px 7px;font-size:10px;color:#314856;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.map-clean-export .zoomCtl,.map-clean-export #handlesLayer,.map-clean-export .attribution{display:none!important}
+    #gridSvg{position:absolute;inset:0;width:100%;height:100%;z-index:450;pointer-events:none;overflow:visible}.grid-boundary{fill:rgba(25,103,210,.04);stroke:#1967d2;stroke-width:2;stroke-dasharray:8 6;vector-effect:non-scaling-stroke}.grid-line{fill:none;stroke:#071923;stroke-width:2;stroke-opacity:.9;vector-effect:non-scaling-stroke}.grid-label-svg{font:800 12px system-ui,-apple-system,"Segoe UI",sans-serif;fill:#071923;stroke:#fff;stroke-width:4;paint-order:stroke;pointer-events:none}
+    #handlesLayer{position:absolute;inset:0;z-index:470;pointer-events:none}.grid-handle{position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #1967d2;box-shadow:0 1px 7px rgba(0,0,0,.32);transform:translate(-50%,-50%);pointer-events:auto;cursor:grab}.grid-handle.edge{background:#d7ecfa;border-color:#0d47a1}.grid-handle:active{cursor:grabbing}.draw-mode #map{cursor:crosshair!important}
+    .area-badge{position:absolute;right:14px;bottom:24px;background:#ffffffdf;border:1px solid var(--line);border-radius:14px;padding:9px 11px;z-index:500;box-shadow:var(--shadow);font-size:12px;color:var(--muted);max-width:460px;backdrop-filter:blur(8px)}.area-badge b{color:var(--ink)}
+    .toastbox{position:fixed;right:18px;top:126px;display:grid;gap:8px;z-index:5000;max-width:430px}.toast{background:#09202f;color:white;border-radius:14px;padding:11px 13px;box-shadow:var(--shadow);font-size:13px;line-height:1.35;animation:slide .18s ease-out}.toast.ok{background:#0f5132}.toast.warn{background:#6b4200}.toast.err{background:#842029}@keyframes slide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:760px){.toastbox{right:8px;top:188px;max-width:calc(100vw - 16px)}}
+    details.settings{width:100%} details.settings summary{cursor:pointer;list-style:none;font-size:13px;color:var(--blue2);font-weight:800} details.settings summary::-webkit-details-marker{display:none} textarea{width:100%;min-height:76px;resize:vertical;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}.source-pill{font-size:11px;color:var(--muted);background:#f0f8ff;border:1px solid var(--line);border-radius:999px;padding:4px 8px}.suggestions{display:grid;gap:8px;margin-top:8px;max-height:260px;overflow:auto}.suggestion{padding:9px 11px;background:#fafdff;border:1px solid var(--line);border-radius:12px;cursor:pointer}.suggestion:hover{border-color:#78aef0;background:#eef8ff}.mini{font-size:12px;color:var(--muted);line-height:1.35}.presetbar{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.presetbar button{padding:7px 6px}.presetbar button.active{background:#0d47a1;color:#fff}
+    .anglePanel{display:grid;grid-template-columns:168px 1fr;gap:12px;align-items:center}.dial{width:156px;height:156px;border-radius:50%;background:#0d47a1;position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.15),0 10px 24px rgba(13,71,161,.16);touch-action:none;user-select:none}.dial::before{content:"";position:absolute;left:50%;top:7px;width:2px;height:142px;background:rgba(255,255,255,.34);transform:translateX(-50%);border-radius:2px}.dial .nmark{position:absolute;left:50%;top:8px;transform:translateX(-50%);font-size:11px;font-weight:900;color:#fff}.needle{position:absolute;left:50%;top:50%;width:18px;height:72px;transform-origin:50% 100%;transform:translate(-50%,-100%) rotate(0deg);clip-path:polygon(50% 0,100% 100%,50% 82%,0 100%);background:#f8fcff;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))}.gridNeedle{background:linear-gradient(180deg,#78d9ff,#f8fcff 60%)}.magNeedle{width:8px;height:69px;background:#101923;opacity:.72}.magNeedle.hidden{display:none}.hub{position:absolute;left:50%;top:50%;width:9px;height:9px;border-radius:50%;background:#e9222e;transform:translate(-50%,-50%);box-shadow:0 0 0 2px rgba(255,255,255,.7)}.handle{position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #30b9ff;box-shadow:0 1px 7px rgba(0,0,0,.25);transform:translate(-50%,-50%);cursor:grab}.angleMeta{display:grid;gap:7px}.angleMeta .big{font-size:18px;font-weight:900}.angleMeta .small{font-size:12px;color:var(--muted);line-height:1.35}
+    .topSearch{position:relative;display:flex;gap:6px;align-items:center}.topSuggestions{position:absolute;top:42px;left:0;width:min(520px,60vw);background:#ffffffee;border:1px solid var(--line);border-radius:12px;padding:8px;box-shadow:var(--shadow);z-index:2000}.hiddenStatus{display:none}.grid-label-svg.vertex{font-size:10px}.logDetails summary{cursor:pointer;font-weight:800}.logDetails textarea{margin-top:8px;min-height:130px}.mapProgress{position:absolute;left:58px;top:12px;z-index:530;background:#ffffffd8;border:1px solid var(--line);border-radius:999px;padding:4px 8px;font-size:11px;color:var(--muted)}.map-clean-export .mapProgress{display:none!important}
+
+    .areaActions{display:grid;grid-template-columns:1fr 1fr;gap:6px}.areaActions button{padding:7px 8px}.areaMiniStats{grid-template-columns:1fr}.stat small{display:block;margin-top:2px;font-size:11px;color:var(--muted);font-weight:600}.anglePanel{display:grid!important;grid-template-columns:1fr!important;justify-items:center;gap:8px}.angleMeta{width:100%;display:grid;grid-template-columns:1fr;gap:6px}.angleTop{display:flex;align-items:center;justify-content:center;gap:8px}.tooltipWrap{position:relative;display:inline-flex;align-items:center}.tooltipWrap::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 9px);transform:translateX(-50%);width:max-content;max-width:300px;background:#09202f;color:#fff;border-radius:10px;padding:8px 10px;font-size:12px;line-height:1.3;opacity:0;visibility:hidden;transition:.12s;z-index:6000;box-shadow:var(--shadow);pointer-events:none}.tooltipWrap:hover::after{opacity:1;visibility:visible}.tipIcon{display:inline-grid;place-items:center;width:19px;height:19px;border-radius:50%;background:#eef8ff;border:1px solid var(--line);color:var(--blue2);font-weight:900;font-size:12px}.switchRow{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:13px;cursor:pointer;user-select:none}.switchRow input{position:absolute;opacity:0;pointer-events:none}.switchKnob{width:42px;height:24px;border-radius:999px;background:#d9e7ef;border:1px solid var(--line);position:relative;transition:.16s}.switchKnob::before{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.25);transition:.16s}.switchRow input:checked + .switchKnob{background:var(--blue);border-color:var(--blue)}.switchRow input:checked + .switchKnob::before{left:21px}.compactRow{display:grid;grid-template-columns:1fr 1fr;gap:6px}.compactRow .field{min-width:0}.compactRow input{padding:5px 7px}.numberingRow{display:grid;grid-template-columns:1.15fr 1fr .7fr .8fr;gap:6px}.numberingRow .field{min-width:0}.exportHint{font-size:11px;color:var(--muted);padding:2px 0}.grid-label-svg.vertex{font-size:10px}.grid-label-svg.vertexBg{stroke-width:3}.buttonGroupLine{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center}.hiddenControl{display:none!important}
+
+
+    .coordInput{width:clamp(190px,24vw,390px);min-width:170px}.topSearch input.placeTop{width:clamp(160px,18vw,245px);min-width:145px}
+    .weatherWidget{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:540;display:flex;align-items:center;gap:8px;background:#ffffffdd;border:1px solid var(--line);border-radius:13px;padding:5px 9px;box-shadow:0 4px 18px rgba(7,25,35,.11);font-size:12px;color:var(--ink);backdrop-filter:blur(8px);max-width:min(560px,70vw);white-space:nowrap}.weatherIcon{font-size:18px;line-height:1}.windArrow{display:inline-block;font-size:15px;transform-origin:center}.weatherMuted{color:var(--muted);font-size:11px}.weatherWidget.loading{color:var(--muted)}.map-clean-export .weatherWidget{display:none!important}
+    .areaActions.tight{grid-template-columns:1fr 1fr}.areaMiniStats{display:grid!important;grid-template-columns:1fr 1fr!important;gap:6px}.areaMiniStats .stat{padding:6px 7px}.areaMiniStats .stat b{font-size:13px;white-space:nowrap}.areaMiniStats .stat span,.areaMiniStats .stat small{font-size:10px}.buttonGroupLine{display:block}.buttonGroupLine .check{display:none!important}.angleInputs3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;width:100%}.angleInputs3 .field{min-width:0}.angleInputs3 input{padding:5px 6px}.declinationHidden{display:none}.sourceGroup{font-weight:800;color:#314856;background:#f5fbff}.sourceGroup:disabled{color:#314856}.copyFlash{position:absolute;z-index:700;background:#09202f;color:#fff;padding:6px 8px;border-radius:9px;font-size:12px;pointer-events:none;box-shadow:var(--shadow);transform:translate(-50%,-130%)}
+
+    #drawSvg{position:absolute;inset:0;width:100%;height:100%;z-index:465;pointer-events:none;overflow:visible}.draw-line{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}.draw-poly{stroke-width:3;stroke-linejoin:round;fill-opacity:.16;vector-effect:non-scaling-stroke}.draw-point{stroke:#fff;stroke-width:3;vector-effect:non-scaling-stroke}.draw-radius{fill:none;stroke-width:3;stroke-dasharray:8 6;vector-effect:non-scaling-stroke}.draw-label{font:800 13px system-ui,-apple-system,"Segoe UI",sans-serif;stroke:#fff;stroke-width:4;paint-order:stroke;fill:#071923;pointer-events:none}.draw-draft{stroke-dasharray:7 6;opacity:.85}.annotationPanel{display:grid;gap:6px}.annotationRow{display:grid;grid-template-columns:1fr 1fr;gap:6px}.annotationRow .field{min-width:0}.drawButtons{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.draw-active #map{cursor:crosshair!important}.exportButtons{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.exportUnit{display:grid;gap:4px}.exportUnit button{width:100%}.exportProgress{height:16px;font-size:11px;color:var(--muted);text-align:center}.busyWave{position:relative;overflow:hidden;background:var(--blue)!important;color:#fff!important}.busyWave::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 0%,rgba(255,255,255,.18) 35%,rgba(255,255,255,.65) 50%,rgba(255,255,255,.18) 65%,transparent 100%);transform:translateX(-120%);animation:exportWave 1s linear infinite}@keyframes exportWave{to{transform:translateX(120%)}}.cancelWave{position:relative;overflow:hidden;background:#b42318!important;color:#fff!important}.cancelWave::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 0%,rgba(255,255,255,.18) 35%,rgba(255,255,255,.65) 50%,rgba(255,255,255,.18) 65%,transparent 100%);transform:translateX(120%);animation:exportWaveBack .75s linear 1}@keyframes exportWaveBack{to{transform:translateX(-120%)}}.gridColorWrap{position:relative;display:flex;align-items:center}.gridColorWrap input{padding-right:38px}.paletteBtn{position:absolute;right:3px;top:3px;bottom:3px;transform:none;width:30px;height:auto;padding:0;border-radius:8px;background:#eef8ff;z-index:3;display:grid;place-items:center}.paletteBtn:active{transform:none;background:var(--blue)!important;color:#fff!important}.paletteBtn.active{background:var(--blue)!important;color:#fff!important;box-shadow:0 0 0 2px rgba(25,103,210,.12)}.palettePopup{position:absolute;right:0;top:38px;z-index:5000;display:none;grid-template-columns:repeat(5,24px);gap:6px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px;box-shadow:var(--shadow)}.palettePopup.open{display:grid}.swatch{width:24px;height:24px;border-radius:7px;border:1px solid rgba(0,0,0,.25);cursor:pointer}.swatch:hover{outline:3px solid rgba(25,103,210,.18)}
+    .areaActions.tight{grid-template-columns:1fr 1fr}.hiddenControl{display:none!important}.limitHint{font-size:11px;color:var(--muted);margin-top:-2px}.map-clean-export #drawSvg{display:none!important}
+
+
+    .areaActions.tight{margin-bottom:10px}.areaMiniStats{margin-top:2px}.drawToolbar{display:flex;align-items:center;gap:4px;flex-wrap:nowrap;background:#f6fbff;border:1px solid var(--line);border-radius:13px;padding:3px 5px;max-width:100%;overflow:visible;position:relative}.drawToolBtn{width:30px;height:30px;padding:0;border-radius:9px;background:#fff;border:1px solid var(--line);font-weight:900;display:grid;place-items:center;position:relative}.drawToolBtn:hover{background:#eaf6ff}.drawToolBtn.active{background:var(--blue)!important;color:#fff!important}.drawToolBtn[data-tip]::after,.drawColorTop[data-tip]::after,.drawLabelTop[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;top:calc(100% + 9px);transform:translateX(-50%);width:clamp(220px,32vw,360px);max-width:calc(100vw - 24px);white-space:normal;overflow-wrap:anywhere;text-align:left;background:#09202f;color:#fff;border-radius:10px;padding:9px 11px;font-size:12px;line-height:1.35;opacity:0;visibility:hidden;transition:.12s;transition-delay:0s;z-index:7000;box-shadow:var(--shadow);pointer-events:none}.drawToolBtn[data-tip]:hover::after{opacity:1;visibility:visible;transition-delay:1s}.drawColorTop{width:30px;height:30px;padding:2px;border-radius:9px;border:1px solid var(--line);background:#fff}.drawLabelTop{width:118px;padding:5px 7px!important;border-radius:9px!important}.drawLabelTop.selectedEdit{border-color:#f59e0b!important;box-shadow:0 0 0 3px rgba(245,158,11,.18)!important}.draw-selected{filter:drop-shadow(0 0 4px rgba(255,255,255,.95)) drop-shadow(0 0 4px rgba(25,103,210,.95))}.draw-radius-fill{stroke-width:0}.draw-radius-outline{stroke-width:3;stroke-dasharray:8 6;vector-effect:non-scaling-stroke}.draw-label.lineLabel{font-size:12px}.draw-edit-halo{fill:none;stroke:#1967d2;stroke-width:2;stroke-dasharray:5 4;vector-effect:non-scaling-stroke}.map-clean-export .draw-edit-halo{display:none!important}
+
+
+    .drawSizePopup{position:absolute;top:42px;left:0;z-index:7600;display:none;gap:5px;background:#ffffffee;border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:var(--shadow);backdrop-filter:blur(8px)}.drawSizePopup.open{display:flex}.drawSizeBtn{width:34px;height:28px;padding:0;border-radius:8px;background:#fff;border:1px solid var(--line);font-size:12px;font-weight:900}.drawSizeBtn.active{background:var(--blue)!important;color:#fff!important}.draw-size-sample{display:inline-block;border-radius:999px;background:currentColor}.draw-size-sample.s{width:6px;height:6px}.draw-size-sample.m{width:9px;height:9px}.draw-size-sample.l{width:13px;height:13px}.draw-size-sample.xl{width:17px;height:17px}.draw-label.pointLabel{font-size:12px}.topAuthorExport{opacity:.55}
+
+    .coordbar{align-items:center}.drawToolbar{flex:0 1 auto;min-width:0}.topAuthor{order:99}
+    @media(max-width:1320px){.topAuthor{width:100%;margin-left:0;text-align:right}.drawToolbar{flex-wrap:wrap}.topbar{align-items:flex-start}.brand{min-width:150px}.source-pill{display:none}}
+    @media(max-width:760px){.brand{min-width:auto}.title b{font-size:14px}.coordbar{gap:6px}.coordInput{width:calc(100vw - 188px);min-width:145px}.topSearch input.placeTop{width:calc(100vw - 118px);min-width:145px}.drawToolbar{width:100%;justify-content:flex-start}.topAuthor{text-align:left;font-size:10px}.drawToolBtn[data-tip]::after,.drawColorTop[data-tip]::after,.drawLabelTop[data-tip]::after{left:0;transform:none;width:min(330px,calc(100vw - 24px));}}
+
+
+    .mapDrawWidget{position:absolute;right:12px;top:10px;z-index:550;width:min(520px,calc(100% - 24px));max-width:520px;box-shadow:0 4px 18px rgba(7,25,35,.11);backdrop-filter:blur(8px);padding:4px 6px;flex-wrap:wrap}
+    .weatherWidget{cursor:default}.weatherTip{display:none;position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);min-width:260px;max-width:min(340px,calc(100vw - 24px));background:#09202f;color:#fff;border-radius:13px;padding:10px 12px;box-shadow:var(--shadow);white-space:normal;text-align:left;line-height:1.32;font-size:12px;z-index:7600}.weatherWidget:hover .weatherTip,.weatherWidget:focus-within .weatherTip{display:block}.weatherTipTitle{font-weight:900;margin-bottom:6px}.weatherTipGrid{display:grid;grid-template-columns:auto 1fr;gap:3px 10px}.weatherTipGrid b{color:#dff3ff}.weatherTipMuted{margin-top:7px;color:#b9d1dd;font-size:11px}.coord-target-ring{fill:rgba(25,103,210,.10);stroke:#1967d2;stroke-width:2;stroke-dasharray:5 4;vector-effect:non-scaling-stroke}.coord-target-dot{fill:#1967d2;stroke:#fff;stroke-width:3;vector-effect:non-scaling-stroke}.coord-target-cross{stroke:#1967d2;stroke-width:2;vector-effect:non-scaling-stroke}.coord-target-label{font:800 12px system-ui,-apple-system,"Segoe UI",sans-serif;fill:#071923;stroke:#fff;stroke-width:4;paint-order:stroke;pointer-events:none}
+    @media(max-width:760px){body{overflow:hidden}.app{grid-template-columns:1fr;grid-template-rows:auto minmax(0,62dvh) minmax(0,1fr)}.topbar{padding:5px 6px;gap:5px;min-height:0}.brand{display:none}.topAuthor,.source-pill,.mapProgress,.area-badge{display:none!important}.coordbar{width:100%;gap:5px;flex-wrap:wrap}.coordbar label{font-size:0}.coordbar label input{font-size:12px}.coordInput{flex:1 1 calc(100% - 72px);width:auto!important;min-width:0}.topSearch{flex:1 1 100%;width:100%}.topSearch input.placeTop{width:calc(100% - 60px)!important;min-width:0}.sidebar{padding:6px;font-size:12px}.section{padding:7px;margin-bottom:6px;border-radius:12px}.section h2{font-size:12px}.weatherWidget{top:8px;left:8px;right:auto;transform:none;max-width:calc(100vw - 116px);font-size:11px;padding:4px 7px}.weatherTip{left:0;transform:none;min-width:230px}.projectTools{gap:4px}.projectToolBtn{width:32px;height:32px}.projectToolBtn[data-tip]::after{left:auto;right:0;transform:none;width:min(310px,calc(100vw - 16px))}.mapDrawWidget{right:8px;top:8px;width:96px;max-width:96px;flex-direction:row;flex-wrap:wrap;overflow:visible;padding:4px}.drawToolBtn,.drawColorTop{width:32px;height:32px}.drawLabelTop{width:78px;font-size:11px;padding:4px 6px!important}.drawSizePopup{right:102px;left:auto!important;top:0;flex-direction:column}.zoomCtl{left:8px;top:48px}.zoomCtl button{width:32px;height:32px}.areaMiniStats{grid-template-columns:1fr!important}.numberingRow,.angleInputs3{grid-template-columns:1fr 1fr}.presetbar{grid-template-columns:repeat(2,1fr)}.exportButtons{grid-template-columns:repeat(3,1fr)}.topSuggestions{width:calc(100vw - 12px);left:0;top:34px}.drawToolBtn[data-tip]::after,.drawColorTop[data-tip]::after,.drawLabelTop[data-tip]::after{left:auto;right:44px;top:0;transform:none;width:min(300px,calc(100vw - 64px))}.logDetails{display:none}.note{display:none}}
+
+    .exportOptions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;margin-top:4px}.chipCheck{display:flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:#fafdff;border-radius:999px;padding:7px 8px;font-size:12px;font-weight:800;color:var(--ink);cursor:pointer;user-select:none}.chipCheck input{accent-color:var(--blue);margin:0}.chipCheck:has(input:checked){border-color:#78aef0;background:#eef8ff;box-shadow:0 0 0 2px rgba(25,103,210,.08)}
+
+    @media(max-width:980px){.app{grid-template-columns:1fr;grid-template-rows:auto 45vh 55vh}.topbar{grid-column:1}.sidebar{grid-row:3;border-right:0;border-top:1px solid var(--line)}.mapwrap{grid-row:2}.brand{min-width:auto}.title span{display:none}.anglePanel{grid-template-columns:1fr}.coordInput{width:min(330px,52vw)}}
+    @media(max-width:760px){.app{grid-template-columns:1fr!important;grid-template-rows:auto minmax(0,62dvh) minmax(0,1fr)!important}.mapwrap{grid-row:2!important}.sidebar{grid-row:3!important}.brand{display:none!important}.topAuthor,.source-pill,.mapProgress,.area-badge{display:none!important}.coordInput{width:auto!important;flex:1 1 calc(100% - 72px)!important}.topSearch input.placeTop{width:calc(100% - 60px)!important}.weatherWidget{left:8px!important;right:auto!important;top:8px!important;transform:none!important}.mapDrawWidget{position:absolute!important;right:8px!important;top:8px!important;width:96px!important;max-width:96px!important;flex-direction:row!important;flex-wrap:wrap!important}}
+
+
+    /* v0.14.6 mobile field layout */
+    @media(max-width:760px){
+      .app{height:100dvh!important;grid-template-columns:1fr!important;grid-template-rows:auto minmax(0,2fr) minmax(0,1fr)!important;}
+      .topbar{grid-column:1!important;flex-wrap:nowrap!important;align-items:center!important;padding:4px 6px!important;gap:4px!important;min-height:42px!important;overflow:visible!important;}
+      .coordbar{display:flex!important;flex-wrap:nowrap!important;align-items:center!important;width:100%!important;gap:4px!important;min-width:0!important;}
+      .coordbar>label,#coordInput,#goBtn{display:none!important;}
+      .topSearch{flex:1 1 auto!important;min-width:0!important;width:auto!important;display:flex!important;gap:4px!important;}
+      .topSearch input.placeTop{flex:1 1 auto!important;width:auto!important;min-width:0!important;height:32px!important;font-size:12px!important;padding:5px 7px!important;}
+      #placeBtn{flex:0 0 auto!important;height:32px!important;padding:0 8px!important;font-size:12px!important;border-radius:9px!important;}
+      .projectTools{flex:0 0 auto!important;display:flex!important;gap:3px!important;}
+      .projectToolBtn{width:32px!important;height:32px!important;}
+      .mapwrap{grid-row:2!important;}
+      .sidebar{grid-row:3!important;min-height:0!important;}
+      .mapDrawWidget{position:absolute!important;right:8px!important;top:8px!important;width:40px!important;max-width:40px!important;flex-direction:column!important;flex-wrap:nowrap!important;align-items:center!important;gap:4px!important;max-height:calc(100% - 16px)!important;overflow:visible!important;padding:4px!important;}
+      .drawToolBtn,.drawColorTop,.drawLabelTop{width:32px!important;height:32px!important;min-width:32px!important;flex:0 0 32px!important;}
+      .drawLabelTop{font-size:10px!important;padding:2px!important;text-align:center!important;}
+      .drawSizePopup{right:44px!important;left:auto!important;top:0!important;flex-direction:column!important;}
+      .drawToolBtn[data-tip]::after,.drawColorTop[data-tip]::after,.drawLabelTop[data-tip]::after,.projectToolBtn[data-tip]::after,
+      .drawToolBtn[data-tip]:hover::after,.drawColorTop[data-tip]:hover::after,.drawLabelTop[data-tip]:hover::after,.projectToolBtn[data-tip]:hover::after{opacity:0!important;visibility:hidden!important;transition-delay:0s!important;}
+      .drawToolBtn.mobileTipOpen[data-tip]::after,.drawColorTop.mobileTipOpen[data-tip]::after,.drawLabelTop.mobileTipOpen[data-tip]::after,.projectToolBtn.mobileTipOpen[data-tip]::after{opacity:1!important;visibility:visible!important;transition-delay:0s!important;}
+      .drawToolBtn[data-tip]::after,.drawColorTop[data-tip]::after,.drawLabelTop[data-tip]::after{left:auto!important;right:44px!important;top:0!important;transform:none!important;width:min(300px,calc(100vw - 64px))!important;}
+      .projectToolBtn[data-tip]::after{left:auto!important;right:0!important;transform:none!important;width:min(310px,calc(100vw - 16px))!important;}
+      .topSuggestions{top:36px!important;left:0!important;width:calc(100vw - 12px)!important;}
+      .weatherWidget{left:8px!important;right:auto!important;top:8px!important;transform:none!important;max-width:calc(100vw - 62px)!important;}
+      .zoomCtl{left:8px!important;top:48px!important;}
+    }
+
+
+
+    /* v0.14.12: NSPD hints, dual base layers, compact angle block */
+    .baseLayerHint{margin-top:6px;font-size:11px;line-height:1.32;color:var(--muted);background:#f4fbff;border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+    .baseLayerHint b{color:var(--ink)}
+    .baseLayerHint.warn{border-color:#f2c078;background:#fff8e9;color:#6b4200}
+    .areaActions button.gridDangerState{background:#ffe8e5!important;color:var(--danger)!important;border:1px solid #ffc9c2!important;box-shadow:0 5px 16px rgba(180,35,24,.13)!important}
+    .areaActions button.gridDangerState:hover{background:#ffd8d3!important}
+    .anglePanel{display:grid!important;grid-template-columns:1fr 156px 1fr!important;grid-template-areas:"empty dial help" "north north north" "inputs inputs inputs"!important;align-items:start!important;justify-content:center!important;justify-items:center!important;gap:7px 10px!important}
+    .anglePanel .dial{grid-area:dial!important;justify-self:center!important}
+    .angleHelp{grid-area:help!important;align-self:center!important;justify-self:start!important;display:flex;align-items:center;min-width:28px}
+    .angleHelp .tooltipWrap::after{top:calc(100% + 7px)!important;bottom:auto!important;left:auto!important;right:0!important;transform:none!important;width:220px!important;max-width:min(220px,calc(100vw - 28px))!important;white-space:normal!important;overflow-wrap:break-word!important;line-height:1.28!important}
+    .northBlock{grid-area:north!important;align-self:start!important;justify-self:center!important;display:grid;gap:6px;min-width:0;width:min(100%,330px)}
+    .northSwitchWrap{display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:900;color:var(--muted);white-space:nowrap;width:100%}
+    .northLabel{transition:.16s color,.16s font-weight}.northLabel.active{color:var(--blue2);font-weight:900}
+    .northSwitchWrap .switchRow{gap:0;font-size:0}.northSwitchWrap .switchKnob{width:50px;height:27px}.northSwitchWrap .switchKnob::before{width:19px;height:19px}.northSwitchWrap input:checked + .switchKnob::before{left:26px}
+    .northBlock .tooltipWrap::after{width:min(280px,calc(100vw - 28px));max-width:min(280px,calc(100vw - 28px));white-space:normal;overflow-wrap:break-word}
+    .angleInputs3{grid-area:inputs!important;grid-template-columns:.9fr 1fr 1fr 1fr!important;align-items:end!important}
+    .angleInputs3 .field{min-width:0}
+    .angleMeta{display:contents!important}
+    @media(max-width:760px){.anglePanel{grid-template-columns:1fr 156px 1fr!important;grid-template-areas:"empty dial help" "north north north" "inputs inputs inputs"!important}.northBlock{justify-self:center;width:100%}.northSwitchWrap{gap:6px;font-size:13px}.angleInputs3{grid-template-columns:1fr 1fr!important}.angleResultField .big{font-size:18px}.angleHelp .tooltipWrap::after{width:200px!important;max-width:min(200px,calc(100vw - 28px))!important}}
+
+    /* v0.14.12: compact automatic second layer */
+    .secondLayerCard{padding:7px!important;margin:7px 0!important;background:#fbfdff;border-color:#c9dfea}
+    .secondLayerCard .settingsCardTitle{margin-bottom:5px!important;font-size:12px!important}
+    .secondLayerSelectRow{margin:0 0 5px 0!important}
+    .secondOpacityRow{margin:0!important;justify-content:flex-start!important;gap:6px!important}
+    #secondOpacity{width:118px!important;flex:0 0 118px!important}
+    #secondOpacityText{min-width:34px;text-align:right;font-size:11px}
+    @media(max-width:760px){#secondOpacity{width:105px!important;flex-basis:105px!important}.secondLayerCard{padding:6px!important}}
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand"><div class="logo">ГС</div><div class="title"><b>Генератор сетки</b><span>v0.14.12</span></div></div>
+      <div class="coordbar"><label>zoom <input id="zoomInput" class="tiny" type="number" min="1" max="22" step="1" value="13"></label><input id="coordInput" class="coordInput" type="text" value="55.026503, 82.921463" placeholder="Координаты: 55.94496, 37.56892 / 55.94496;37.56892 / DMS / UTM / MGRS"><button id="goBtn" class="ghost">Перейти</button><div class="topSearch"><input id="placeInput" class="placeTop" type="search" placeholder="Населённый пункт или координаты" autocomplete="off"><button id="placeBtn" class="ghost">Найти</button><div id="suggestions" class="suggestions topSuggestions" style="display:none"></div></div><div class="projectTools" aria-label="Файлы данных карты"><button id="saveProjectData" class="projectToolBtn" type="button" data-tip="Сохранить нанесение, область сетки, текущие параметры и вид карты в JSON-файл. Его удобно хранить рядом с HTML-инструментом и открывать позже.">💾</button><button id="loadProjectDataBtn" class="projectToolBtn" type="button" data-tip="Загрузить ранее сохранённый JSON-файл: восстановит нанесение, область сетки, параметры и положение карты.">📂</button><input id="loadProjectDataInput" type="file" accept="application/json,.json" style="display:none"></div><span id="cursorPos" class="source-pill">курсор: —</span><a class="topAuthor" href="https://t.me/Pod_whale" target="_blank" rel="noopener noreferrer">@PodKiT кинологический поисковый отряд &quot;2-К&quot;</a></div>
+    </header>
+    <aside class="sidebar">
+      <section class="section"><h2>1. Подложка карты</h2><div class="row nowrap"><select id="baseSelect" style="flex:1"><option class="sourceGroup" disabled>— Городские —</option><option value="osm" selected>OpenStreetMap Standard</option><option value="carto">CARTO Light</option><option value="cartoVoyager">CARTO Voyager</option><option value="cartoDark">CARTO Dark</option><option value="hot">OSM Humanitarian</option><option value="osmfr">OSM France</option><option value="cyclosm">CyclOSM</option><option value="wikimedia">Wikimedia Maps</option><option value="esriGray">Esri Light Gray Canvas</option><option class="sourceGroup" disabled>— Рельеф —</option><option value="topo">OpenTopoMap</option><option value="esriTopo">Esri World Topo</option><option value="esriRelief">Esri Shaded Relief</option><option value="esriHillshade">Esri World Hillshade</option><option value="esriPhysical">Esri World Physical</option><option value="opentopomapBW">OpenTopoMap BW</option><option class="sourceGroup" disabled>— Спутник —</option><option value="esriImagery">Esri World Imagery</option><option value="nspdEeko38">НСПД ЕЭКО вектор z15-17</option><option value="nspdOrtho">НСПД ЕЭКО ортофото 39 🚫VPN · z15–18</option><option class="sourceGroup" disabled>— Засветка —</option><option value="nasaNight">NASA VIIRS Night Lights</option><option class="sourceGroup" disabled>— Свои —</option><option value="mbtiles">MBTiles файл</option><option value="custom">Пользовательский URL</option></select><button id="sourceGear" class="ghost" title="Настроить источник">⚙</button></div><div class="hiddenStatus"><b id="tileStatus">—</b><b id="tileErrors">0</b></div><div id="baseLayerHint" class="baseLayerHint" title="">Обычная подложка без специальных ограничений покрытия.</div><div class="settingsCard secondLayerCard"><div class="settingsCardTitle">Вторая подложка</div><div class="row nowrap secondLayerSelectRow"><select id="secondBaseSelect" style="flex:1"><option value="none" selected>Нет</option><option class="sourceGroup" disabled>— Городские —</option><option value="osm">OpenStreetMap Standard</option><option value="carto">CARTO Light</option><option value="cartoVoyager">CARTO Voyager</option><option value="cartoDark">CARTO Dark</option><option value="hot">OSM Humanitarian</option><option value="osmfr">OSM France</option><option value="cyclosm">CyclOSM</option><option value="wikimedia">Wikimedia Maps</option><option value="esriGray">Esri Light Gray Canvas</option><option class="sourceGroup" disabled>— Рельеф —</option><option value="topo">OpenTopoMap</option><option value="esriTopo">Esri World Topo</option><option value="esriRelief">Esri Shaded Relief</option><option value="esriHillshade">Esri World Hillshade</option><option value="esriPhysical">Esri World Physical</option><option value="opentopomapBW">OpenTopoMap BW</option><option class="sourceGroup" disabled>— Спутник —</option><option value="esriImagery">Esri World Imagery</option><option value="nspdEeko38">НСПД ЕЭКО вектор z15-17</option><option value="nspdOrtho">НСПД ЕЭКО ортофото 39 🚫VPN · z15–18</option><option class="sourceGroup" disabled>— Засветка —</option><option value="nasaNight">NASA VIIRS Night Lights</option><option class="sourceGroup" disabled>— Свои —</option><option value="mbtiles">MBTiles файл</option><option value="custom">Пользовательский URL</option></select></div><div class="row nowrap secondOpacityRow"><input id="secondOpacity" type="range" min="0" max="100" value="45" step="1"><span id="secondOpacityText" class="mono">45%</span></div></div><details id="sourceSettings" class="settings"><summary>Настройки и офлайн-карты</summary><div class="divider"></div><div class="settingsCard mbtilesCard"><div class="settingsCardTitle">Офлайн-карта MBTiles из SAS.Планеты</div><div class="row nowrap"><input id="mbtilesName" type="text" value="Файл не выбран" readonly style="flex:1"><button id="loadMbtilesBtn" class="primary" type="button">Подключить .mbtiles</button><input id="mbtilesFile" type="file" accept=".mbtiles,application/octet-stream" style="display:none"></div><div class="mini" id="mbtilesInfo">Открой один файл .mbtiles. Локальный сервер не нужен.</div></div><div class="settingsCard"><div class="settingsCardTitle">Онлайн-источник / пользовательский URL</div><label class="check"><input id="tileCors" type="checkbox"> CORS для экспорта карты</label><div class="field"><label>Пользовательский URL-шаблон XYZ</label><input id="customUrl" type="text" value="https://tile.openstreetmap.org/{z}/{x}/{y}.png"></div><div class="field"><label>Attribution / подпись источника</label><input id="customAttr" type="text" value="© OpenStreetMap contributors"></div><div class="row"><div class="field"><label>maxZoom</label><input id="customMaxZoom" type="number" min="1" max="24" value="19"></div><button id="applyCustom" class="primary">Применить URL</button></div></div><div class="note"><strong>Офлайн-карта MBTiles</strong><br>• <b>MBTiles из SAS.Планеты</b>: нажми «Подключить .mbtiles» и выбери файл. Карта читается прямо в браузере, без локального сервера. После перезапуска HTML файл нужно выбрать снова — браузер не имеет права сам открывать локальные файлы без выбора пользователя.<br><br><strong>Как получить MBTiles в SAS.Планете</strong><ol class="helpSteps"><li>Запусти SAS.Планету.</li><li>Во вкладке «Карты» выбери нужную карту.</li><li>Определи нужный уровень слоя/зума: он отображается как <span class="mono">zNN</span> в левой нижней части экрана.</li><li>Перейди к нужной области.</li><li>Нажми <b>S</b> или выбери инструмент выделения области и выдели интересующий участок.</li><li>В появившемся окне выбери <b>Экспорт</b>.</li><li>В выпадающем списке формата выбери <b>MBTiles</b>.</li><li>Выбери место сохранения и имя файла.</li><li>Поставь галочку <b>использовать XYZ-схему</b>.</li><li>Выбери галочками нужные слои. Не выбирай много: лучше один-два, чтобы файл оставался компактным.</li><li>Нажми <b>Экспорт</b>.</li><li>Получившийся файл подключи в инструменте кнопкой <b>«Подключить .mbtiles»</b>.</li></ol></div></details></section>
+      <section class="section"><h2>2. Область сетки</h2><input id="followViewport" type="checkbox" class="hiddenControl"><button id="clearArea" class="danger hiddenControl">Сброс</button><button id="clearGrid" class="danger hiddenControl">Скрыть сетку</button><div class="areaActions tight"><button id="selectViewport">Вывести сетку на экран</button><button id="drawArea">Нарисовать сетку</button></div><div class="stats areaMiniStats"><div class="stat"><b id="areaSize">—</b><small id="areaKm2">—</small></div><div class="stat"><b id="areaCenter">—</b><span>центр</span></div></div></section>
+      <section class="section"><h2>3. Параметры сетки</h2><input id="autoCell" type="checkbox" checked class="hiddenControl"><div class="row"><div class="field"><label>Целевой максимум при авто</label><input id="maxCells" type="number" min="20" max="10000" step="10" value="200"></div></div><div class="presetbar"><button data-preset="100">100×100</button><button data-preset="250">250×250</button><button data-preset="500">500×500</button><button data-preset="custom" class="active">авто</button></div><div class="compactRow"><div class="field"><label>Ширина квадрата, м</label><input id="cellW" type="number" min="10" step="10" value="500"></div><div class="field"><label>Высота квадрата, м</label><input id="cellH" type="number" min="10" step="10" value="500"></div></div><div class="anglePanel"><div class="dial" id="angleDial" title="Перетащи маркер по кругу"><div class="nmark">N</div><div class="needle magNeedle hidden" id="magNeedle"></div><div class="needle gridNeedle" id="gridNeedle"></div><div class="hub"></div><div class="handle" id="angleHandle"></div></div><div class="angleHelp"><span class="tooltipWrap" data-tip="Перетащи маркер по кругу или измени угол колесиком в поле ниже. 0° — север выбранного типа."><span class="tipIcon">?</span></span></div><div class="northBlock"><div id="northTip" class="tooltipWrap" data-tip="Истинный север строит сетку по географическому северу. Магнитный север добавляет автоматическое склонение по центру выбранной области."><div class="northSwitchWrap"><span id="northTrueLabel" class="northLabel active">Истинный</span><label class="switchRow" title="Переключить истинный / магнитный север"><input id="useDeclination" type="checkbox"><span class="switchKnob"></span></label><span id="northMagLabel" class="northLabel">Магнитный</span></div></div><div id="declinationText" class="declinationHidden">не используется</div></div><div class="angleInputs3"><div class="field angleResultField"><label>Итоговый угол</label><div class="big" id="effectiveAngleText">0.0°</div></div><div class="field"><label>Угол, °</label><input id="angle" class="wheelNumber" type="number" step="0.1" value="0" title="Наведи мышь и крути колесо для изменения"></div><div class="field"><label>Сдвиг X, м</label><input id="offsetX" class="wheelNumber" type="number" step="10" value="0" title="Наведи мышь и крути колесо для изменения"></div><div class="field"><label>Сдвиг Y, м</label><input id="offsetY" class="wheelNumber" type="number" step="10" value="0" title="Наведи мышь и крути колесо для изменения"></div></div></div><div class="numberingRow"><div class="field"><label>Формат номера</label><select id="labelMode"><option value="seq">1, 2, 3...</option><option value="letters">A1, B1, C1...</option><option value="rowcol">01-01</option><option value="colrow">01-A</option><option value="cyr">А1, Б1, В1...</option></select></div><div class="field"><label>Нумеровать</label><select id="labelPlacement"><option value="center">квадраты</option><option value="vertices">вершины</option></select></div><div class="field"><label>Старт</label><input id="startNum" type="number" min="0" value="1"></div><div class="field"><label>Префикс</label><input id="prefix" type="text" placeholder="З-"></div></div><div class="row"><div class="field"><label>Цвет сетки</label><div class="gridColorWrap"><input id="gridColor" type="text" value="#071923"><button id="gridPaletteBtn" class="paletteBtn" type="button" title="Палитра">🎨</button><div id="gridPalette" class="palettePopup"><span class="swatch" data-color="#071923" style="background:#071923"></span><span class="swatch" data-color="#1967d2" style="background:#1967d2"></span><span class="swatch" data-color="#d92525" style="background:#d92525"></span><span class="swatch" data-color="#0f7b4f" style="background:#0f7b4f"></span><span class="swatch" data-color="#f59e0b" style="background:#f59e0b"></span><span class="swatch" data-color="#7c3aed" style="background:#7c3aed"></span><span class="swatch" data-color="#ffffff" style="background:#ffffff"></span><span class="swatch" data-color="#000000" style="background:#000000"></span><span class="swatch" data-color="#00bcd4" style="background:#00bcd4"></span><span class="swatch" data-color="#ff66aa" style="background:#ff66aa"></span></div></div></div><div class="field"><label>Толщина</label><input id="gridWeight" type="number" min="1" max="8" value="2"></div></div><div class="row"><label class="check"><input id="showLabels" type="checkbox" checked> подписи квадратов</label></div><div class="row hiddenControl"><button id="buildGrid" class="primary">Перестроить сетку</button></div><div class="stats"><div class="stat"><b id="cellCount">0</b><span>квадратов</span></div><div class="stat"><b id="gpxSize">—</b><span>размер GPX</span></div></div></section>
+      <section class="section"><h2>4. Экспорт <span class="hint">GPX / PNG / JPG / PDF</span></h2><div class="row"><button id="downloadGpx" class="primary">GPX сетки</button><button id="downloadCenterGpx">GPX сетка с нанесением</button></div><div class="divider"></div><div class="row"><div class="field"><label>Что экспортировать</label><select id="exportArea"><option value="selection">Выбранную область</option><option value="viewport">Весь экран карты</option></select></div><div class="field"><label>Детализация</label><select id="exportScale"><option value="1" selected>1× · текущий зум · 150 DPI</option><option value="2">2× · +1 зум · 300 DPI</option><option value="3">3× · +2 зума · 450 DPI</option><option value="4">4× · +3 зума · 600 DPI</option></select></div></div><div class="row"><div class="field"><label>Формат вывода</label><select id="paper"><option value="a4">A4</option><option value="a3" selected>A3</option><option value="a2">A2</option><option value="a1">A1</option></select></div><div class="exportHint" id="dpiHint">DPI задаётся детализацией: 1×=150, 2×=300, 3×=450, 4×=600.</div></div><div class="exportOptions"><label class="chipCheck"><input id="exportGrid" type="checkbox" checked> сетка</label><label class="chipCheck"><input id="exportLabels" type="checkbox" checked> подписи</label><label class="chipCheck"><input id="exportDrawings" type="checkbox" checked> разметка</label></div><div class="exportButtons"><div class="exportUnit"><button id="exportPng" class="primary">PNG</button><div id="exportPngProgress" class="exportProgress"></div></div><div class="exportUnit"><button id="exportJpg">JPG</button><div id="exportJpgProgress" class="exportProgress"></div></div><div class="exportUnit"><button id="exportPdf">PDF</button><div id="exportPdfProgress" class="exportProgress"></div></div></div></section>
+      <details class="section logDetails"><summary>5. Лог действий</summary><textarea id="log" readonly>Готово. Сетка по умолчанию выключена.</textarea></details>
+    </aside>
+    <main class="mapwrap" id="mapWrap"><div id="map"><div id="tilePane" class="tile-pane"></div><div id="tilePane2" class="tile-pane second-tile-pane"></div><div id="staticPane" class="static-pane" style="display:none"></div></div><div id="weatherWidget" class="weatherWidget loading"><span class="weatherIcon">⛅</span><span>погода: загрузка…</span></div><div id="drawToolbar" class="drawToolbar mapDrawWidget" aria-label="Разметка карты"><button class="drawToolBtn active" data-tool="none" data-tip="Навигация: перетаскивание карты и копирование координат одиночным кликом">✋</button><button class="drawToolBtn" data-tool="select" data-tip="Выбрать и редактировать разметку: переместить, переименовать, сменить цвет или удалить">⟐</button><button class="drawToolBtn" data-tool="point" data-tip="Точка: клик по карте поставит точку с подписью">●</button><button class="drawToolBtn" data-tool="line" data-tip="Линия: клики ставят вершины, двойной клик в одной точке завершает линию">╱</button><button class="drawToolBtn" data-tool="radius" data-tip="Радиус: зажми центр, тяни мышь до нужного расстояния и отпусти">◎</button><button class="drawToolBtn" data-tool="polygon" data-tip="Полигон: клики ставят вершины, двойной клик в одной точке завершает контур">⬠</button><button class="drawToolBtn" data-tool="text" data-tip="Подпись: клик по карте поставит отдельную текстовую подпись">T</button><input id="drawColor" class="drawColorTop" type="color" value="#d92525" data-tip="Цвет новой или выбранной разметки"><input id="drawLabel" class="drawLabelTop" type="text" placeholder="подпись" data-tip="Подпись новой или выбранной разметки"><button id="undoDrawing" class="drawToolBtn" data-tip="Отменить последнюю точку или последний элемент">↶</button><button id="deleteAnnotation" class="drawToolBtn" data-tip="Удалить выбранный элемент разметки">🗑</button><button id="clearDrawings" class="drawToolBtn" data-tip="Очистить всю разметку">⌫</button><div id="drawSizePopup" class="drawSizePopup" aria-label="Размер разметки"><button type="button" class="drawSizeBtn" data-size="s" title="Малый"><span class="draw-size-sample s"></span></button><button type="button" class="drawSizeBtn active" data-size="m" title="Средний"><span class="draw-size-sample m"></span></button><button type="button" class="drawSizeBtn" data-size="l" title="Крупный"><span class="draw-size-sample l"></span></button><button type="button" class="drawSizeBtn" data-size="xl" title="Очень крупный"><span class="draw-size-sample xl"></span></button></div></div><div class="zoomCtl"><button id="zoomPlus" type="button">+</button><button id="zoomMinus" type="button">−</button></div><svg id="gridSvg" aria-hidden="true"></svg><svg id="drawSvg" aria-hidden="true"></svg><div id="handlesLayer"></div><div id="mapProgress" class="mapProgress">карта: —</div><div class="attribution" id="attribution">—</div><div class="area-badge" id="mapBadge"><b>Карта загружается.</b><br>Сетка появится после команды.</div></main>
+  </div><div class="toastbox" id="toastbox"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" referrerpolicy="no-referrer"></script>
+  <script>
+  (() => {
+    'use strict';
+    const AUTHOR_TEXT='Генератор сетки @PodKiT кинологический поисковый отряд \"2-К\"';
+    const PROJECT_STORAGE_KEY='grid_generator_project_v14_12';
+    const DRAW_SIZE_CFG={s:{name:'малый',stroke:2,point:5,font:11},m:{name:'средний',stroke:3,point:7,font:13},l:{name:'крупный',stroke:5,point:10,font:16},xl:{name:'очень крупный',stroke:8,point:14,font:20}};
+    const EARTH_R=6378137, TILE=256, $=id=>document.getElementById(id), fmt=(n,d=6)=>Number(n).toFixed(d);
+    const mapWrap=$('mapWrap'), mapEl=$('map'), tilePane=$('tilePane'), tilePane2=$('tilePane2'), staticPane=$('staticPane'), gridSvg=$('gridSvg'), drawSvg=$('drawSvg'), handlesLayer=$('handlesLayer');
+    const sources={
+      osm:{kind:'xyz',url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',attr:'© OpenStreetMap contributors',maxZoom:19,maxNativeZoom:19,subdomains:''},
+      carto:{kind:'xyz',url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',attr:'© OpenStreetMap contributors © CARTO',maxZoom:20,maxNativeZoom:20,subdomains:'abcd'},
+      cartoDark:{kind:'xyz',url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',attr:'© OpenStreetMap contributors © CARTO',maxZoom:20,maxNativeZoom:20,subdomains:'abcd'},
+      cartoVoyager:{kind:'xyz',url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',attr:'© OpenStreetMap contributors © CARTO Voyager',maxZoom:20,maxNativeZoom:20,subdomains:'abcd'},
+      wikimedia:{kind:'xyz',url:'https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png',attr:'© OpenStreetMap contributors · Wikimedia Maps',maxZoom:19,maxNativeZoom:19,subdomains:''},
+      esriGray:{kind:'xyz',url:'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',attr:'Tiles © Esri — World Light Gray Canvas',maxZoom:16,maxNativeZoom:16,subdomains:''},
+      hot:{kind:'xyz',url:'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',attr:'© OpenStreetMap contributors, HOT',maxZoom:20,maxNativeZoom:20,subdomains:'abc'},
+      topo:{kind:'xyz',url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',attr:'© OpenStreetMap contributors, SRTM | OpenTopoMap',maxZoom:19,maxNativeZoom:17,subdomains:'abc'},
+      cyclosm:{kind:'xyz',url:'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',attr:'© OpenStreetMap contributors | CyclOSM',maxZoom:20,maxNativeZoom:20,subdomains:'abc'},
+      osmfr:{kind:'xyz',url:'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',attr:'© OpenStreetMap contributors, OSM France',maxZoom:20,maxNativeZoom:20,subdomains:'abc'},
+      esriImagery:{kind:'xyz',url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',attr:'Tiles © Esri — World Imagery',maxZoom:19,maxNativeZoom:19,subdomains:''},
+      nspdEeko38:{kind:'xyz',url:'https://nspd.gov.ru/cgk/map/38/tms/{z}/{x}/{y}.png',attr:'НСПД — ЕЭКО вектор',maxZoom:17,maxNativeZoom:17,minZoom:15,subdomains:'',coverage:'Единая электронная картографическая основа НСПД, векторная подложка. Обычно полезна на z15-17; доступность зависит от НСПД.',defaultView:{lat:55.751244,lon:37.618423,zoom:15}},
+      nspdOrtho:{kind:'xyz',url:'https://nspd.gov.ru/cgk/map/39/tms/{z}/{x}/{y}.png',attr:'НСПД — ЕЭКО ортофото 39',maxZoom:18,maxNativeZoom:18,minZoom:15,subdomains:'',coverage:'Россия, но детальность зависит от масштаба и доступности НСПД; лучше проверять на z15–18',defaultView:{lat:55.751244,lon:37.618423,zoom:15}},
+      esriTopo:{kind:'xyz',url:'https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',attr:'Tiles © Esri — World Topographic Map',maxZoom:19,maxNativeZoom:19,subdomains:''},
+      esriRelief:{kind:'xyz',url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',attr:'Tiles © Esri — World Shaded Relief',maxZoom:13,maxNativeZoom:13,subdomains:''},
+      esriHillshade:{kind:'xyz',url:'https://services.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}',attr:'Tiles © Esri — World Hillshade',maxZoom:16,maxNativeZoom:16,subdomains:''},
+      esriPhysical:{kind:'xyz',url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}',attr:'Tiles © Esri — World Physical Map',maxZoom:8,maxNativeZoom:8,subdomains:''},
+      nasaNight:{kind:'xyz',url:'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_CityLights_2012/default/2012-01-01/GoogleMapsCompatible_Level8/{z}/{y}/{x}.jpg',attr:'NASA GIBS — VIIRS City Lights 2012',maxZoom:8,maxNativeZoom:8,subdomains:''},
+      opentopomapBW:{kind:'xyz',url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',attr:'OpenTopoMap monochrome via CSS',maxZoom:19,maxNativeZoom:17,subdomains:'abc',filter:'grayscale(100%) contrast(115%)'},
+      custom:{kind:'xyz',url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',attr:'© OpenStreetMap contributors',maxZoom:19,maxNativeZoom:19,subdomains:''},
+      mbtiles:{kind:'mbtiles',attr:'Локальная MBTiles-карта',maxZoom:22,maxNativeZoom:22,subdomains:''}
+    };
+    const BASE_LAYER_NOTES={
+      nspdEeko38:{kind:'warn',text:'НСПД ЕЭКО вектор z15-17. При выборе инструмент переходит на z15 в область, где слой удобно проверить. Доступность зависит от НСПД.'},
+      nspdOrtho:{kind:'warn',text:'НСПД ЕЭКО ортофото 39 · ориентир z15–18. При выборе инструмент переходит на z15 в область проверки. Качество и наличие детальных тайлов зависят от региона и доступности НСПД.'},
+      nasaNight:{kind:'warn',text:'NASA VIIRS City Lights · до z8. Слой засветки, не навигационная карта.'},
+      esriPhysical:{kind:'warn',text:'Esri World Physical · до z8. Обзорный физико-географический слой, не подходит для детальной работы.'}
+    };
+
+    const state={center:{lat:55.026503,lon:82.921463},zoom:13,sourceKey:'osm',tileErrors:0,tileLoaded:0,tileLoading:0,selectedBounds:null,gridVisible:false,currentCells:[],vertexPoints:[],lastGpx:'',lastCentersGpx:'',rebuildTimer:null,drawMode:false,isPanning:false,autoDeclinationDeg:0,declinationSource:'NOAA/WMM не запрошен',declinationTimer:null,staticTimer:null,weatherTimer:null,lastWeatherKey:'',annotationMode:'none',annotations:[],draftAnnotation:null,drawId:1,selectedAnnotationId:null,lastDrawClick:null,drawSize:'m',exportJobs:{},coordMarker:null,projectSaveTimer:null,touchGesture:null,mobileTipTimer:null,drawSizePopupTimer:null,mbtiles:null,mbtileUrlCache:new Map(),secondLayerEnabled:false,secondSourceKey:'none',secondOpacity:.45};
+
+    function worldSize(z=state.zoom){return TILE*Math.pow(2,z)}
+    function clampLat(lat){return Math.max(-85.05112878,Math.min(85.05112878,lat))}
+    function llToWorld(lat,lon,z=state.zoom){lat=clampLat(lat);const s=Math.sin(lat*Math.PI/180),ws=worldSize(z);return{x:(lon+180)/360*ws,y:(0.5-Math.log((1+s)/(1-s))/(4*Math.PI))*ws}}
+    function worldToLl(x,y,z=state.zoom){const ws=worldSize(z);const lon=x/ws*360-180;const n=Math.PI-2*Math.PI*y/ws;const lat=180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n)));return{lat,lon:normalizeLon(lon)}}
+    function normalizeLon(lon){return ((lon+180)%360+360)%360-180}
+    function mapSize(){return{w:mapWrap.clientWidth,h:mapWrap.clientHeight}}
+    function centerWorld(z=state.zoom){return llToWorld(state.center.lat,state.center.lon,z)}
+    function topLeftWorld(z=state.zoom){const c=centerWorld(z),s=mapSize();return{x:c.x-s.w/2,y:c.y-s.h/2}}
+    function geoToPoint(ll){const tl=topLeftWorld(),w=llToWorld(ll.lat,ll.lon);return{x:w.x-tl.x,y:w.y-tl.y}}
+    function pointToGeo(p){const tl=topLeftWorld();return worldToLl(tl.x+p.x,tl.y+p.y)}
+    function getViewportBounds(inset=0){const s=mapSize(),m=Math.max(0,Number(inset)||0),nw=pointToGeo({x:m,y:m}),se=pointToGeo({x:Math.max(m,s.w-m),y:Math.max(m,s.h-m)});return normalizeBounds({north:nw.lat,south:se.lat,west:nw.lon,east:se.lon})}
+    function normalizeBounds(b){return{north:Math.max(b.north,b.south),south:Math.min(b.north,b.south),west:Math.min(b.west,b.east),east:Math.max(b.west,b.east)}}
+    function boundsCenter(b){return{lat:(b.north+b.south)/2,lon:(b.west+b.east)/2}}
+    function boundsCorners(b){return[{lat:b.north,lon:b.west},{lat:b.north,lon:b.east},{lat:b.south,lon:b.east},{lat:b.south,lon:b.west}]}
+    function setCenter(lat,lon,z=state.zoom){state.center={lat:clampLat(lat),lon:normalizeLon(lon)};state.zoom=Math.round(Math.max(1,Math.min(22,z)));renderMap();updateTopbar();onViewChanged()}
+    function setCenterFromWorld(w,z=state.zoom){const ll=worldToLl(w.x,w.y,z);state.center={lat:ll.lat,lon:ll.lon};state.zoom=Math.round(z);renderMap();updateTopbar();onViewChanged()}
+    function zoomBy(delta,anchor){const oldZ=state.zoom,newZ=Math.round(Math.max(1,Math.min(22,oldZ+delta)));if(newZ===oldZ)return;const p=anchor||{x:mapWrap.clientWidth/2,y:mapWrap.clientHeight/2};const before=pointToGeo(p);const beforeWorldNew=llToWorld(before.lat,before.lon,newZ);const s=mapSize();const newCenterWorld={x:beforeWorldNew.x-(p.x-s.w/2),y:beforeWorldNew.y-(p.y-s.h/2)};setCenterFromWorld(newCenterWorld,newZ)}
+
+    function updateBaseLayerHint(){
+      const el=$('baseLayerHint');if(!el)return;
+      const note=BASE_LAYER_NOTES[state.sourceKey];
+      if(note){el.textContent=note.text;el.title=note.text;el.classList.toggle('warn',note.kind==='warn')}
+      else{el.textContent='Обычная подложка без специальных ограничений покрытия.';el.title='Обычная подложка без специальных ограничений покрытия.';el.classList.remove('warn')}
+      const opt=$('baseSelect')?.querySelector(`option[value="${state.sourceKey}"]`);
+      if(opt&&note)opt.title=note.text;
+    }
+    function annotateBaseLayerOptions(){
+      const select=$('baseSelect');if(!select)return;
+      [...select.options].forEach(opt=>{const note=BASE_LAYER_NOTES[opt.value];if(note)opt.title=note.text});
+      updateBaseLayerHint();
+    }
+
+    function currentSource(){if(state.sourceKey==='custom')return{...sources.custom,url:$('customUrl').value.trim(),attr:$('customAttr').value.trim(),maxZoom:Number($('customMaxZoom').value)||19,maxNativeZoom:Number($('customMaxZoom').value)||19};if(state.sourceKey==='mbtiles')return{...sources.mbtiles,mbtiles:state.mbtiles,attr:state.mbtiles?state.mbtiles.attr:'Локальная MBTiles-карта',maxZoom:state.mbtiles?state.mbtiles.maxzoom:22,maxNativeZoom:state.mbtiles?state.mbtiles.maxzoom:22};return sources[state.sourceKey]||sources.osm}
+    function secondarySource(){
+      const key=$('secondBaseSelect')?$('secondBaseSelect').value:state.secondSourceKey;
+      if(!key||key==='none')return null;
+      if(key==='custom')return{...sources.custom,url:$('customUrl').value.trim(),attr:$('customAttr').value.trim(),maxZoom:Number($('customMaxZoom').value)||19,maxNativeZoom:Number($('customMaxZoom').value)||19};
+      if(key==='mbtiles')return{...sources.mbtiles,mbtiles:state.mbtiles,attr:state.mbtiles?state.mbtiles.attr:'Локальная MBTiles-карта',maxZoom:state.mbtiles?state.mbtiles.maxzoom:22,maxNativeZoom:state.mbtiles?state.mbtiles.maxzoom:22};
+      return sources[key]||null
+    }
+    function syncSecondLayerState(){
+      state.secondSourceKey=$('secondBaseSelect')?$('secondBaseSelect').value:'none';
+      state.secondLayerEnabled=!!(state.secondSourceKey&&state.secondSourceKey!=='none');
+      state.secondOpacity=(Number($('secondOpacity')&&$('secondOpacity').value)||0)/100;
+      if($('secondOpacityText'))$('secondOpacityText').textContent=Math.round(state.secondOpacity*100)+'%'
+    }
+    function applySourceDefaultView(key){const src=sources[key];if(!src||!src.defaultView)return false;const v=src.defaultView;state.center={lat:clampLat(v.lat),lon:normalizeLon(v.lon)};state.zoom=Math.round(Math.max(src.minZoom||1,Math.min(src.maxZoom||22,v.zoom||state.zoom)));return true}
+    function renderMap(){updateBaseLayerHint();const src=currentSource();$('attribution').textContent=src.attr||'';if(src.kind==='wms')renderWMS(src);else if(src.kind==='mbtiles')renderMBTiles(src);else renderXYZ(src);renderSecondLayer();renderGridSvg();renderDrawSvg()}
+    function updateTileStatus(s){$('tileStatus').textContent=s||'—';$('tileErrors').textContent=state.tileErrors; if($('mapProgress'))$('mapProgress').textContent='карта: '+(s||'—')+(state.tileErrors?' · ошибок '+state.tileErrors:'')}
+    function resetTileStats(){state.tileErrors=0;state.tileLoaded=0;state.tileLoading=0;updateTileStatus('загрузка')}
+    function templateUrl(tpl,z,x,y,src){const subs=src.subdomains||'';const s=subs?subs[Math.abs(x+y)%subs.length]:'';return tpl.replaceAll('{z}',z).replaceAll('{x}',x).replaceAll('{y}',y).replaceAll('{s}',s).replaceAll('{r}','')}
+
+    function renderMBTiles(src){
+      staticPane.style.display='none';tilePane.style.display='block';
+      if(!state.mbtiles){
+        tilePane.innerHTML='';
+        updateTileStatus('MBTiles не выбран');
+        const msg=document.createElement('div');
+        msg.className='static-message';
+        msg.textContent='Выбери файл .mbtiles в настройках подложки.';
+        tilePane.appendChild(msg);
+        return;
+      }
+      const maxNative=state.mbtiles.maxzoom||22;
+      const minNative=state.mbtiles.minzoom||0;
+      const z=Math.max(minNative,Math.min(state.zoom,maxNative));
+      const scale=Math.pow(2,state.zoom-z);
+      const view=mapSize(),tl=topLeftWorld(state.zoom);
+      const tileTl={x:tl.x/scale,y:tl.y/scale};
+      const n=Math.pow(2,z);
+      const minX=Math.floor(tileTl.x/TILE)-1,maxX=Math.floor((tileTl.x+view.w/scale)/TILE)+1,minY=Math.floor(tileTl.y/TILE)-1,maxY=Math.floor((tileTl.y+view.h/scale)/TILE)+1;
+      const needed=new Set();let shown=0,missing=0;
+      for(let tx=minX;tx<=maxX;tx++){
+        const ux=((tx%n)+n)%n;
+        for(let ty=minY;ty<=maxY;ty++){
+          if(ty<0||ty>=n)continue;
+          const key=`mbtiles_${z}_${ux}_${ty}_${scale}`;
+          needed.add(key);
+          let img=tilePane.querySelector(`[data-key="${cssEscape(key)}"]`);
+          if(!img){
+            const url=getMbtilesTileObjectUrl(z,ux,ty);
+            if(!url){missing++;continue}
+            img=document.createElement('img');
+            img.className='map-tile';
+            img.dataset.key=key;
+            img.decoding='async';
+            img.loading='eager';
+            img.draggable=false;
+            img.src=url;
+            tilePane.appendChild(img);
+          }
+          const left=(tx*TILE-tileTl.x)*scale,top=(ty*TILE-tileTl.y)*scale;
+          img.style.left=left+'px';img.style.top=top+'px';img.style.width=(TILE*scale)+'px';img.style.height=(TILE*scale)+'px';
+          shown++;
+        }
+      }
+      [...tilePane.querySelectorAll('.map-tile,.static-message')].forEach(el=>{if(el.classList.contains('static-message')||!needed.has(el.dataset.key))el.remove()});
+      updateTileStatus(shown?`MBTiles z${z}`:(missing?'вне области MBTiles':'MBTiles нет тайлов'));
+    }
+
+    function getMbtilesTileObjectUrl(z,x,y){
+      if(!state.mbtiles)return null;
+      const row=state.mbtiles.scheme==='tms'?(Math.pow(2,z)-1-y):y;
+      const key=`${z}/${x}/${row}`;
+      if(state.mbtileUrlCache.has(key))return state.mbtileUrlCache.get(key);
+      const rec=state.mbtiles.tiles.get(key);
+      if(!rec)return null;
+      const bytes=rec.bytes||readSqlitePayload(state.mbtiles.db,rec.payloadOffset,rec.payloadSize,rec.localSize);
+      const blob=new Blob([bytes],{type:state.mbtiles.mime||'image/png'});
+      const url=URL.createObjectURL(blob);
+      state.mbtileUrlCache.set(key,url);
+      if(state.mbtileUrlCache.size>900){
+        const first=state.mbtileUrlCache.keys().next().value;
+        URL.revokeObjectURL(state.mbtileUrlCache.get(first));
+        state.mbtileUrlCache.delete(first);
+      }
+      return url;
+    }
+
+    function loadMbtilesImage(z,x,y){
+      const url=getMbtilesTileObjectUrl(z,x,y);
+      if(!url)return Promise.reject(new Error('mbtile missing'));
+      return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('mbtile image error'));img.src=url});
+    }
+
+    function renderXYZ(src){renderXYZPane(src,tilePane,state.sourceKey,1,true)}
+    function renderXYZPane(src,pane,keyPrefix='layer',opacity=1,updateStatus=false){
+      if(!pane)return;
+      if(updateStatus)staticPane.style.display='none';pane.style.display='block';pane.style.opacity=String(opacity);
+      const minZ=src.minZoom||1,maxNative=src.maxNativeZoom||src.maxZoom||22;
+      const z=Math.max(minZ,Math.min(state.zoom,maxNative));
+      const scale=Math.pow(2,state.zoom-z),view=mapSize(),tl=topLeftWorld(state.zoom),tileTl={x:tl.x/scale,y:tl.y/scale},n=Math.pow(2,z);
+      const minX=Math.floor(tileTl.x/TILE)-1,maxX=Math.floor((tileTl.x+view.w/scale)/TILE)+1,minY=Math.floor(tileTl.y/TILE)-1,maxY=Math.floor((tileTl.y+view.h/scale)/TILE)+1;
+      const needed=new Set();let shown=0;
+      for(let tx=minX;tx<=maxX;tx++){const ux=((tx%n)+n)%n;for(let ty=minY;ty<=maxY;ty++){if(ty<0||ty>=n)continue;const key=`${keyPrefix}_${z}_${ux}_${ty}_${scale}`;needed.add(key);let img=pane.querySelector(`[data-key="${cssEscape(key)}"]`);if(!img){img=document.createElement('img');img.className='map-tile';img.dataset.key=key;img.decoding='async';img.loading='eager';img.draggable=false;if($('tileCors').checked)img.crossOrigin='anonymous';img.onload=()=>{if(updateStatus){state.tileLoaded++;state.tileLoading=Math.max(0,state.tileLoading-1);updateTileStatus(state.tileLoading?'загрузка':'готово')}};img.onerror=()=>{if(updateStatus){state.tileErrors++;state.tileLoading=Math.max(0,state.tileLoading-1);updateTileStatus('частично')}};if(updateStatus)state.tileLoading++;img.src=templateUrl(src.url,z,ux,ty,src);pane.appendChild(img)}const left=(tx*TILE-tileTl.x)*scale,top=(ty*TILE-tileTl.y)*scale;img.style.left=left+'px';img.style.top=top+'px';img.style.width=(TILE*scale)+'px';img.style.height=(TILE*scale)+'px';img.style.filter=src.filter||'';shown++}}
+      [...pane.querySelectorAll('.map-tile')].forEach(img=>{if(!needed.has(img.dataset.key))img.remove()});if(updateStatus&&!pane.children.length)updateTileStatus('нет тайлов');return shown;
+    }
+    function renderSecondLayer(){
+      syncSecondLayerState();
+      if(!tilePane2)return;
+      if(!state.secondLayerEnabled){tilePane2.innerHTML='';tilePane2.style.display='none';return}
+      const src=secondarySource();
+      if(!src){tilePane2.innerHTML='';tilePane2.style.display='none';return}
+      if(src.kind==='xyz'){renderXYZPane(src,tilePane2,'second_'+state.secondSourceKey,state.secondOpacity,false);return}
+      if(src.kind==='mbtiles'){renderMBTilesSecondLayer(src);return}
+      tilePane2.innerHTML='';tilePane2.style.display='none'
+    }
+    function renderMBTilesSecondLayer(src){
+      if(!tilePane2)return;
+      tilePane2.style.display='block';
+      tilePane2.style.opacity=String(state.secondOpacity);
+      if(!state.mbtiles){tilePane2.innerHTML='';return}
+      const maxNative=state.mbtiles.maxzoom||22;
+      const minNative=state.mbtiles.minzoom||0;
+      const z=Math.max(minNative,Math.min(state.zoom,maxNative));
+      const scale=Math.pow(2,state.zoom-z);
+      const view=mapSize(),tl=topLeftWorld(state.zoom);
+      const tileTl={x:tl.x/scale,y:tl.y/scale};
+      const n=Math.pow(2,z);
+      const minX=Math.floor(tileTl.x/TILE)-1,maxX=Math.floor((tileTl.x+view.w/scale)/TILE)+1,minY=Math.floor(tileTl.y/TILE)-1,maxY=Math.floor((tileTl.y+view.h/scale)/TILE)+1;
+      const needed=new Set();
+      for(let tx=minX;tx<=maxX;tx++){
+        const ux=((tx%n)+n)%n;
+        for(let ty=minY;ty<=maxY;ty++){
+          if(ty<0||ty>=n)continue;
+          const key=`second_mbtiles_${z}_${ux}_${ty}_${scale}`;
+          needed.add(key);
+          let img=tilePane2.querySelector(`[data-key="${cssEscape(key)}"]`);
+          if(!img){
+            const url=getMbtilesTileObjectUrl(z,ux,ty);
+            if(!url)continue;
+            img=document.createElement('img');
+            img.className='map-tile';
+            img.dataset.key=key;
+            img.decoding='async';
+            img.loading='eager';
+            img.draggable=false;
+            img.src=url;
+            tilePane2.appendChild(img);
+          }
+          const left=(tx*TILE-tileTl.x)*scale,top=(ty*TILE-tileTl.y)*scale;
+          img.style.left=left+'px';img.style.top=top+'px';img.style.width=(TILE*scale)+'px';img.style.height=(TILE*scale)+'px';
+        }
+      }
+      [...tilePane2.querySelectorAll('.map-tile')].forEach(img=>{if(!needed.has(img.dataset.key))img.remove()})
+    }
+
+    function mercatorMeters(ll){const lat=clampLat(ll.lat);return{x:EARTH_R*toRad(ll.lon),y:EARTH_R*Math.log(Math.tan(Math.PI/4+toRad(lat)/2))}}
+    function wmsGetMapUrl(src,bounds,width,height,transparent=true){
+      const nw=mercatorMeters({lat:bounds.north,lon:bounds.west}),se=mercatorMeters({lat:bounds.south,lon:bounds.east});
+      const params=new URLSearchParams({SERVICE:'WMS',VERSION:'1.1.1',REQUEST:'GetMap',FORMAT:'image/png',TRANSPARENT:String(!!transparent).toUpperCase(),LAYERS:String(src.layer||''),STYLES:'',SRS:'EPSG:3857',BBOX:[nw.x,se.y,se.x,nw.y].map(v=>String(v)).join(','),WIDTH:String(Math.max(1,Math.round(width))),HEIGHT:String(Math.max(1,Math.round(height)))});
+      return src.url+'?'+params.toString();
+    }
+    function renderWMS(src){
+      tilePane.style.display='none';staticPane.style.display='block';tilePane.innerHTML='';
+      const s=mapSize(),bounds=getViewportBounds(0);staticPane.innerHTML='';
+      const img=document.createElement('img');img.className='static-map-img';img.draggable=false;img.decoding='async';img.loading='eager';
+      img.onload=()=>updateTileStatus('WMS готово');img.onerror=()=>{state.tileErrors++;updateTileStatus('WMS ошибка')};
+      img.src=wmsGetMapUrl(src,bounds,s.w,s.h,true);
+      staticPane.appendChild(img);updateTileStatus('WMS загрузка');
+    }
+
+    function cssEscape(s){return String(s).replace(/\\/g,'\\\\').replace(/"/g,'\\"')}
+    function onViewChanged(){if(state.gridVisible && $('followViewport').checked){state.selectedBounds=getViewportBounds(20);updateAutoDeclination();if($('autoCell').checked)applyAutoCellSize();scheduleRebuild(60)}else{renderGridSvg();updateStats()}}
+    function updateTopbar(){if($('coordInput')&&!document.activeElement.isSameNode($('coordInput')))$('coordInput').value=`${fmt(state.center.lat,6)}, ${fmt(state.center.lon,6)}`;$('zoomInput').value=state.zoom;updateStats();scheduleWeather()}
+    function goToCoords(){const c=parseAnyCoord($('coordInput').value);const z=Number($('zoomInput').value);if(c){setCenter(c.lat,c.lon,Number.isFinite(z)?z:state.zoom);setCoordMarker(c,formatCoordString(c));}else toast('Не понял формат координат','err')}
+
+    function setSelection(bounds,opts={}){state.selectedBounds=normalizeBounds(bounds);state.gridVisible=true;if(opts.manual)$('followViewport').checked=false;updateAutoDeclination();if($('autoCell').checked)applyAutoCellSize();buildGrid({silent:opts.silent});if(!opts.silent)toast('Область сетки задана','ok');scheduleProjectAutosave()}
+    function clearSelection(){state.selectedBounds=null;state.currentCells=[];state.vertexPoints=[];state.lastGpx='';state.lastCentersGpx='';state.gridVisible=false;gridSvg.innerHTML='';handlesLayer.innerHTML='';$('cellCount').textContent='0';$('gpxSize').textContent='—';$('followViewport').checked=false;updateStats();scheduleProjectAutosave();toast('Область и сетка очищены','ok')}
+    function renderGridSvg(){if(!state.gridVisible||!state.selectedBounds){gridSvg.innerHTML='';handlesLayer.innerHTML='';return}const size=mapSize();gridSvg.setAttribute('viewBox',`0 0 ${size.w} ${size.h}`);gridSvg.setAttribute('width',size.w);gridSvg.setAttribute('height',size.h);const color=$('gridColor').value||'#071923',weight=Number($('gridWeight').value)||2;let lines='',labels='';for(const cell of state.currentCells){const pts=cell.latlngs.map(geoToPoint);if(!pts.length)continue;lines+=`M${pts[0].x.toFixed(1)},${pts[0].y.toFixed(1)}`+pts.slice(1).map(p=>`L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('')+'Z ';}
+      if($('showLabels').checked){const placement=$('labelPlacement').value;if(placement==='vertices'){for(const vp of state.vertexPoints){const p=geoToPoint(vp.ll);if(p.x>-80&&p.y>-40&&p.x<size.w+80&&p.y<size.h+40)labels+=`<text class="grid-label-svg vertex" x="${(p.x+6).toFixed(1)}" y="${(p.y-6).toFixed(1)}" text-anchor="start" dominant-baseline="middle">${xml(vp.label)}</text>`}}else{for(const cell of state.currentCells){const p=geoToPoint(cell.center);if(p.x>-80&&p.y>-40&&p.x<size.w+80&&p.y<size.h+40)labels+=`<text class="grid-label-svg" x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle">${xml(cell.label)}</text>`}}}
+      const bpts=boundsCorners(state.selectedBounds).map(geoToPoint);const boundary=`<path class="grid-boundary" d="M${bpts[0].x.toFixed(1)},${bpts[0].y.toFixed(1)}L${bpts[1].x.toFixed(1)},${bpts[1].y.toFixed(1)}L${bpts[2].x.toFixed(1)},${bpts[2].y.toFixed(1)}L${bpts[3].x.toFixed(1)},${bpts[3].y.toFixed(1)}Z"/>`;gridSvg.innerHTML=`${boundary}<path class="grid-line" style="stroke:${xml(color)};stroke-width:${weight}px" d="${lines}"/>${labels}`;renderHandles()}
+    function renderHandles(){handlesLayer.innerHTML='';if(!state.gridVisible||!state.selectedBounds)return;const b=state.selectedBounds,n=b.north,s=b.south,e=b.east,w=b.west,c=boundsCenter(b);const items=[['nw',{lat:n,lon:w}],['n',{lat:n,lon:c.lon}],['ne',{lat:n,lon:e}],['e',{lat:c.lat,lon:e}],['se',{lat:s,lon:e}],['s',{lat:s,lon:c.lon}],['sw',{lat:s,lon:w}],['w',{lat:c.lat,lon:w}]];for(const [key,ll] of items){const p=geoToPoint(ll);const d=document.createElement('div');d.className='grid-handle '+(key.length===1?'edge':'');d.dataset.key=key;d.style.left=p.x+'px';d.style.top=p.y+'px';d.addEventListener('pointerdown',startHandleDrag);handlesLayer.appendChild(d)}}
+    function startHandleDrag(ev){ev.preventDefault();ev.stopPropagation();$('followViewport').checked=false;const key=ev.currentTarget.dataset.key;const move=e=>{const p=mouseToPoint(e);resizeSelectionByHandle(key,pointToGeo(p),false)};const up=e=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);const p=mouseToPoint(e);resizeSelectionByHandle(key,pointToGeo(p),true)};window.addEventListener('pointermove',move);window.addEventListener('pointerup',up)}
+    function mouseToPoint(e){const r=mapWrap.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+    function resizeSelectionByHandle(key,p,finish){const b=state.selectedBounds;if(!b)return;let n=b.north,s=b.south,e=b.east,w=b.west;const minLat=0.00003,minLng=0.00003;if(key.includes('n'))n=Math.max(p.lat,s+minLat);if(key.includes('s'))s=Math.min(p.lat,n-minLat);if(key.includes('e'))e=Math.max(p.lon,w+minLng);if(key.includes('w'))w=Math.min(p.lon,e-minLng);state.selectedBounds=normalizeBounds({north:n,south:s,east:e,west:w});updateAutoDeclination();if($('autoCell').checked)applyAutoCellSize();if(finish)buildGrid();else{renderGridSvg();scheduleRebuild(120)}updateStats()}
+    function startDrawArea(){state.drawMode=true;mapWrap.classList.add('draw-mode');toast('Зажми левую кнопку мыши и растяни прямоугольник','warn');let start=null,tempBox=null;const down=e=>{if(e.button!==0)return;e.preventDefault();e.stopPropagation();$('followViewport').checked=false;start=mouseToPoint(e);tempBox=document.createElement('div');tempBox.style.cssText='position:absolute;z-index:480;border:2px dashed #1967d2;background:rgba(25,103,210,.08);pointer-events:none';mapWrap.appendChild(tempBox);window.addEventListener('pointermove',move);window.addEventListener('pointerup',up)};const move=e=>{if(!start)return;const p=mouseToPoint(e);const x=Math.min(start.x,p.x),y=Math.min(start.y,p.y),w=Math.abs(p.x-start.x),h=Math.abs(p.y-start.y);Object.assign(tempBox.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px'})};const up=e=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);mapEl.removeEventListener('pointerdown',down,true);mapWrap.classList.remove('draw-mode');state.drawMode=false;const p=mouseToPoint(e);if(tempBox)tempBox.remove();if(!start||Math.abs(p.x-start.x)<10||Math.abs(p.y-start.y)<10){toast('Область слишком маленькая','err');return}const a=pointToGeo(start),b=pointToGeo(p);setSelection({north:a.lat,south:b.lat,west:a.lon,east:b.lon},{manual:true})};mapEl.addEventListener('pointerdown',down,true)}
+
+    function toRad(d){return d*Math.PI/180}function toDeg(r){return r*180/Math.PI}function llToXY(ll,lat0){const lat=ll.lat,lng=ll.lon;return{x:EARTH_R*toRad(lng)*Math.cos(toRad(lat0)),y:EARTH_R*toRad(lat)}}function xyToLL(p,lat0){return{lat:toDeg(p.y/EARTH_R),lon:toDeg(p.x/(EARTH_R*Math.cos(toRad(lat0))))}}
+    function gridToXY(u,v,cx,cy,a){const ca=Math.cos(a),sa=Math.sin(a);return{x:cx+u*ca+v*sa,y:cy-u*sa+v*ca}}function xyToGrid(p,cx,cy,a){const dx=p.x-cx,dy=p.y-cy,ca=Math.cos(a),sa=Math.sin(a);return{u:ca*dx-sa*dy,v:sa*dx+ca*dy}}
+    function polygonArea(poly){let s=0;for(let i=0;i<poly.length;i++){const a=poly[i],b=poly[(i+1)%poly.length];s+=a.x*b.y-b.x*a.y}return s/2}function centroid(poly){const a=polygonArea(poly);let cx=0,cy=0;if(Math.abs(a)<1e-6){poly.forEach(p=>{cx+=p.x;cy+=p.y});return{x:cx/poly.length,y:cy/poly.length}}for(let i=0;i<poly.length;i++){const p=poly[i],q=poly[(i+1)%poly.length],f=p.x*q.y-q.x*p.y;cx+=(p.x+q.x)*f;cy+=(p.y+q.y)*f}return{x:cx/(6*a),y:cy/(6*a)}}
+    function clipPolygon(subject,clip){let output=subject.slice();const clipArea=polygonArea(clip),eps=1e-8;function inside(p,a,b){const cross=(b.x-a.x)*(p.y-a.y)-(b.y-a.y)*(p.x-a.x);return clipArea>=0?cross>=-eps:cross<=eps}function intersect(s,e,a,b){const dx1=e.x-s.x,dy1=e.y-s.y,dx2=b.x-a.x,dy2=b.y-a.y,den=dx1*dy2-dy1*dx2;if(Math.abs(den)<1e-12)return e;const t=((a.x-s.x)*dy2-(a.y-s.y)*dx2)/den;return{x:s.x+t*dx1,y:s.y+t*dy1}}for(let j=0;j<clip.length;j++){const a=clip[j],b=clip[(j+1)%clip.length],input=output.slice();output=[];if(!input.length)break;let s=input[input.length-1];for(const e of input){if(inside(e,a,b)){if(!inside(s,a,b))output.push(intersect(s,e,a,b));output.push(e)}else if(inside(s,a,b))output.push(intersect(s,e,a,b));s=e}}return output}
+    function letters(n){let s='';n=Math.max(1,n);while(n>0){n--;s=String.fromCharCode(65+(n%26))+s;n=Math.floor(n/26)}return s}function cyrLetters(n){const abc='АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЭЮЯ';let s='';n=Math.max(1,n);while(n>0){n--;s=abc[n%abc.length]+s;n=Math.floor(n/abc.length)}return s}function makeLabel(seq,row,col){const pref=$('prefix').value||'',mode=$('labelMode').value;const r=String(row).padStart(2,'0'),c=String(col).padStart(2,'0'),sp=String(seq).padStart(3,'0'),L=letters(col),K=cyrLetters(col);if(mode==='seqpad')return pref+sp;if(mode==='letters')return pref+L+row;if(mode==='lettersDash')return pref+L+'-'+r;if(mode==='rowcol')return pref+r+'-'+c;if(mode==='colrow')return pref+c+'-'+L;if(mode==='rc')return pref+'R'+r+'C'+c;if(mode==='cyr')return pref+K+row;return pref+seq}
+    function buildGrid(opts={}){if(!state.selectedBounds){toast('Сначала выбери область: «Вывести сетку на экран» или «Нарисовать сетку».','warn');return}state.gridVisible=true;if($('autoCell').checked)applyAutoCellSize();const LIMIT=10000;const b=state.selectedBounds,cellW=Number($('cellW').value),cellH=Number($('cellH').value);if(!Number.isFinite(cellW)||!Number.isFinite(cellH)||cellW<=0||cellH<=0){toast('Проверь размер квадрата','err');return}const angle=toRad(effectiveAngle()),offsetU=Number($('offsetX').value)||0,offsetV=Number($('offsetY').value)||0,lat0=boundsCenter(b).lat,cxy=llToXY(boundsCenter(b),lat0),clip=boundsCorners(b).map(ll=>llToXY(ll,lat0));const gridPts=clip.map(p=>xyToGrid(p,cxy.x,cxy.y,angle));const minU=Math.min(...gridPts.map(p=>p.u))-cellW,maxU=Math.max(...gridPts.map(p=>p.u))+cellW,minV=Math.min(...gridPts.map(p=>p.v))-cellH,maxV=Math.max(...gridPts.map(p=>p.v))+cellH;const iMin=Math.floor((minU-offsetU)/cellW),iMax=Math.ceil((maxU-offsetU)/cellW),jMin=Math.floor((minV-offsetV)/cellH),jMax=Math.ceil((maxV-offsetV)/cellH);const candidate=(iMax-iMin+1)*(jMax-jMin+1);if(candidate>500000){state.currentCells=[];state.vertexPoints=[];renderGridSvg();toast(`Сетка слишком плотная: проверка затронет около ${candidate.toLocaleString('ru-RU')} позиций. Увеличь квадрат или уменьши область.`,'err');log(`Построение остановлено: слишком много позиций (${candidate}).`);return}state.currentCells=[];state.vertexPoints=[];const vertexMap=new Map();let seq=Number($('startNum').value)||1,row=0,overLimit=false;outer:for(let j=jMax;j>=jMin;j--){row++;let col=0;for(let i=iMin;i<=iMax;i++){col++;const u0=i*cellW+offsetU,u1=(i+1)*cellW+offsetU,v0=j*cellH+offsetV,v1=(j+1)*cellH+offsetV;const rect=[gridToXY(u0,v0,cxy.x,cxy.y,angle),gridToXY(u1,v0,cxy.x,cxy.y,angle),gridToXY(u1,v1,cxy.x,cxy.y,angle),gridToXY(u0,v1,cxy.x,cxy.y,angle)];const clipped=clipPolygon(rect,clip);const rectArea=Math.abs(polygonArea(rect));const clippedArea=Math.abs(polygonArea(clipped));if(clipped.length<3||clippedArea<rectArea*0.999)continue;if(state.currentCells.length>=LIMIT){overLimit=true;break outer}const latlngs=rect.map(p=>xyToLL(p,lat0));const cen=xyToLL(centroid(rect),lat0);const vertices=[{key:`${i}:${j}`,u:u0,v:v0,ll:latlngs[0]},{key:`${i+1}:${j}`,u:u1,v:v0,ll:latlngs[1]},{key:`${i+1}:${j+1}`,u:u1,v:v1,ll:latlngs[2]},{key:`${i}:${j+1}`,u:u0,v:v1,ll:latlngs[3]}];for(const v of vertices){if(!vertexMap.has(v.key))vertexMap.set(v.key,{...v})}state.currentCells.push({label:makeLabel(seq,row,col),latlngs,center:cen,grid:{i,j},vertexKeys:vertices.map(v=>v.key),vertexLabels:[]});seq++}}if(overLimit){state.currentCells=[];state.vertexPoints=[];state.lastGpx='';state.lastCentersGpx='';$('cellCount').textContent='0';$('gpxSize').textContent='—';renderGridSvg();toast('Сетка не построена: больше 10 000 квадратов. Увеличь размер квадрата или уменьши область.','err');log('Построение остановлено: лимит 10 000 квадратов.');return}assignVertexLabels(vertexMap);state.lastGpx=makeGridGpx(state.currentCells);state.lastCentersGpx=makeCentersGpx(state.currentCells);$('cellCount').textContent=state.currentCells.length;$('gpxSize').textContent=prettyBytes(new Blob([state.lastGpx]).size);renderGridSvg();updateStats();if(!opts.silent)log(`Сетка: ${state.currentCells.length} квадратов, ${cellW}×${cellH} м, угол ${fmt(effectiveAngle(),1)}°.`)}
+    function boundsSizeMeters(b){const lat0=boundsCenter(b).lat,nw=llToXY({lat:b.north,lon:b.west},lat0),ne=llToXY({lat:b.north,lon:b.east},lat0),sw=llToXY({lat:b.south,lon:b.west},lat0);return{w:Math.hypot(nw.x-ne.x,nw.y-ne.y),h:Math.hypot(nw.x-sw.x,nw.y-sw.y)}}
+    function applyAutoCellSize(){if(!state.selectedBounds)return;const d=boundsSizeMeters(state.selectedBounds),target=Math.max(20,Math.min(10000,Number($('maxCells').value)||200)),nice=[25,50,75,100,150,200,250,300,400,500,750,1000,1500,2000,2500,3000,4000,5000,7500,10000,15000,20000,30000,50000,100000,200000];let chosen=nice[nice.length-1];for(const s of nice){if(Math.ceil(d.w/s)*Math.ceil(d.h/s)<=target){chosen=s;break}}$('cellW').value=chosen;$('cellH').value=chosen;document.querySelectorAll('.presetbar button').forEach(b=>b.classList.toggle('active',b.dataset.preset==='custom'))}
+    function scheduleRebuild(delay=160){clearTimeout(state.rebuildTimer);state.rebuildTimer=setTimeout(()=>{if(state.gridVisible&&state.selectedBounds)buildGrid({silent:true});else renderGridSvg()},delay)}
+    function normalizeDeg(d){return((Number(d)%360)+360)%360}function effectiveAngle(){return normalizeDeg((Number($('angle').value)||0)+($('useDeclination').checked?state.autoDeclinationDeg:0))}
+    function updateAutoDeclination(){const c=state.selectedBounds?boundsCenter(state.selectedBounds):state.center;const cacheKey=`decl_${c.lat.toFixed(2)}_${c.lon.toFixed(2)}`;const cached=Number(localStorage.getItem(cacheKey));if(Number.isFinite(cached)){state.autoDeclinationDeg=cached;state.declinationSource='кэш NOAA'}else{state.autoDeclinationDeg=0;state.declinationSource='ожидаю NOAA'}renderDeclinationText();updateAngleUi(false);clearTimeout(state.declinationTimer);state.declinationTimer=setTimeout(()=>fetchNoaaDeclination(c.lat,c.lon,cacheKey).catch(()=>{state.declinationSource=Number.isFinite(cached)?'кэш NOAA':'NOAA недоступен, 0°';renderDeclinationText();updateAngleUi(false)}),600)}
+    function renderDeclinationText(){const base=`Магнитное склонение: ${fmt(state.autoDeclinationDeg,2)}° по центру области (${state.declinationSource}).`;if($('declinationText'))$('declinationText').textContent=base;if($('northTip'))$('northTip').setAttribute('data-tip',`${base} ${$('useDeclination').checked?'Сейчас применяется.':'Сейчас не применяется.'} Истинный север — географический, магнитный — с учётом склонения.`)}
+    async function fetchNoaaDeclination(lat,lon,cacheKey){const d=new Date();const params=new URLSearchParams({lat1:String(lat),lon1:String(lon),key:'zNEw7',model:'WMM',startYear:String(d.getUTCFullYear()),startMonth:String(d.getUTCMonth()+1),startDay:String(d.getUTCDate()),resultFormat:'json'});const r=await fetch('https://www.ngdc.noaa.gov/geomag-web/calculators/calculateDeclination?'+params.toString(),{mode:'cors'});if(!r.ok)throw new Error('NOAA HTTP '+r.status);const data=await r.json();const val=findDeclinationInJson(data);if(Number.isFinite(val)&&Math.abs(val)<=180){state.autoDeclinationDeg=val;state.declinationSource='NOAA WMM';localStorage.setItem(cacheKey,String(val));renderDeclinationText();updateAngleUi(false);if($('useDeclination').checked&&state.gridVisible)buildGrid({silent:true})}}
+    function findDeclinationInJson(obj){let best=null;function walk(x,key=''){if(best!==null||x==null)return;if(typeof x==='number'&&/decl/i.test(key)){best=x;return}if(typeof x==='string'&&/decl/i.test(key)){const m=x.match(/[-+]?\d+(?:\.\d+)?/);if(m)best=Number(m[0]);return}if(typeof x==='object'){for(const [k,v] of Object.entries(x)){if(/declination|decl/i.test(k)){if(typeof v==='number'){best=v;return}if(typeof v==='string'){const m=v.match(/[-+]?\d+(?:\.\d+)?/);if(m){best=Number(m[0]);return}}}walk(v,k)}}}walk(obj);return best}
+    function updateAngleUi(rebuild=true){const eff=effectiveAngle(),dec=state.autoDeclinationDeg;$('gridNeedle').style.transform=`translate(-50%,-100%) rotate(${eff}deg)`;$('magNeedle').style.transform=`translate(-50%,-100%) rotate(${normalizeDeg(dec)}deg)`;$('magNeedle').classList.toggle('hidden',!$('useDeclination').checked);$('effectiveAngleText').textContent=fmt(eff,1)+'°';if($('northTrueLabel'))$('northTrueLabel').classList.toggle('active',!$('useDeclination').checked);if($('northMagLabel'))$('northMagLabel').classList.toggle('active',$('useDeclination').checked);const r=68,a=toRad(eff-90);$('angleHandle').style.left=(78+Math.cos(a)*r)+'px';$('angleHandle').style.top=(78+Math.sin(a)*r)+'px';renderDeclinationText();if(rebuild&&state.gridVisible)scheduleRebuild()}
+    function setAngleFromPointer(ev){const rect=$('angleDial').getBoundingClientRect(),x=ev.clientX-rect.left-rect.width/2,y=ev.clientY-rect.top-rect.height/2;let deg=normalizeDeg(Math.atan2(y,x)*180/Math.PI+90);const dec=$('useDeclination').checked?state.autoDeclinationDeg:0;$('angle').value=fmt(normalizeDeg(deg-dec),1);updateAngleUi()}
+    function startDialDrag(ev){ev.preventDefault();setAngleFromPointer(ev);const move=e=>setAngleFromPointer(e),up=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up)};window.addEventListener('pointermove',move);window.addEventListener('pointerup',up)}
+
+    function roundedKey(n){return Number(n).toFixed(6)}
+    function assignVertexLabels(vertexMap){const pts=[...vertexMap.values()];const cols=[...new Set(pts.map(p=>roundedKey(p.u)))].sort((a,b)=>Number(a)-Number(b));const rows=[...new Set(pts.map(p=>roundedKey(p.v)))].sort((a,b)=>Number(a)-Number(b));const colIndex=new Map(cols.map((v,i)=>[v,i]));const rowIndex=new Map(rows.map((v,i)=>[v,i]));for(const p of pts){p.uKey=roundedKey(p.u);p.vKey=roundedKey(p.v);p.col=colIndex.get(p.uKey)||0;p.row=rowIndex.get(p.vKey)||0;p.seq=(Number($('startNum').value)||1)+p.row*cols.length+p.col;p.label=makeLabel(p.seq,p.row+1,p.col+1)}state.vertexPoints=pts.sort((a,b)=>a.seq-b.seq);for(const cell of state.currentCells){cell.vertexLabels=cell.vertexKeys.map(k=>(vertexMap.get(k)||{}).label||'')}}
+    function makeGridTrackPoints(cells){if(!cells.length)return[];const pts=[];const vp=state.vertexPoints||[];if(vp.length){const cols=[...new Set(vp.map(p=>p.uKey))].sort((a,b)=>Number(a)-Number(b));const rows=[...new Set(vp.map(p=>p.vKey))].sort((a,b)=>Number(a)-Number(b));const byKey=new Map(vp.map(p=>[p.uKey+':'+p.vKey,p]));function push(v){if(!v)return;const last=pts[pts.length-1];if(!last||Math.abs(last.lat-v.ll.lat)>1e-10||Math.abs(last.lon-v.ll.lon)>1e-10)pts.push(v.ll)}for(let ci=0;ci<cols.length;ci++){const rowOrder=(ci%2===0)?rows.slice().reverse():rows.slice();for(const rk of rowOrder)push(byKey.get(cols[ci]+':'+rk))}const lastV=pts.length?vp.find(p=>Math.abs(p.ll.lat-pts[pts.length-1].lat)<1e-10&&Math.abs(p.ll.lon-pts[pts.length-1].lon)<1e-10):null;const startTop=!lastV||lastV.vKey===rows[rows.length-1];const startRight=!lastV||lastV.uKey===cols[cols.length-1];const rowOrder=startTop?rows.slice().reverse():rows.slice();for(let ri=0;ri<rowOrder.length;ri++){const colOrder=(ri%2===0)?(startRight?cols.slice().reverse():cols.slice()):(startRight?cols.slice():cols.slice().reverse());for(const ck of colOrder)push(byKey.get(ck+':'+rowOrder[ri]))}return pts}for(const cell of cells){for(const p of cell.latlngs.concat([cell.latlngs[0]]))pts.push(p)}return pts}
+    function gpxBounds(points){if(!points.length)return'';let minlat=points[0].lat,maxlat=points[0].lat,minlon=points[0].lon,maxlon=points[0].lon;for(const p of points){minlat=Math.min(minlat,p.lat);maxlat=Math.max(maxlat,p.lat);minlon=Math.min(minlon,p.lon);maxlon=Math.max(maxlon,p.lon)}return `<bounds minlat="${fmt(minlat,7)}" minlon="${fmt(minlon,7)}" maxlat="${fmt(maxlat,7)}" maxlon="${fmt(maxlon,7)}"/>`}
+    function xml(s){return String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&apos;'}[c]))}
+    function makeGridGpx(cells){const time=new Date().toISOString();const vertexMode=$('labelPlacement').value==='vertices';const trkPts=makeGridTrackPoints(cells);const wpts=vertexMode?(state.vertexPoints||[]).map(v=>({ll:v.ll,label:v.label})):cells.map(c=>({ll:c.center,label:c.label}));let s=`<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="PS Search Grid v0.14.12" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>Поисковая сетка</name><time>${time}</time>${gpxBounds(trkPts)}</metadata>\n`;for(const w of wpts){s+=`  <wpt lat="${fmt(w.ll.lat,7)}" lon="${fmt(w.ll.lon,7)}"><time>${time}</time><name>${xml(w.label)}</name></wpt>\n`}s+=`  <trk><name>Grid_1</name><trkseg>\n`;for(const p of trkPts)s+=`    <trkpt lat="${fmt(p.lat,7)}" lon="${fmt(p.lon,7)}"><time>${time}</time></trkpt>\n`;s+=`  </trkseg></trk>\n`;return s+`</gpx>\n`}
+    function makeCentersGpx(cells){const time=new Date().toISOString();const vertexMode=$('labelPlacement').value==='vertices';const points=vertexMode?(state.vertexPoints||[]).map(v=>({ll:v.ll,label:v.label})):cells.map(c=>({ll:c.center,label:c.label}));let s=`<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="PS Search Grid v0.14.12" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>${vertexMode?'Вершины поисковой сетки':'Центры квадратов поисковой сетки'}</name><time>${time}</time>${gpxBounds(points.map(p=>p.ll))}</metadata>\n`;for(const p of points)s+=`  <wpt lat="${fmt(p.ll.lat,7)}" lon="${fmt(p.ll.lon,7)}"><time>${time}</time><name>${xml(p.label)}</name></wpt>\n`;return s+`</gpx>\n`}
+
+    function destinationPoint(ll,bearingDeg,dist){
+      const br=toRad(bearingDeg),lat1=toRad(ll.lat),lon1=toRad(ll.lon),d=dist/EARTH_R;
+      const lat2=Math.asin(Math.sin(lat1)*Math.cos(d)+Math.cos(lat1)*Math.sin(d)*Math.cos(br));
+      const lon2=lon1+Math.atan2(Math.sin(br)*Math.sin(d)*Math.cos(lat1),Math.cos(d)-Math.sin(lat1)*Math.sin(lat2));
+      return{lat:toDeg(lat2),lon:normalizeLon(toDeg(lon2))}
+    }
+    function gpxWpt(ll,name,desc=''){
+      const time=new Date().toISOString();
+      return `  <wpt lat="${fmt(ll.lat,7)}" lon="${fmt(ll.lon,7)}"><time>${time}</time><name>${xml(name||'Точка')}</name>${desc?`<desc>${xml(desc)}</desc>`:''}</wpt>\n`
+    }
+    function gpxTrack(name,points,desc=''){
+      const time=new Date().toISOString();
+      let s=`  <trk><name>${xml(name||'Track')}</name>${desc?`<desc>${xml(desc)}</desc>`:''}<trkseg>\n`;
+      for(const p of points)s+=`    <trkpt lat="${fmt(p.lat,7)}" lon="${fmt(p.lon,7)}"><time>${time}</time></trkpt>\n`;
+      return s+`  </trkseg></trk>\n`
+    }
+    function geoLineMidpoint(points){
+      if(!points||!points.length)return state.center;
+      if(points.length===1)return points[0];
+      const lat0=points.reduce((s,p)=>s+p.lat,0)/points.length;
+      const xy=points.map(p=>llToXY(p,lat0));
+      let total=0,segments=[];
+      for(let i=0;i<xy.length-1;i++){const a=xy[i],b=xy[i+1],len=Math.hypot(b.x-a.x,b.y-a.y);segments.push({a,b,len});total+=len}
+      if(total<=0)return points[0];
+      let target=total/2,acc=0;
+      for(const seg of segments){if(acc+seg.len>=target){const t=seg.len?((target-acc)/seg.len):0;return xyToLL({x:seg.a.x+(seg.b.x-seg.a.x)*t,y:seg.a.y+(seg.b.y-seg.a.y)*t},lat0)}acc+=seg.len}
+      return points[Math.floor(points.length/2)]||points[0]
+    }
+    function makeGridWithAnnotationsGpx(){
+      const time=new Date().toISOString();
+      const vertexMode=$('labelPlacement').value==='vertices';
+      const trkPts=makeGridTrackPoints(state.currentCells);
+      const gridWpts=vertexMode?(state.vertexPoints||[]).map(v=>({ll:v.ll,label:v.label})):state.currentCells.map(c=>({ll:c.center,label:c.label}));
+      const allBoundsPts=trkPts.concat(gridWpts.map(p=>p.ll));
+      for(const a of state.annotations){
+        if(a.points)allBoundsPts.push(...a.points);
+        if(a.type==='radius'&&a.points&&a.points[0])for(let b=0;b<360;b+=45)allBoundsPts.push(destinationPoint(a.points[0],b,a.radius||0));
+      }
+      let s=`<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="PS Search Grid v0.14.12" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><name>Поисковая сетка с нанесением</name><time>${time}</time>${gpxBounds(allBoundsPts)}</metadata>\n`;
+      for(const w of gridWpts)s+=`  <wpt lat="${fmt(w.ll.lat,7)}" lon="${fmt(w.ll.lon,7)}"><time>${time}</time><name>${xml(w.label)}</name><type>grid</type></wpt>\n`;
+      if(trkPts.length)s+=gpxTrack('Grid_1',trkPts,'Поисковая сетка');
+      for(const a of state.annotations){
+        const label=a.label||({point:'Точка',text:'Подпись',line:'Линия',polygon:'Полигон',radius:'Радиус'}[a.type]||'Разметка')+' '+a.id;
+        const desc=`тип: ${a.type}; цвет: ${a.color||''}; размер: ${a.size||'m'}`;
+        if((a.type==='point'||a.type==='text')&&a.points&&a.points[0]){
+          s+=gpxWpt(a.points[0],label,desc);
+        }else if(a.type==='line'&&a.points&&a.points.length>=2){
+          s+=gpxWpt(geoLineMidpoint(a.points),label,desc+'; подпись линии');
+          s+=gpxTrack(label,a.points,desc);
+        }else if(a.type==='polygon'&&a.points&&a.points.length>=3){
+          s+=gpxWpt(geoPolygonCenter(a.points),label,desc+'; подпись полигона');
+          s+=gpxTrack(label,a.points.concat([a.points[0]]),desc);
+        }else if(a.type==='radius'&&a.points&&a.points[0]){
+          const center=a.points[0],radius=a.radius||0;
+          s+=gpxWpt(center,label,desc+`; радиус: ${Math.round(radius)} м`);
+          const circle=[];for(let b=0;b<=360;b+=5)circle.push(destinationPoint(center,b,radius));
+          s+=gpxTrack(label+' — окружность',circle,desc+`; радиус: ${Math.round(radius)} м`);
+        }
+      }
+      return s+`</gpx>\n`
+    }
+    function updateStats(){updateAreaButtons();if(state.selectedBounds){const d=boundsSizeMeters(state.selectedBounds),c=boundsCenter(state.selectedBounds),km2=d.w*d.h/1000000;$('areaSize').innerHTML=`${Math.round(d.w)} × ${Math.round(d.h)} м`;$('areaKm2').textContent=`площадь ≈ ${km2.toFixed(km2<10?2:1)} км²`;$('areaCenter').textContent=`${fmt(c.lat,4)}, ${fmt(c.lon,4)}`;$('mapBadge').innerHTML=`<b>Область сетки выбрана.</b><br>${Math.round(d.w)} × ${Math.round(d.h)} м · ≈ ${km2.toFixed(km2<10?2:1)} км² · центр ${fmt(c.lat,5)}, ${fmt(c.lon,5)} · квадратов ${state.currentCells.length}`}else{$('areaSize').textContent='—';if($('areaKm2'))$('areaKm2').textContent='—';$('areaCenter').textContent='—';$('mapBadge').innerHTML='<b>Сетка выключена.</b><br>Нажми «Вывести сетку на экран» или «Нарисовать сетку». '}}    async function searchPlace(){
+      const q=$('placeInput').value.trim(),box=$('suggestions');
+      const hide=()=>{box.innerHTML='';box.style.display='none'};
+      if(!q){
+        setTimeout(()=>{if(!$('placeInput').value.trim())hide()},1000);
+        return;
+      }
+      box.innerHTML='';box.style.display='grid';
+      const coord=parseAnyCoord(q);
+      if(coord){
+        hide();
+        setCenter(coord.lat,coord.lon,Math.max(13,state.zoom));
+        setCoordMarker(coord,formatCoordString(coord));
+        toast('Переход по координатам','ok');
+        return;
+      }
+      if(q.length<2){
+        box.innerHTML='<div class="mini">Введите минимум 2 символа.</div>';
+        setTimeout(()=>{if($('placeInput').value.trim().length<2)hide()},1000);
+        return;
+      }
+      box.innerHTML='<div class="mini">Ищу…</div>';
+      const url='https://geocoding-api.open-meteo.com/v1/search?'+new URLSearchParams({name:q,count:'10',language:'ru',format:'json'}).toString();
+      try{
+        const r=await fetch(url);if(!r.ok)throw new Error('HTTP '+r.status);
+        const data=await r.json(),results=data.results||[];
+        if(!results.length){box.innerHTML='<div class="mini">Ничего не найдено. Попробуй ближайший крупный населённый пункт или координаты.</div>';return}
+        box.innerHTML='';
+        for(const item of results){
+          const div=document.createElement('div');div.className='suggestion';
+          const title=[item.name,item.admin1,item.admin2,item.country].filter(Boolean).join(', ');
+          div.innerHTML=`<b>${escapeHtml(title)}</b><br><span class="mini">${fmt(item.latitude,5)}, ${fmt(item.longitude,5)} · ${escapeHtml(item.timezone||'timezone не указан')}</span>`;
+          div.addEventListener('click',()=>{hide();$('placeInput').value=title;setCenter(item.latitude,item.longitude,Math.max(13,state.zoom));toast('Место выбрано: '+title,'ok')});
+          box.appendChild(div)
+        }
+      }catch(e){box.innerHTML=`<div class="mini">Ошибка поиска: ${escapeHtml(e.message)}</div>`}
+    }
+    function parseCoord(text){return parseAnyCoord(text)}
+    function parseAnyCoord(text){text=String(text||'').trim();if(!text)return null;return parseDmsCoord(text)||parseUtmCoord(text)||parseMgrsCoord(text)||parseOlcCoord(text)||parseSwissCoord(text)||parseDecimalCoord(text)}
+    function parseDecimalCoord(text){
+      let raw=String(text||'');
+      raw=raw.replace(/[;\/|]+/g,' ')
+             .replace(/[()\[\]{}]/g,' ')
+             .replace(/\b(?:lat|latitude|lon|lng|long|longitude|широта|долгота)\b\s*[:=]?/gi,' ')
+             .replace(/[°º]/g,' ');
+      let t=raw.replace(/,/g,'.');
+      const hemiLat=/([NSСЮ])/i.exec(t),hemiLon=/([EWВЗ])/i.exec(t);
+      const nums=(t.match(/[-+]?\d+(?:\.\d+)?/g)||[]).map(Number).filter(Number.isFinite);
+      if(nums.length>=2){
+        let lat=nums[0],lon=nums[1];
+        if(hemiLat&&/[SЮ]/i.test(hemiLat[1]))lat=-Math.abs(lat);
+        if(hemiLon&&/[WЗ]/i.test(hemiLon[1]))lon=-Math.abs(lon);
+        if(Math.abs(lat)<=90&&Math.abs(lon)<=180)return{lat,lon}
+      }
+      return null
+    }
+    function parseDmsCoord(text){let t=text.toUpperCase().replace(/,/g,'.').replace(/[′’]/g,"'").replace(/[″“”]/g,'"');const nums=(t.match(/[-+]?\d+(?:\.\d+)?/g)||[]).map(Number);if(nums.length<4)return null;let lat,lon;if(nums.length>=6){if(nums[1]>=60||nums[2]>=60||nums[4]>=60||nums[5]>=60)return null;lat=dmsToDeg(nums[0],nums[1],nums[2]);lon=dmsToDeg(nums[3],nums[4],nums[5])}else{if(nums[1]>=60||nums[3]>=60)return null;lat=dmToDeg(nums[0],nums[1]);lon=dmToDeg(nums[2],nums[3])}if(/[SЮ]/.test(t))lat=-Math.abs(lat);if(/[WЗ]/.test(t))lon=-Math.abs(lon);if(Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180)return{lat,lon};return null}
+    function dmToDeg(d,m){return Math.sign(d)*(Math.abs(d)+m/60)}function dmsToDeg(d,m,s){return Math.sign(d)*(Math.abs(d)+m/60+s/3600)}
+    function parseUtmCoord(text){const m=String(text||'').toUpperCase().replace(/,/g,'.').match(/\b(\d{1,2})([C-X])?\s+([0-9]+(?:\.\d+)?)\s+([0-9]+(?:\.\d+)?)/);if(!m)return null;return utmToLatLon(Number(m[1]),m[2]||'N',Number(m[3]),Number(m[4]))}
+    function utmToLatLon(zone,band,easting,northing){if(!(zone>=1&&zone<=60))return null;const northern=!/[CDEFGHJKLM]/.test(String(band).toUpperCase());const a=6378137,e=0.0818191908,e1sq=0.006739497,k0=0.9996;let x=easting-500000,y=northing;if(!northern)y-=10000000;const lon0=(zone-1)*6-180+3;const M=y/k0;const mu=M/(a*(1-Math.pow(e,2)/4-3*Math.pow(e,4)/64-5*Math.pow(e,6)/256));const e1=(1-Math.sqrt(1-e*e))/(1+Math.sqrt(1-e*e));let phi1=mu+(3*e1/2-27*Math.pow(e1,3)/32)*Math.sin(2*mu)+(21*e1*e1/16-55*Math.pow(e1,4)/32)*Math.sin(4*mu)+(151*Math.pow(e1,3)/96)*Math.sin(6*mu);const N1=a/Math.sqrt(1-e*e*Math.sin(phi1)**2),T1=Math.tan(phi1)**2,C1=e1sq*Math.cos(phi1)**2,R1=a*(1-e*e)/Math.pow(1-e*e*Math.sin(phi1)**2,1.5),D=x/(N1*k0);let lat=phi1-(N1*Math.tan(phi1)/R1)*(D*D/2-(5+3*T1+10*C1-4*C1*C1-9*e1sq)*Math.pow(D,4)/24+(61+90*T1+298*C1+45*T1*T1-252*e1sq-3*C1*C1)*Math.pow(D,6)/720);let lon=(D-(1+2*T1+C1)*Math.pow(D,3)/6+(5-2*C1+28*T1-3*C1*C1+8*e1sq+24*T1*T1)*Math.pow(D,5)/120)/Math.cos(phi1);lat=toDeg(lat);lon=lon0+toDeg(lon);if(Math.abs(lat)<=90&&Math.abs(lon)<=180)return{lat,lon};return null}
+    function parseMgrsCoord(text){let s=String(text||'').toUpperCase().replace(/\s+/g,'');const m=s.match(/^(\d{1,2})([C-X])([A-HJ-NP-Z]{2})(\d*)$/);if(!m)return null;const zone=Number(m[1]),band=m[2],letters=m[3],digits=m[4]||'';if(digits.length%2!==0)return null;const sets=['ABCDEFGH','JKLMNPQR','STUVWXYZ'];const eSet=sets[(zone-1)%3];const e100=(eSet.indexOf(letters[0])+1)*100000;if(e100<=0)return null;const nLetters=((zone-1)%2===0)?'ABCDEFGHJKLMNPQRSTUV':'FGHJKLMNPQRSTUVABCDE';let n100=nLetters.indexOf(letters[1])*100000;if(n100<0)return null;const half=digits.length/2;let eRest=0,nRest=0;if(half){eRest=Number(digits.slice(0,half).padEnd(5,'0'));nRest=Number(digits.slice(half).padEnd(5,'0'))}let northing=n100+nRest;const minNorth=bandMinNorthing(band);while(northing<minNorth)northing+=2000000;return utmToLatLon(zone,band,e100+eRest,northing)}
+    function bandMinNorthing(b){return {C:1100000,D:2000000,E:2800000,F:3700000,G:4600000,H:5500000,J:6400000,K:7300000,L:8200000,M:9100000,N:0,P:800000,Q:1700000,R:2600000,S:3500000,T:4400000,U:5300000,V:6200000,W:7000000,X:7900000}[String(b).toUpperCase()]??0}
+    function parseSwissCoord(text){let t=String(text||'').toUpperCase();if(!/CH1903/.test(t))return null;t=t.replace(/CH1903\+?/,'').replace(/,/g,'.');const m=t.match(/(\d(?:\s?\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\D+(\d(?:\s?\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)/);if(!m)return null;let E=Number(m[1].replace(/\s/g,'')),N=Number(m[2].replace(/\s/g,''));if(!Number.isFinite(E)||!Number.isFinite(N))return null;if(E<1000000){E+=2000000;N+=1000000}const y=(E-2600000)/1000000,x=(N-1200000)/1000000;let lat=16.9023892+3.238272*x-0.270978*y*y-0.002528*x*x-0.0447*y*y*x-0.0140*x*x*x;let lon=2.6779094+4.728982*y+0.791484*y*x+0.1306*y*x*x-0.0436*y*y*y;lat=lat*100/36;lon=lon*100/36;if(Math.abs(lat)<=90&&Math.abs(lon)<=180)return{lat,lon};return null}
+    function parseOlcCoord(text){let code=String(text||'').trim().toUpperCase().match(/[23456789CFGHJMPQRVWX0]+\+[23456789CFGHJMPQRVWX0]+/);if(!code)return null;return decodeOlc(code[0])}
+    function decodeOlc(code){const alphabet='23456789CFGHJMPQRVWX';code=code.replace('+','').replace(/0/g,'');if(code.length<2)return null;let lat=-90,lon=-180;const pairRes=[20,1,.05,.0025,.000125];let i=0;for(;i+1<Math.min(code.length,10);i+=2){const place=pairRes[i/2];const a=alphabet.indexOf(code[i]),b=alphabet.indexOf(code[i+1]);if(a<0||b<0)return null;lat+=a*place;lon+=b*place}let latRes=pairRes[Math.min(4,Math.floor((Math.min(code.length,10)-2)/2))]||.000125,lonRes=latRes;if(code.length>10){latRes=.000125;lonRes=.000125;for(let j=10;j<code.length;j++){const v=alphabet.indexOf(code[j]);if(v<0)return null;latRes/=5;lonRes/=4;lat+=Math.floor(v/4)*latRes;lon+=(v%4)*lonRes}}lat+=latRes/2;lon+=lonRes/2;if(Math.abs(lat)<=90&&Math.abs(lon)<=180)return{lat,lon};return null}
+    function escapeHtml(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+    function isMobileLayout(){return window.matchMedia&&window.matchMedia('(max-width:760px)').matches}
+    function showMobileTipOnce(el){
+      if(!isMobileLayout()||!el||!el.dataset||!el.dataset.tip)return;
+      document.querySelectorAll('.mobileTipOpen').forEach(x=>x.classList.remove('mobileTipOpen'));
+      el.classList.add('mobileTipOpen');
+      clearTimeout(state.mobileTipTimer);
+      state.mobileTipTimer=setTimeout(()=>{if(el)el.classList.remove('mobileTipOpen')},2000);
+    }
+
+    function setAnnotationMode(mode){
+      state.annotationMode=mode||'none';
+      state.draftAnnotation=null;
+      state.lastDrawClick=null;
+      if(state.annotationMode!=='select')state.selectedAnnotationId=null;
+      mapWrap.classList.toggle('draw-active',state.annotationMode!=='none');
+      document.querySelectorAll('.drawToolBtn[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===state.annotationMode));
+      updateAnnotationEditUi();
+      renderDrawSvg();
+      log('Разметка: инструмент '+state.annotationMode);
+    }
+    function currentDrawColor(){return $('drawColor')?$('drawColor').value:'#d92525'}
+    function currentDrawLabel(){return $('drawLabel')?$('drawLabel').value.trim():''}
+    function currentDrawSize(){return state.drawSize||'m'}
+    function drawSizeCfg(size){return DRAW_SIZE_CFG[size]||DRAW_SIZE_CFG.m}
+    function annotationStroke(a){return drawSizeCfg(a&&a.size).stroke}
+    function annotationPointRadius(a){return drawSizeCfg(a&&a.size).point}
+    function annotationFontSize(a){return drawSizeCfg(a&&a.size).font}
+    function labelOpacity(){const z=Number(state.zoom)||0;if(z<=8)return 0;if(z>=12)return 1;return Math.max(0,Math.min(1,(z-8)/4))}
+    function labelStyle(a,extra=''){return `style="opacity:${labelOpacity().toFixed(2)};font-size:${annotationFontSize(a)}px;${extra}"`}
+    function updateSizeButtons(){document.querySelectorAll('.drawSizeBtn').forEach(b=>b.classList.toggle('active',b.dataset.size===currentDrawSize()))}
+    function setDrawSize(size){state.drawSize=size||'m';updateSizeButtons();const a=selectedAnnotation();if(a){a.size=state.drawSize;renderDrawSvg();log('Разметка: размер изменён.')}if(state.draftAnnotation){state.draftAnnotation.size=state.drawSize;renderDrawSvg()}}
+    function showDrawSizePopup(btn){const pop=$('drawSizePopup');if(!pop||!btn)return;updateSizeButtons();const tb=$('drawToolbar').getBoundingClientRect(),bb=btn.getBoundingClientRect();pop.style.left=Math.max(0,bb.left-tb.left-8)+'px';pop.classList.add('open');clearTimeout(state.drawSizePopupTimer);if(isMobileLayout())state.drawSizePopupTimer=setTimeout(hideDrawSizePopup,2000)}
+    function hideDrawSizePopup(){clearTimeout(state.drawSizePopupTimer);const pop=$('drawSizePopup');if(pop)pop.classList.remove('open')}
+    function selectedAnnotation(){return state.annotations.find(a=>a.id===state.selectedAnnotationId)||null}
+    function updateAnnotationEditUi(){const a=selectedAnnotation();if($('drawLabel')){$('drawLabel').classList.toggle('selectedEdit',!!a);if(a)$('drawLabel').value=a.label||''}if($('drawColor')&&a)$('drawColor').value=a.color||'#d92525';if(a&&a.size){state.drawSize=a.size;updateSizeButtons()}if($('deleteAnnotation'))$('deleteAnnotation').classList.toggle('active',!!a)}
+    function applyAnnotationLabel(){const a=selectedAnnotation();if(a&&$('drawLabel')){a.label=$('drawLabel').value.trim();renderDrawSvg();log('Разметка: подпись изменена.')}}
+    function applyAnnotationColor(){const a=selectedAnnotation();if(a&&$('drawColor')){a.color=$('drawColor').value;renderDrawSvg();log('Разметка: цвет изменён.')}}
+    function deleteSelectedAnnotation(){const id=state.selectedAnnotationId;if(!id){toast('Выбери элемент разметки инструментом ⟐','warn');return}state.annotations=state.annotations.filter(a=>a.id!==id);state.selectedAnnotationId=null;updateAnnotationEditUi();renderDrawSvg();toast('Элемент разметки удалён','ok')}
+    function handleAnnotationPointer(e){
+      if(e.button!==0)return false;
+      if(state.annotationMode==='none')return false;
+      e.preventDefault();e.stopPropagation();
+      const p=mouseToPoint(e),ll=pointToGeo(p),color=currentDrawColor(),label=currentDrawLabel();
+      if(state.annotationMode==='select')return startAnnotationSelectOrMove(e,p);
+      state.selectedAnnotationId=null;updateAnnotationEditUi();
+      if(state.annotationMode==='point'){
+        state.annotations.push({id:state.drawId++,type:'point',points:[ll],color,label,size:currentDrawSize()});renderDrawSvg();log('Разметка: точка добавлена.');return true;
+      }
+      if(state.annotationMode==='text'){
+        state.annotations.push({id:state.drawId++,type:'text',points:[ll],color,label:label||'Подпись',size:currentDrawSize()});renderDrawSvg();log('Разметка: подпись добавлена.');return true;
+      }
+      if(state.annotationMode==='radius'){
+        const draft={type:'radius',points:[ll],radius:0,color,label,size:currentDrawSize(),draft:true};state.draftAnnotation=draft;renderDrawSvg();
+        const move=ev=>{const pp=mouseToPoint(ev),edge=pointToGeo(pp);draft.radius=distanceMeters(ll,edge);renderDrawSvg()};
+        const up=ev=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);const pp=mouseToPoint(ev),edge=pointToGeo(pp),radius=distanceMeters(ll,edge);state.draftAnnotation=null;if(radius>2){state.annotations.push({id:state.drawId++,type:'radius',points:[ll],radius,color,label,size:draft.size||currentDrawSize()});toast('Радиус добавлен: '+formatDistance(radius),'ok');log('Разметка: радиус '+formatDistance(radius));}else toast('Радиус слишком маленький','warn');renderDrawSvg()};
+        window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);return true;
+      }
+      if(state.annotationMode==='line'||state.annotationMode==='polygon'){
+        const now=Date.now();
+        if(state.draftAnnotation&&state.lastDrawClick&&now-state.lastDrawClick.time<520&&Math.hypot(p.x-state.lastDrawClick.p.x,p.y-state.lastDrawClick.p.y)<9){finishAnnotation();state.lastDrawClick=null;return true}
+        if(!state.draftAnnotation)state.draftAnnotation={type:state.annotationMode,points:[],color,label,size:currentDrawSize()};
+        state.draftAnnotation.points.push(ll);state.draftAnnotation.color=color;state.draftAnnotation.label=label;state.draftAnnotation.size=state.draftAnnotation.size||currentDrawSize();
+        state.lastDrawClick={time:now,p};renderDrawSvg();return true;
+      }
+      return false;
+    }
+    function finishAnnotation(){const d=state.draftAnnotation;if(!d)return false;if(d.type==='line'&&d.points.length<2){toast('Для линии нужно минимум 2 точки','warn');return false}if(d.type==='polygon'&&d.points.length<3){toast('Для полигона нужно минимум 3 точки','warn');return false}state.annotations.push({id:state.drawId++,type:d.type,points:d.points.slice(),color:d.color,label:d.label,size:d.size||currentDrawSize()});state.draftAnnotation=null;renderDrawSvg();toast('Разметка добавлена','ok');return true}
+    function undoAnnotation(){if(state.draftAnnotation&&state.draftAnnotation.points.length){state.draftAnnotation.points.pop();if(!state.draftAnnotation.points.length)state.draftAnnotation=null}else if(state.selectedAnnotationId){deleteSelectedAnnotation();return}else state.annotations.pop();renderDrawSvg();log('Разметка: откат последнего действия.')}
+    function clearAnnotations(){state.annotations=[];state.draftAnnotation=null;state.selectedAnnotationId=null;updateAnnotationEditUi();renderDrawSvg();toast('Разметка очищена','ok')}
+    function distanceMeters(a,b){const lat1=toRad(a.lat),lat2=toRad(b.lat),dlat=toRad(b.lat-a.lat),dlon=toRad(b.lon-a.lon);const h=Math.sin(dlat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dlon/2)**2;return 2*EARTH_R*Math.asin(Math.min(1,Math.sqrt(h)))}
+    function formatDistance(m){return m>=1000?(m/1000).toFixed(m>=10000?1:2)+' км':Math.round(m)+' м'}
+    function pointEastByMeters(ll,m){return{lat:ll.lat,lon:ll.lon+toDeg(m/(EARTH_R*Math.cos(toRad(ll.lat))))}}
+    function annotationLabelPoint(a){if(a.type==='point'||a.type==='radius'||a.type==='text')return a.points[0];if(a.type==='polygon')return geoPolygonCenter(a.points);let lat=0,lon=0;for(const p of a.points){lat+=p.lat;lon+=p.lon}return{lat:lat/a.points.length,lon:lon/a.points.length}}
+    function geoPolygonCenter(points){if(!points||!points.length)return state.center;let lat=0,lon=0;for(const p of points){lat+=p.lat;lon+=p.lon}return{lat:lat/points.length,lon:lon/points.length}}
+    function lineSegmentInfo(points){const out=[];let total=0;if(!points||points.length<2)return{segments:out,total:0};for(let i=0;i<points.length-1;i++){const a=points[i],b=points[i+1],len=Math.hypot(b.x-a.x,b.y-a.y);out.push({a,b,len,idx:i});total+=len}return{segments:out,total}}
+    function pointAtDistance(segments,dist){let acc=0;for(const s of segments){if(acc+s.len>=dist){const t=s.len?((dist-acc)/s.len):0;return{x:s.a.x+(s.b.x-s.a.x)*t,y:s.a.y+(s.b.y-s.a.y)*t,angle:Math.atan2(s.b.y-s.a.y,s.b.x-s.a.x)*180/Math.PI,seg:s}}acc+=s.len}const last=segments[segments.length-1];return last?{x:last.b.x,y:last.b.y,angle:Math.atan2(last.b.y-last.a.y,last.b.x-last.a.x)*180/Math.PI,seg:last}:null}
+    function normalizeTextAngle(deg){if(deg>90)deg-=180;if(deg<-90)deg+=180;return deg}
+    function offsetLabelPoint(item,offset=12){const a=toRad(item.angle-90);return{x:item.x+Math.cos(a)*offset,y:item.y+Math.sin(a)*offset,angle:normalizeTextAngle(item.angle)}}
+    function lineLabelSvg(a,pts){if(!a.label||pts.length<2)return'';const {segments,total}=lineSegmentInfo(pts);if(!segments.length||total<80)return'';const items=[];const main=pointAtDistance(segments,total/2);if(main)items.push(offsetLabelPoint(main,13));for(const s of segments){if(s.len>=240){const mid={x:(s.a.x+s.b.x)/2,y:(s.a.y+s.b.y)/2,angle:Math.atan2(s.b.y-s.a.y,s.b.x-s.a.x)*180/Math.PI};const item=offsetLabelPoint(mid,13);if(!items.some(it=>Math.hypot(it.x-item.x,it.y-item.y)<90))items.push(item)}}return items.map(it=>`<text class="draw-label lineLabel" x="0" y="0" text-anchor="middle" dominant-baseline="middle" transform="translate(${it.x.toFixed(1)},${it.y.toFixed(1)}) rotate(${it.angle.toFixed(1)})" ${labelStyle(a)}>${xml(a.label)}</text>`).join('')}
+    function renderDrawSvg(){
+      if(!drawSvg)return;
+      const size=mapSize();drawSvg.setAttribute('viewBox',`0 0 ${size.w} ${size.h}`);drawSvg.setAttribute('width',size.w);drawSvg.setAttribute('height',size.h);
+      let out='';const all=state.annotations.slice();if(state.draftAnnotation)all.push({...state.draftAnnotation,draft:true});
+      for(const a of all){const color=a.color||'#d92525',draftClass=a.draft?' draw-draft':'',selected=a.id&&a.id===state.selectedAnnotationId,selectedClass=selected?' draw-selected':'';
+        if(a.type==='point'){const p=geoToPoint(a.points[0]),r=annotationPointRadius(a);out+=`<circle class="draw-point${draftClass}${selectedClass}" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="${xml(color)}"/>`;if(a.label)out+=`<text class="draw-label pointLabel" x="${(p.x+r+6).toFixed(1)}" y="${(p.y-r-4).toFixed(1)}" text-anchor="start" dominant-baseline="middle" ${labelStyle(a)}>${xml(a.label)}</text>`;if(selected)out+=`<circle class="draw-edit-halo" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r+7}"/>`}
+        else if(a.type==='text'){const p=geoToPoint(a.points[0]);const txt=a.label||'Подпись';out+=`<text class="draw-label${selectedClass}" x="${p.x.toFixed(1)}" y="${p.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" fill="${xml(color)}" ${labelStyle(a)}>${xml(txt)}</text>`;if(selected)out+=`<circle class="draw-edit-halo" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${annotationFontSize(a)+4}"/>`}
+        else if(a.type==='line'||a.type==='polygon'){const pts=(a.points||[]).map(geoToPoint);if(pts.length){let d='M'+pts[0].x.toFixed(1)+','+pts[0].y.toFixed(1)+' '+pts.slice(1).map(p=>'L'+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');if(a.type==='polygon'&&!a.draft)d+=' Z';const cls=(a.type==='polygon'?'draw-poly':'draw-line')+draftClass+selectedClass;const fill=a.type==='polygon'?` fill="${xml(color)}"`:' fill="none"';out+=`<path class="${cls}" d="${d}" stroke="${xml(color)}" style="stroke-width:${annotationStroke(a)}px"${fill}/>`;if(a.type==='line')out+=lineLabelSvg(a,pts);else if(a.label){const c=screenPolygonCenter(pts);out+=`<text class="draw-label" x="${c.x.toFixed(1)}" y="${c.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" ${labelStyle(a)}>${xml(a.label)}</text>`}if(selected){const c=screenPolygonCenter(pts);out+=`<circle class="draw-edit-halo" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="16"/>`}}}
+        else if(a.type==='radius'){const c=geoToPoint(a.points[0]);const edge=geoToPoint(pointEastByMeters(a.points[0],a.radius||0));const r=Math.hypot(edge.x-c.x,edge.y-c.y);out+=`<circle class="draw-radius-fill${draftClass}${selectedClass}" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r.toFixed(1)}" fill="${xml(color)}" opacity="0.14"/>`;out+=`<circle class="draw-radius-outline${draftClass}${selectedClass}" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r.toFixed(1)}" stroke="${xml(color)}" style="stroke-width:${annotationStroke(a)}px" fill="none"/>`;const txt=(a.label?xml(a.label)+' · ':'')+formatDistance(a.radius||0);out+=`<text class="draw-label" x="${c.x.toFixed(1)}" y="${c.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" ${labelStyle(a)}>${txt}</text>`;if(selected)out+=`<circle class="draw-edit-halo" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${(r+8).toFixed(1)}"/>`}
+      }
+      if(state.coordMarker){const p=geoToPoint(state.coordMarker),label=state.coordMarker.label||formatCoordString(state.coordMarker);out+=`<g class="coord-target"><circle class="coord-target-ring" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="14"/><line class="coord-target-cross" x1="${(p.x-18).toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${(p.x+18).toFixed(1)}" y2="${p.y.toFixed(1)}"/><line class="coord-target-cross" x1="${p.x.toFixed(1)}" y1="${(p.y-18).toFixed(1)}" x2="${p.x.toFixed(1)}" y2="${(p.y+18).toFixed(1)}"/><circle class="coord-target-dot" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="5"/><text class="coord-target-label" x="${(p.x+18).toFixed(1)}" y="${(p.y-18).toFixed(1)}" text-anchor="start" dominant-baseline="middle">${xml(label)}</text></g>`}
+      drawSvg.innerHTML=out;
+      scheduleProjectAutosave();
+    }
+    function screenPolygonCenter(pts){if(!pts.length)return{x:0,y:0};if(pts.length<3){let x=0,y=0;pts.forEach(p=>{x+=p.x;y+=p.y});return{x:x/pts.length,y:y/pts.length}}let a=0,cx=0,cy=0;for(let i=0;i<pts.length;i++){const p=pts[i],q=pts[(i+1)%pts.length],f=p.x*q.y-q.x*p.y;a+=f;cx+=(p.x+q.x)*f;cy+=(p.y+q.y)*f}if(Math.abs(a)<1e-6){let x=0,y=0;pts.forEach(p=>{x+=p.x;y+=p.y});return{x:x/pts.length,y:y/pts.length}}return{x:cx/(3*a),y:cy/(3*a)}}
+    function distancePointToSegment(p,a,b){const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy;if(!l2)return Math.hypot(p.x-a.x,p.y-a.y);let t=((p.x-a.x)*dx+(p.y-a.y)*dy)/l2;t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-(a.x+dx*t),p.y-(a.y+dy*t))}
+    function pointInPolygon(pt,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if(((a.y>pt.y)!==(b.y>pt.y))&&(pt.x<(b.x-a.x)*(pt.y-a.y)/(b.y-a.y)+a.x))inside=!inside}return inside}
+    function hitTestAnnotation(p){for(let idx=state.annotations.length-1;idx>=0;idx--){const a=state.annotations[idx];if(a.type==='point'||a.type==='text'){const c=geoToPoint(a.points[0]);if(Math.hypot(p.x-c.x,p.y-c.y)<18)return a}else if(a.type==='radius'){const c=geoToPoint(a.points[0]);const edge=geoToPoint(pointEastByMeters(a.points[0],a.radius||0));const r=Math.hypot(edge.x-c.x,edge.y-c.y),d=Math.hypot(p.x-c.x,p.y-c.y);if(d<=Math.max(18,r)||Math.abs(d-r)<16)return a}else if(a.type==='line'){const pts=a.points.map(geoToPoint);for(let i=0;i<pts.length-1;i++)if(distancePointToSegment(p,pts[i],pts[i+1])<14)return a}else if(a.type==='polygon'){const pts=a.points.map(geoToPoint);if(pointInPolygon(p,pts))return a;for(let i=0;i<pts.length;i++)if(distancePointToSegment(p,pts[i],pts[(i+1)%pts.length])<14)return a}}return null}
+    function startAnnotationSelectOrMove(e,p){const a=hitTestAnnotation(p);if(!a){state.selectedAnnotationId=null;updateAnnotationEditUi();renderDrawSvg();return true}state.selectedAnnotationId=a.id;updateAnnotationEditUi();renderDrawSvg();const selectBtn=document.querySelector('.drawToolBtn[data-tool="select"]');if(selectBtn)showDrawSizePopup(selectBtn);const start=pointToGeo(p);const original=JSON.parse(JSON.stringify(a.points));const move=ev=>{const cur=pointToGeo(mouseToPoint(ev)),dlat=cur.lat-start.lat,dlon=cur.lon-start.lon;a.points=original.map(pt=>({lat:pt.lat+dlat,lon:pt.lon+dlon}));renderDrawSvg()};const up=()=>{window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);log('Разметка: элемент перемещён.')};window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);return true}
+    function drawExportAnnotations(ctx,bounds,z,rect,page){if(!$('exportDrawings')||!$('exportDrawings').checked||!state.annotations.length)return;const nw=llToWorld(bounds.north,bounds.west,z),se=llToWorld(bounds.south,bounds.east,z),worldW=se.x-nw.x,worldH=se.y-nw.y;function gp(ll){const w=llToWorld(ll.lat,ll.lon,z);return{x:rect.x+(w.x-nw.x)/worldW*rect.w,y:rect.y+(w.y-nw.y)/worldH*rect.h}}ctx.save();ctx.lineCap='round';ctx.lineJoin='round';for(const a of state.annotations){const color=a.color||'#d92525',cfg=drawSizeCfg(a.size);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=Math.max(2,Math.round(cfg.stroke*page.dpi/120));if(a.type==='point'){const p=gp(a.points[0]);const pr=Math.max(5,Math.round(cfg.point*page.dpi/96));ctx.beginPath();ctx.arc(p.x,p.y,pr,0,Math.PI*2);ctx.fill();ctx.lineWidth=Math.max(2,Math.round(page.dpi/120));ctx.strokeStyle='#fff';ctx.stroke();if(a.label)drawTextWithHalo(ctx,a.label,p.x+pr+8,p.y-pr-8,page,'left',0,'#071923',a.size)}else if(a.type==='text'){const p=gp(a.points[0]);drawTextWithHalo(ctx,a.label||'Подпись',p.x,p.y,page,'center',0,color,a.size)}else if(a.type==='line'||a.type==='polygon'){const pts=a.points.map(gp);if(pts.length){ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);if(a.type==='polygon'){ctx.closePath();ctx.globalAlpha=.16;ctx.fill();ctx.globalAlpha=1}ctx.strokeStyle=color;ctx.stroke();if(a.type==='line'&&a.label)drawLineLabelsCanvas(ctx,pts,a.label,page,a.size);if(a.type==='polygon'&&a.label){const c=screenPolygonCenter(pts);drawTextWithHalo(ctx,a.label,c.x,c.y,page,'center',0,'#071923',a.size)}}}else if(a.type==='radius'){const c=gp(a.points[0]);const edge=gp(pointEastByMeters(a.points[0],a.radius||0));const r=Math.hypot(edge.x-c.x,edge.y-c.y);ctx.save();ctx.globalAlpha=.14;ctx.fillStyle=color;ctx.beginPath();ctx.arc(c.x,c.y,r,0,Math.PI*2);ctx.fill();ctx.restore();ctx.save();ctx.setLineDash([Math.max(6,page.dpi/45),Math.max(5,page.dpi/60)]);ctx.strokeStyle=color;ctx.beginPath();ctx.arc(c.x,c.y,r,0,Math.PI*2);ctx.stroke();ctx.restore();drawTextWithHalo(ctx,(a.label?a.label+' · ':'')+formatDistance(a.radius||0),c.x,c.y,page,'center',0,'#071923',a.size)}}ctx.restore()}
+    function drawTextWithHalo(ctx,text,x,y,page,align='center',angle=0,color='#071923',size='m'){const fontPx=Math.max(8,Math.round(page.dpi*drawSizeCfg(size).font/144));ctx.save();ctx.translate(x,y);ctx.rotate(toRad(angle));ctx.font=`800 ${fontPx}px Arial`;ctx.textAlign=align;ctx.textBaseline='middle';ctx.lineWidth=Math.max(2,Math.round(fontPx/4));ctx.strokeStyle='rgba(255,255,255,.94)';ctx.strokeText(text,0,0);ctx.fillStyle=color;ctx.fillText(text,0,0);ctx.restore()}
+    function drawLineLabelsCanvas(ctx,pts,label,page,size='m'){const {segments,total}=lineSegmentInfo(pts);if(!segments.length||total<80)return;const items=[];const main=pointAtDistance(segments,total/2);if(main)items.push(offsetLabelPoint(main,Math.max(8,page.dpi/60)));for(const s of segments){if(s.len>=Math.max(240,page.dpi*.7)){const mid={x:(s.a.x+s.b.x)/2,y:(s.a.y+s.b.y)/2,angle:Math.atan2(s.b.y-s.a.y,s.b.x-s.a.x)*180/Math.PI};const item=offsetLabelPoint(mid,Math.max(8,page.dpi/60));if(!items.some(it=>Math.hypot(it.x-item.x,it.y-item.y)<page.dpi*.35))items.push(item)}}items.forEach(it=>drawTextWithHalo(ctx,label,it.x,it.y,page,'center',it.angle,'#071923',size))}
+
+    function isMapGestureTarget(e){return !(e.target&&e.target.closest&&e.target.closest('#drawToolbar,.weatherWidget,.zoomCtl,button,input,select,textarea,#handlesLayer'))}
+    function touchPoint(t){const r=mapWrap.getBoundingClientRect();return{x:t.clientX-r.left,y:t.clientY-r.top}}
+    function touchMid(a,b){return{x:(a.x+b.x)/2,y:(a.y+b.y)/2}}
+    function touchDistance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+    function clampZoom(z){return Math.max(1,Math.min(22,Math.round(z)))}
+    function beginTouchPinch(e){const p1=touchPoint(e.touches[0]),p2=touchPoint(e.touches[1]),mid=touchMid(p1,p2);state.touchGesture={type:'pinch',startDist:Math.max(1,touchDistance(p1,p2)),startZoom:state.zoom,startMidGeo:pointToGeo(mid),moved:true}}
+    function handleMapTouchStart(e){
+      if(!isMapGestureTarget(e))return;
+      if(e.touches.length>=2){e.preventDefault();beginTouchPinch(e);return}
+      if(state.annotationMode!=='none'||state.drawMode)return;
+      if(e.touches.length===1){e.preventDefault();const p=touchPoint(e.touches[0]);state.touchGesture={type:'pan',start:p,startWorld:centerWorld(),moved:false}}
+    }
+    function handleMapTouchMove(e){
+      if(!state.touchGesture)return;
+      if(e.touches.length>=2){
+        e.preventDefault();
+        if(state.touchGesture.type!=='pinch')beginTouchPinch(e);
+        const g=state.touchGesture,p1=touchPoint(e.touches[0]),p2=touchPoint(e.touches[1]),mid=touchMid(p1,p2),dist=Math.max(1,touchDistance(p1,p2));
+        const desired=clampZoom(g.startZoom+Math.log2(dist/g.startDist));
+        const anchorWorld=llToWorld(g.startMidGeo.lat,g.startMidGeo.lon,desired),s=mapSize();
+        setCenterFromWorld({x:anchorWorld.x-(mid.x-s.w/2),y:anchorWorld.y-(mid.y-s.h/2)},desired);
+        return;
+      }
+      if(state.touchGesture.type==='pan'&&e.touches.length===1){
+        e.preventDefault();
+        const p=touchPoint(e.touches[0]),dx=p.x-state.touchGesture.start.x,dy=p.y-state.touchGesture.start.y;
+        if(Math.abs(dx)>3||Math.abs(dy)>3)state.touchGesture.moved=true;
+        setCenterFromWorld({x:state.touchGesture.startWorld.x-dx,y:state.touchGesture.startWorld.y-dy},state.zoom);
+      }
+    }
+    function handleMapTouchEnd(e){
+      if(!state.touchGesture)return;
+      if(e.touches&&e.touches.length>=2){beginTouchPinch(e);return}
+      if(e.touches&&e.touches.length===1){const p=touchPoint(e.touches[0]);state.touchGesture={type:'pan',start:p,startWorld:centerWorld(),moved:false};return}
+      state.touchGesture=null;
+      renderMap();
+      if(state.gridVisible&&$('followViewport').checked)buildGrid({silent:true});
+    }
+
+    function startPan(e){if(e.pointerType==='touch'&&state.annotationMode==='none'&&!state.drawMode)return;if(state.touchGesture)return;if(state.annotationMode&&state.annotationMode!=='none')return handleAnnotationPointer(e);if(state.drawMode||e.button!==0||e.target.closest('#handlesLayer')||e.target.closest('button')||e.target.closest('input')||e.target.closest('select')||e.target.closest('textarea'))return;e.preventDefault();state.isPanning=true;mapWrap.classList.add('panning');const start={x:e.clientX,y:e.clientY},startWorld=centerWorld(),startGeo=pointToGeo(mouseToPoint(e));let moved=false;const move=ev=>{const dx=ev.clientX-start.x,dy=ev.clientY-start.y;if(Math.abs(dx)>4||Math.abs(dy)>4)moved=true;setCenterFromWorld({x:startWorld.x-dx,y:startWorld.y-dy},state.zoom)};const up=ev=>{state.isPanning=false;mapWrap.classList.remove('panning');window.removeEventListener('pointermove',move);window.removeEventListener('pointerup',up);renderMap();if(!moved){copyCoordinates(startGeo,mouseToPoint(ev));return}if(state.gridVisible&&$('followViewport').checked)buildGrid({silent:true})};window.addEventListener('pointermove',move);window.addEventListener('pointerup',up)}
+    async function exportMap(format,btn){
+      if(btn&&state.exportJobs&&state.exportJobs[btn.id]&&!state.exportJobs[btn.id].done){
+        requestExportCancel(btn);
+        return;
+      }
+      const job={cancelled:false,done:false};
+      if(btn)state.exportJobs[btn.id]=job;
+      const btnName=format.toUpperCase();startExportProgress(btn);
+      const areaMode=$('exportArea').value;
+      const bounds=areaMode==='selection'?state.selectedBounds:getViewportBounds();
+      if(!bounds){toast('Сначала задай область','warn');finishExportProgress(btn,false,true);return}
+      const src=currentSource();
+      const detail=Number($('exportScale').value)||1;
+      const delta=Math.max(0,detail-1);
+      const exportZ=Math.min((src.maxNativeZoom||src.maxZoom||22),state.zoom+delta);
+      toast(`Собираю ${btnName}: ${src.kind==='wms'?'WMS':('z'+exportZ)}, формат ${$('paper').value.toUpperCase()}, ${currentDpi()} DPI…`,'warn');
+      log(`Экспорт ${btnName}: старт, область=${areaMode}, источник=${src.kind}, z=${exportZ}, детализация=${detail}×.`);
+      try{
+        const isCancelled=()=>job.cancelled;
+        const canvas=src.kind==='wms'
+          ? await buildWmsExportCanvas(bounds,src,(pct,msg)=>updateExportProgress(btn,pct,msg),isCancelled)
+          : await buildHighDetailExportCanvas(bounds,src,exportZ,(pct,msg)=>updateExportProgress(btn,pct,msg),isCancelled);
+        checkExportCancelled(isCancelled);
+        if(format==='png')canvas.toBlob(b=>{if(!job.cancelled)downloadBlob(fileStamp('map','png'),b)},'image/png');
+        else if(format==='jpg')canvasToJpgBackground(canvas).toBlob(b=>{if(!job.cancelled)downloadBlob(fileStamp('map','jpg'),b)},'image/jpeg',.94);
+        else await exportPdf(canvas);
+        if(job.cancelled)throw new Error('EXPORT_CANCELLED');
+        toast(`${btnName} скачан`,'ok');
+        log(`Экспорт ${btnName}: готов, ${canvas.width}×${canvas.height}px.`);
+      }catch(err){
+        if(err&&err.message==='EXPORT_CANCELLED'){
+          toast(`${btnName} отменён`,'warn');
+          log(`Экспорт ${btnName}: отменён пользователем.`);
+        }else{
+          console.error(err);toast('Экспорт не удался: '+err.message,'err');log('Ошибка экспорта: '+err.message)
+        }
+      }finally{finishExportProgress(btn,job.cancelled)}
+    }
+    function paperSizeMm(){const p=$('paper').value||'a3';return {a4:[210,297],a3:[297,420],a2:[420,594],a1:[594,841]}[p]||[297,420]}
+    function currentDpi(){return (Number($('exportScale').value)||1)*150}
+    function exportPageSizePx(bounds){const dpi=currentDpi();let [wmm,hmm]=paperSizeMm();const d=boundsSizeMeters(bounds);const areaAspect=d.w/Math.max(1,d.h);if(areaAspect>1 && wmm<hmm)[wmm,hmm]=[hmm,wmm];if(areaAspect<1 && wmm>hmm)[wmm,hmm]=[hmm,wmm];return {w:Math.round(wmm/25.4*dpi),h:Math.round(hmm/25.4*dpi),dpi,wmm,hmm}}
+    function mapRectOnPage(page,bounds){const d=boundsSizeMeters(bounds);const aspect=d.w/Math.max(1,d.h);const margin=Math.round(page.dpi*0.10);const maxW=page.w-margin*2,maxH=page.h-margin*2;let w=maxW,h=Math.round(w/aspect);if(h>maxH){h=maxH;w=Math.round(h*aspect)}return {x:Math.round((page.w-w)/2),y:Math.round((page.h-h)/2),w,h}}
+
+    async function buildWmsExportCanvas(bounds,src,onProgress,isCancelled=()=>false){
+      checkExportCancelled(isCancelled);if(onProgress)onProgress(0,'подготовка WMS');const page=exportPageSizePx(bounds);const pixels=page.w*page.h;if(pixels>180_000_000)throw new Error('Слишком большой файл для WMS. Уменьши формат или детализацию.');
+      const rect=mapRectOnPage(page,bounds);const canvas=document.createElement('canvas');canvas.width=page.w;canvas.height=page.h;const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,page.w,page.h);ctx.fillStyle='#dfeaf0';ctx.fillRect(rect.x,rect.y,rect.w,rect.h);
+      const reqW=Math.min(rect.w,4096),reqH=Math.min(rect.h,4096);
+      checkExportCancelled(isCancelled);if(onProgress)onProgress(20,'WMS изображение');
+      const img=await loadTileForCanvas(wmsGetMapUrl(src,bounds,reqW,reqH,true));
+      checkExportCancelled(isCancelled);ctx.drawImage(img,rect.x,rect.y,rect.w,rect.h);
+      if(onProgress)onProgress(86,'сетка и разметка');drawExportGrid(ctx,bounds,state.zoom,rect,page);drawExportAnnotations(ctx,bounds,state.zoom,rect,page);
+      ctx.fillStyle='rgba(255,255,255,.85)';ctx.fillRect(0,page.h-Math.round(page.dpi*.18),page.w,Math.round(page.dpi*.18));ctx.fillStyle='#314856';ctx.font=`${Math.max(10,Math.round(page.dpi*0.035))}px Arial`;ctx.textBaseline='middle';ctx.fillText(`${$('paper').value.toUpperCase()} · ${page.dpi} DPI · WMS · ${src.attr||''}`,Math.round(page.dpi*.12),page.h-Math.round(page.dpi*.09));drawExportCredit(ctx,page,rect);
+      checkExportCancelled(isCancelled);if(onProgress)onProgress(96,'запись файла');return canvas;
+    }
+
+    async function buildHighDetailExportCanvas(bounds,src,z,onProgress,isCancelled=()=>false){
+      checkExportCancelled(isCancelled);if(onProgress)onProgress(0,'подготовка');const page=exportPageSizePx(bounds);const pixels=page.w*page.h;if(pixels>300_000_000)throw new Error('Слишком большой файл. Уменьши формат или детализацию.');
+      const rect=mapRectOnPage(page,bounds);const canvas=document.createElement('canvas');canvas.width=page.w;canvas.height=page.h;const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,page.w,page.h);ctx.fillStyle='#dfeaf0';ctx.fillRect(rect.x,rect.y,rect.w,rect.h);
+      const nw=llToWorld(bounds.north,bounds.west,z),se=llToWorld(bounds.south,bounds.east,z);const worldW=se.x-nw.x,worldH=se.y-nw.y;if(worldW<=0||worldH<=0)throw new Error('Некорректная область экспорта.');
+      const n=Math.pow(2,z);const minX=Math.floor(nw.x/TILE),maxX=Math.floor((se.x-0.001)/TILE),minY=Math.floor(nw.y/TILE),maxY=Math.floor((se.y-0.001)/TILE);const tileCount=(maxX-minX+1)*(maxY-minY+1);if(tileCount>800)throw new Error(`Слишком много тайлов для одного экспорта: ${tileCount}. Уменьши область, DPI или детализацию.`);
+      let loaded=0,failed=0,done=0;if(onProgress)onProgress(5,`тайлы 0/${tileCount}`);
+      for(let tx=minX;tx<=maxX;tx++){const ux=((tx%n)+n)%n;for(let ty=minY;ty<=maxY;ty++){checkExportCancelled(isCancelled);if(ty<0||ty>=n)continue;const url=src.kind==='mbtiles'?null:templateUrl(src.url,z,ux,ty,src);const dx=rect.x+(tx*TILE-nw.x)/worldW*rect.w;const dy=rect.y+(ty*TILE-nw.y)/worldH*rect.h;const dw=TILE/worldW*rect.w;const dh=TILE/worldH*rect.h;try{const img=src.kind==='mbtiles'?await loadMbtilesImage(z,ux,ty):await loadTileForCanvas(url);ctx.drawImage(img,dx,dy,dw+0.5,dh+0.5);loaded++;}catch(e){failed++;ctx.fillStyle='#eef3f6';ctx.fillRect(dx,dy,dw+0.5,dh+0.5)}finally{done++;if(onProgress)onProgress(5+Math.round(done/Math.max(1,tileCount)*82),`тайлы ${done}/${tileCount}`)}}}
+      if(state.secondLayerEnabled){
+        syncSecondLayerState();
+        const second=secondarySource();
+        if(second&&(second.kind==='xyz'||second.kind==='mbtiles')){
+          checkExportCancelled(isCancelled);
+          if(onProgress)onProgress(88,'вторая подложка');
+          await drawOverlaySourceOnCanvas(ctx,bounds,second,Math.min((second.maxNativeZoom||second.maxZoom||22),z),rect,state.secondOpacity,isCancelled);
+        }
+      }
+      checkExportCancelled(isCancelled);if(onProgress)onProgress(90,'сетка и разметка');drawExportGrid(ctx,bounds,z,rect,page);drawExportAnnotations(ctx,bounds,z,rect,page);
+      ctx.fillStyle='rgba(255,255,255,.85)';ctx.fillRect(0,page.h-Math.round(page.dpi*.18),page.w,Math.round(page.dpi*.18));ctx.fillStyle='#314856';ctx.font=`${Math.max(10,Math.round(page.dpi*0.035))}px Arial`;ctx.textBaseline='middle';ctx.fillText(`z${z} · ${$('paper').value.toUpperCase()} · ${page.dpi} DPI · тайлы: ${loaded}${failed?`, ошибок: ${failed}`:''} · ${src.attr||''}`,Math.round(page.dpi*.12),page.h-Math.round(page.dpi*.09));drawExportCredit(ctx,page,rect);
+      checkExportCancelled(isCancelled);if(onProgress)onProgress(96,'запись файла');if(failed)log(`Экспорт: не загрузилось тайлов: ${failed}.`);return canvas;
+    }
+    async function drawOverlaySourceOnCanvas(ctx,bounds,src,z,rect,alpha,isCancelled=()=>false){
+      const minZ=src.minZoom||1;z=Math.max(minZ,Math.min(z,src.maxNativeZoom||src.maxZoom||22));
+      const nw=llToWorld(bounds.north,bounds.west,z),se=llToWorld(bounds.south,bounds.east,z),worldW=se.x-nw.x,worldH=se.y-nw.y;
+      const n=Math.pow(2,z),minX=Math.floor(nw.x/TILE),maxX=Math.floor((se.x-0.001)/TILE),minY=Math.floor(nw.y/TILE),maxY=Math.floor((se.y-0.001)/TILE);
+      ctx.save();ctx.globalAlpha=Math.max(0,Math.min(1,alpha));
+      for(let tx=minX;tx<=maxX;tx++){const ux=((tx%n)+n)%n;for(let ty=minY;ty<=maxY;ty++){checkExportCancelled(isCancelled);if(ty<0||ty>=n)continue;const dx=rect.x+(tx*TILE-nw.x)/worldW*rect.w,dy=rect.y+(ty*TILE-nw.y)/worldH*rect.h,dw=TILE/worldW*rect.w,dh=TILE/worldH*rect.h;try{const img=src.kind==='mbtiles'?await loadMbtilesImage(z,ux,ty):await loadTileForCanvas(templateUrl(src.url,z,ux,ty,src));ctx.drawImage(img,dx,dy,dw+0.5,dh+0.5)}catch(e){}}}
+      ctx.restore();
+    }
+    function loadTileForCanvas(url){return new Promise((resolve,reject)=>{const img=new Image();img.crossOrigin='anonymous';img.decoding='async';img.onload=()=>resolve(img);img.onerror=()=>reject(new Error('tile error'));img.src=url})}
+    function drawExportGrid(ctx,bounds,z,rect,page){
+      if(!$('exportGrid').checked||!state.gridVisible||!state.currentCells.length)return;const nw=llToWorld(bounds.north,bounds.west,z),se=llToWorld(bounds.south,bounds.east,z),worldW=se.x-nw.x,worldH=se.y-nw.y;function gp(ll){const w=llToWorld(ll.lat,ll.lon,z);return{x:rect.x+(w.x-nw.x)/worldW*rect.w,y:rect.y+(w.y-nw.y)/worldH*rect.h}}
+      ctx.save();ctx.strokeStyle=$('gridColor').value||'#071923';ctx.lineWidth=Math.max(1,Number($('gridWeight').value)||2);ctx.globalAlpha=.95;ctx.beginPath();for(const cell of state.currentCells){const pts=cell.latlngs.map(gp);if(!pts.length)continue;ctx.moveTo(pts[0].x,pts[0].y);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i].x,pts[i].y);ctx.closePath()}ctx.stroke();
+      if($('exportLabels').checked&&$('showLabels').checked){const fontPx=Math.max(8,Math.round(page.dpi*10/144));ctx.font=`800 ${fontPx}px Arial`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=Math.max(2,Math.round(fontPx/4));if($('labelPlacement').value==='vertices'){for(const vp of state.vertexPoints){const p=gp(vp.ll);if(p.x<rect.x-40||p.y<rect.y-40||p.x>rect.x+rect.w+40||p.y>rect.y+rect.h+40)continue;const x=p.x+fontPx*.45,y=p.y-fontPx*.45;ctx.strokeStyle='rgba(255,255,255,.92)';ctx.strokeText(vp.label,x,y);ctx.fillStyle='#071923';ctx.fillText(vp.label,x,y)}}else{for(const cell of state.currentCells){const p=gp(cell.center);if(p.x<rect.x-40||p.y<rect.y-40||p.x>rect.x+rect.w+40||p.y>rect.y+rect.h+40)continue;ctx.strokeStyle='rgba(255,255,255,.92)';ctx.strokeText(cell.label,p.x,p.y);ctx.fillStyle='#071923';ctx.fillText(cell.label,p.x,p.y)}}}
+      ctx.restore();
+    }
+
+    function drawExportCredit(ctx,page,rect){const text=AUTHOR_TEXT;if(!rect)rect={x:0,y:0,w:page.w,h:page.h};ctx.save();let fontPx=Math.max(8,Math.round(page.dpi*0.028));ctx.font=`600 ${fontPx}px Arial`;const maxW=Math.max(80,rect.w*0.55);while(ctx.measureText(text).width>maxW&&fontPx>7){fontPx--;ctx.font=`600 ${fontPx}px Arial`}const pad=Math.max(8,Math.round(page.dpi*.045));const footerH=Math.round(page.dpi*.18);const footerTop=page.h-footerH;const x=rect.x+rect.w-pad;let y=rect.y+rect.h-pad;if(y>footerTop-pad)y=Math.max(rect.y+fontPx+pad,footerTop-pad);ctx.textAlign='right';ctx.textBaseline='bottom';ctx.lineWidth=Math.max(2,Math.round(fontPx/5));ctx.strokeStyle='rgba(255,255,255,.45)';ctx.fillStyle='rgba(7,25,35,.34)';ctx.strokeText(text,x,y);ctx.fillText(text,x,y);ctx.restore()}
+    function canvasToJpgBackground(c){const out=document.createElement('canvas');out.width=c.width;out.height=c.height;const ctx=out.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,out.width,out.height);ctx.drawImage(c,0,0);return out}
+    async function exportPdf(c){const{jsPDF}=window.jspdf,paper=$('paper').value||'a3',orientation=c.width>=c.height?'landscape':'portrait',pdf=new jsPDF({orientation,unit:'mm',format:paper});const pageW=pdf.internal.pageSize.getWidth(),pageH=pdf.internal.pageSize.getHeight();pdf.addImage(canvasToJpgBackground(c).toDataURL('image/jpeg',.95),'JPEG',0,0,pageW,pageH,undefined,'FAST');pdf.save(fileStamp('map','pdf'))}
+    function downloadBlob(filename,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}function downloadText(filename,text,type){downloadBlob(filename,new Blob([text],{type}))}function prettyBytes(n){if(!Number.isFinite(n))return'—';const u=['Б','КБ','МБ'];let i=0;while(n>1024&&i<u.length-1){n/=1024;i++}return`${n.toFixed(i?1:0)} ${u[i]}`}function fileStamp(base,ext){const d=new Date(),pad=n=>String(n).padStart(2,'0');return`${base}_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.${ext}`}function toast(msg,type='ok'){if($('log'))log(msg);const el=document.createElement('div');el.className='toast '+(type==='err'?'err':type==='warn'?'warn':'ok');el.textContent=msg;$('toastbox').appendChild(el);setTimeout(()=>{el.style.opacity='0';el.style.transform='translateY(-8px)'},3200);setTimeout(()=>el.remove(),3800)}function log(msg){const t=new Date().toLocaleTimeString();$('log').value='['+t+'] '+msg+'\n'+$('log').value}function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+    function startExportProgress(btn){if(!btn)return null;btn.classList.remove('cancelWave');btn.classList.add('busyWave');btn.dataset.exporting='1';const id=btn.id+'Progress';const el=$(id);if(el)el.textContent='0% · старт';return el}
+    function updateExportProgress(btn,pct,msg=''){if(!btn)return;const el=$(btn.id+'Progress');if(el)el.textContent=`${Math.max(0,Math.min(100,Math.round(pct)))}%${msg?' · '+msg:''}`}
+    function requestExportCancel(btn){const job=btn&&state.exportJobs?state.exportJobs[btn.id]:null;if(!job||job.done)return;job.cancelled=true;btn.classList.remove('busyWave');btn.classList.add('cancelWave');updateExportProgress(btn,0,'отмена…');setTimeout(()=>btn.classList.remove('cancelWave'),900);log('Экспорт: запрошена отмена.')}
+    function checkExportCancelled(isCancelled){if(isCancelled&&isCancelled())throw new Error('EXPORT_CANCELLED')}
+    function finishExportProgress(btn,cancelled=false,quick=false){if(!btn)return;btn.classList.remove('busyWave');btn.dataset.exporting='';if(cancelled){btn.classList.add('cancelWave');updateExportProgress(btn,0,'отменено');setTimeout(()=>btn.classList.remove('cancelWave'),900)}else updateExportProgress(btn,100,'готово');if(state.exportJobs&&state.exportJobs[btn.id]){state.exportJobs[btn.id].done=true;delete state.exportJobs[btn.id]}setTimeout(()=>{const el=$(btn.id+'Progress');if(el)el.textContent=''},quick?1200:2500)}
+
+    function updateDpiHint(){if($('dpiHint'))$('dpiHint').textContent=`DPI: ${currentDpi()} · детализация ${$('exportScale').value}×`;}
+    function formatCoordString(ll){return `${fmt(ll.lat,6)}, ${fmt(ll.lon,6)}`}
+    function copyCoordinates(ll,p){const text=formatCoordString(ll);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).catch(()=>fallbackCopy(text));else fallbackCopy(text);showCopyFlash(p,text);toast('Координаты скопированы: '+text,'ok')}
+    function fallbackCopy(text){const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy')}catch(e){}ta.remove()}
+    function showCopyFlash(p,text){const el=document.createElement('div');el.className='copyFlash';el.textContent='скопировано: '+text;el.style.left=p.x+'px';el.style.top=p.y+'px';mapWrap.appendChild(el);setTimeout(()=>el.remove(),1400)}
+    function scheduleWeather(){clearTimeout(state.weatherTimer);state.weatherTimer=setTimeout(updateWeatherWidget,700)}
+    async function updateWeatherWidget(){const c=state.selectedBounds?boundsCenter(state.selectedBounds):state.center;const key=`${c.lat.toFixed(2)},${c.lon.toFixed(2)}`;if(state.lastWeatherKey===key&&$('weatherWidget')&&!$('weatherWidget').classList.contains('loading'))return;state.lastWeatherKey=key;const w=$('weatherWidget');if(!w)return;w.classList.add('loading');w.innerHTML='<span class="weatherIcon">⛅</span><span>погода…</span>';const params=new URLSearchParams({latitude:String(c.lat),longitude:String(c.lon),current:'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,cloud_cover,pressure_msl,is_day',wind_speed_unit:'ms',timezone:'auto'});try{const r=await fetch('https://api.open-meteo.com/v1/forecast?'+params.toString());if(!r.ok)throw new Error('weather HTTP '+r.status);const data=await r.json();const cur=data.current||{};const temp=Number(cur.temperature_2m),app=Number(cur.apparent_temperature),humidity=Number(cur.relative_humidity_2m),pressure=Number(cur.pressure_msl),cloud=Number(cur.cloud_cover);const wind=Number(cur.wind_speed_10m),gust=Number(cur.wind_gusts_10m),dir=Number(cur.wind_direction_10m);const code=Number(cur.weather_code);const precip=Number(cur.precipitation)||0;const icon=weatherIcon(code,cur.is_day);const desc=weatherText(code);w.classList.remove('loading');w.innerHTML=`<span class="weatherIcon">${icon}</span><span><b>${Number.isFinite(temp)?Math.round(temp):'—'}°</b> ${desc}</span><span class="weatherMuted"><span class="windArrow" style="transform:rotate(${Number.isFinite(dir)?dir:0}deg)">↓</span> ${Number.isFinite(wind)?wind.toFixed(0):'—'}${Number.isFinite(gust)?'–'+gust.toFixed(0):''} м/с</span>${precip>0?`<span class="weatherMuted">${precip} мм</span>`:''}<div class="weatherTip"><div class="weatherTipTitle">Open-Meteo · ${desc}</div><div class="weatherTipGrid"><b>Температура</b><span>${Number.isFinite(temp)?temp.toFixed(1)+' °C':'—'}</span><b>Ощущается</b><span>${Number.isFinite(app)?app.toFixed(1)+' °C':'—'}</span><b>Влажность</b><span>${Number.isFinite(humidity)?humidity+' %':'—'}</span><b>Давление</b><span>${Number.isFinite(pressure)?pressure.toFixed(0)+' гПа':'—'}</span><b>Облачность</b><span>${Number.isFinite(cloud)?cloud+' %':'—'}</span><b>Осадки</b><span>${precip} мм</span><b>Ветер</b><span>${Number.isFinite(wind)?wind.toFixed(1)+' м/с':'—'}${Number.isFinite(gust)?', порывы '+gust.toFixed(1)+' м/с':''}</span><b>Направление</b><span>${Number.isFinite(dir)?Math.round(dir)+'°':'—'}</span></div><div class="weatherTipMuted">Точка: ${fmt(c.lat,4)}, ${fmt(c.lon,4)} · данные текущей погоды.</div></div>`;w.removeAttribute('title');}catch(e){w.classList.add('loading');w.innerHTML='<span class="weatherIcon">⛅</span><span>погода недоступна</span>';log('Погода: '+e.message)}}
+    function weatherText(code){code=Number(code);if(code===0)return'ясно';if([1,2].includes(code))return'переменная облачность';if(code===3)return'пасмурно';if([45,48].includes(code))return'туман';if([51,53,55,56,57].includes(code))return'морось';if([61,63,65,66,67,80,81,82].includes(code))return'дождь';if([71,73,75,77,85,86].includes(code))return'снег';if([95,96,99].includes(code))return'гроза';return'погода'}
+        function weatherIcon(code,isDay){if([0].includes(code))return isDay?'☀️':'🌙';if([1,2].includes(code))return isDay?'🌤️':'☁️';if([3].includes(code))return'☁️';if([45,48].includes(code))return'🌫️';if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code))return'🌧️';if([71,73,75,77,85,86].includes(code))return'❄️';if([95,96,99].includes(code))return'⛈️';return'⛅'}
+
+
+    function setCoordMarker(ll,label){state.coordMarker={lat:ll.lat,lon:ll.lon,label:label||formatCoordString(ll)};renderDrawSvg()}
+    function clearCoordMarker(){if(!state.coordMarker)return;state.coordMarker=null;renderDrawSvg();log('Метка координат очищена.')}
+    function projectPayload(){return{version:'0.14.12',savedAt:new Date().toISOString(),center:state.center,zoom:state.zoom,sourceKey:state.sourceKey,secondLayer:{enabled:state.secondLayerEnabled,sourceKey:state.secondSourceKey,opacity:Math.round(state.secondOpacity*100)},selectedBounds:state.selectedBounds,gridVisible:state.gridVisible,annotations:state.annotations,drawId:state.drawId,drawSize:state.drawSize,grid:{autoCell:$('autoCell').checked,maxCells:$('maxCells').value,cellW:$('cellW').value,cellH:$('cellH').value,angle:$('angle').value,offsetX:$('offsetX').value,offsetY:$('offsetY').value,useDeclination:$('useDeclination').checked,labelMode:$('labelMode').value,labelPlacement:$('labelPlacement').value,startNum:$('startNum').value,prefix:$('prefix').value,gridColor:$('gridColor').value,gridWeight:$('gridWeight').value,showLabels:$('showLabels').checked}}}
+    function scheduleProjectAutosave(){clearTimeout(state.projectSaveTimer);state.projectSaveTimer=setTimeout(()=>{try{localStorage.setItem(PROJECT_STORAGE_KEY,JSON.stringify(projectPayload()))}catch(e){log('Автосохранение недоступно: '+e.message)}},500)}
+    function applyProjectPayload(data,manual=false){if(!data||typeof data!=='object')throw new Error('Некорректный файл данных');if(data.center&&Number.isFinite(Number(data.center.lat))&&Number.isFinite(Number(data.center.lon)))state.center={lat:Number(data.center.lat),lon:Number(data.center.lon)};if(Number.isFinite(Number(data.zoom)))state.zoom=Math.max(1,Math.min(22,Math.round(Number(data.zoom))));if(data.sourceKey&&sources[data.sourceKey]){state.sourceKey=data.sourceKey;$('baseSelect').value=data.sourceKey}if(data.secondLayer){
+      const requested=String(data.secondLayer.sourceKey||'none');
+      const key=(data.secondLayer.enabled&&sources[requested])?requested:'none';
+      if($('secondBaseSelect'))$('secondBaseSelect').value=key;
+      if($('secondOpacity')&&Number.isFinite(Number(data.secondLayer.opacity)))$('secondOpacity').value=String(Math.max(0,Math.min(100,Number(data.secondLayer.opacity))));
+      syncSecondLayerState()
+    }state.annotations=Array.isArray(data.annotations)?data.annotations:[];state.drawId=Number(data.drawId)||((state.annotations.reduce((m,a)=>Math.max(m,Number(a.id)||0),0))+1);state.drawSize=data.drawSize||state.drawSize||'m';if(data.grid){const g=data.grid;for(const [id,val] of Object.entries({maxCells:g.maxCells,cellW:g.cellW,cellH:g.cellH,angle:g.angle,offsetX:g.offsetX,offsetY:g.offsetY,labelMode:g.labelMode,labelPlacement:g.labelPlacement,startNum:g.startNum,prefix:g.prefix,gridColor:g.gridColor,gridWeight:g.gridWeight})){if($(id)&&val!==undefined)$(id).value=val}if($('autoCell')&&typeof g.autoCell==='boolean')$('autoCell').checked=g.autoCell;if($('useDeclination')&&typeof g.useDeclination==='boolean')$('useDeclination').checked=g.useDeclination;if($('showLabels')&&typeof g.showLabels==='boolean')$('showLabels').checked=g.showLabels}state.selectedBounds=data.selectedBounds?normalizeBounds(data.selectedBounds):null;state.gridVisible=!!(data.gridVisible&&state.selectedBounds);updateSizeButtons();updateAngleUi(false);resetTileStats();renderMap();updateTopbar();if(state.gridVisible)buildGrid({silent:true});else updateStats();if(manual)toast('Данные карты загружены','ok')}
+    function restoreProjectAutosave(){try{const raw=localStorage.getItem(PROJECT_STORAGE_KEY);if(raw)applyProjectPayload(JSON.parse(raw),false)}catch(e){log('Автовосстановление не удалось: '+e.message)}}
+    function saveProjectFile(){const name=fileStamp('grid-project','json');downloadText(name,JSON.stringify(projectPayload(),null,2),'application/json;charset=utf-8');toast('Файл данных карты сохранён: '+name,'ok')}
+    function loadProjectFile(file){if(!file)return;const reader=new FileReader();reader.onload=()=>{try{applyProjectPayload(JSON.parse(String(reader.result||'')),true);scheduleProjectAutosave()}catch(e){toast('Не удалось загрузить данные: '+e.message,'err')}};reader.readAsText(file,'utf-8')}
+
+    function readU16(db,off){const d=db.dv;return d.getUint16(off,false)}
+    function readU32(db,off){const d=db.dv;return d.getUint32(off,false)}
+    function readVarint(db,off){const a=db.bytes;let v=0,i=0;for(;i<8;i++){v=(v<<7)|(a[off+i]&0x7f);if(!(a[off+i]&0x80))return{value:v,length:i+1}}v=(v<<8)|a[off+8];return{value:v,length:9}}
+    function pageOffset(db,pageNo){return (pageNo-1)*db.pageSize}
+    function btreeHeaderOffset(pageNo){return pageNo===1?100:0}
+    function computeLocalPayload(db,payloadSize){
+      const usable=db.usableSize,maxLocal=usable-35,minLocal=Math.floor(((usable-12)*32)/255)-23;
+      if(payloadSize<=maxLocal)return payloadSize;
+      const surplus=minLocal+((payloadSize-minLocal)%(usable-4));
+      return surplus<=maxLocal?surplus:minLocal;
+    }
+    function readSqlitePayload(db,payloadOffset,payloadSize,localSize){
+      const out=new Uint8Array(payloadSize);
+      out.set(db.bytes.subarray(payloadOffset,payloadOffset+localSize),0);
+      let written=localSize;
+      if(written<payloadSize){
+        let ovfl=readU32(db,payloadOffset+localSize);
+        while(ovfl&&written<payloadSize){
+          const off=pageOffset(db,ovfl);
+          const next=readU32(db,off);
+          const take=Math.min(db.usableSize-4,payloadSize-written);
+          out.set(db.bytes.subarray(off+4,off+4+take),written);
+          written+=take;ovfl=next;
+        }
+      }
+      return out;
+    }
+    function parseRecord(bytes){
+      const fake={bytes,dv:new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength)};
+      const hv=readVarint(fake,0),headerSize=Number(hv.value);let off=hv.length;const serials=[];
+      while(off<headerSize){const v=readVarint(fake,off);serials.push(Number(v.value));off+=v.length}
+      let dataOff=headerSize;const vals=[];
+      for(const st of serials){
+        if(st===0){vals.push(null)}
+        else if(st===1){vals.push((bytes[dataOff]<<24)>>24);dataOff+=1}
+        else if(st===2){vals.push((bytes[dataOff]<<8)|bytes[dataOff+1]);dataOff+=2}
+        else if(st===3){vals.push((bytes[dataOff]<<16)|(bytes[dataOff+1]<<8)|bytes[dataOff+2]);dataOff+=3}
+        else if(st===4){vals.push(fake.dv.getInt32(dataOff,false));dataOff+=4}
+        else if(st===5){let n=0;for(let i=0;i<6;i++)n=n*256+bytes[dataOff+i];vals.push(n);dataOff+=6}
+        else if(st===6){vals.push(Number(fake.dv.getBigInt64(dataOff,false)));dataOff+=8}
+        else if(st===7){vals.push(fake.dv.getFloat64(dataOff,false));dataOff+=8}
+        else if(st===8){vals.push(0)}
+        else if(st===9){vals.push(1)}
+        else if(st>=12){
+          const len=Math.floor((st-12)/2);
+          const slice=bytes.subarray(dataOff,dataOff+len);
+          if(st%2===0)vals.push(slice);
+          else vals.push(new TextDecoder('utf-8').decode(slice));
+          dataOff+=len;
+        }else vals.push(null);
+      }
+      return vals;
+    }
+    function traverseTableBtree(db,rootPage,visitor){
+      function walk(pageNo){
+        const base=pageOffset(db,pageNo),h=btreeHeaderOffset(pageNo),type=db.bytes[base+h],cellCount=readU16(db,base+h+3);
+        if(type===0x0d){
+          for(let i=0;i<cellCount;i++){
+            const cellPtr=readU16(db,base+h+8+i*2);
+            const cell=base+cellPtr;
+            const ps=readVarint(db,cell),rid=readVarint(db,cell+ps.length);
+            const payloadSize=Number(ps.value),payloadOffset=cell+ps.length+rid.length,localSize=computeLocalPayload(db,payloadSize);
+            visitor({pageNo,rowid:Number(rid.value),payloadSize,payloadOffset,localSize});
+          }
+        }else if(type===0x05){
+          for(let i=0;i<cellCount;i++){
+            const cellPtr=readU16(db,base+h+12+i*2);
+            const child=readU32(db,base+cellPtr);
+            walk(child);
+          }
+          const right=readU32(db,base+h+8);if(right)walk(right);
+        }
+      }
+      walk(rootPage);
+    }
+    function openMbtilesFile(file){
+      const reader=new FileReader();
+      reader.onload=()=>{
+        try{
+          const bytes=new Uint8Array(reader.result);
+          const db={bytes,dv:new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),pageSize:0,usableSize:0};
+          db.pageSize=readU16(db,16);if(db.pageSize===1)db.pageSize=65536;
+          const reserved=bytes[20]||0;db.usableSize=db.pageSize-reserved;
+          const master=[];
+          traverseTableBtree(db,1,cell=>{
+            const payload=readSqlitePayload(db,cell.payloadOffset,cell.payloadSize,cell.localSize);
+            const rec=parseRecord(payload);
+            master.push(rec);
+          });
+          const tables={};
+          for(const r of master){if(r[0]==='table')tables[r[1]]={name:r[1],root:Number(r[3]),sql:r[4]}}
+          if(!tables.tiles)throw new Error('В файле нет таблицы tiles');
+          const metadata={};
+          if(tables.metadata){
+            traverseTableBtree(db,tables.metadata.root,cell=>{
+              const rec=parseRecord(readSqlitePayload(db,cell.payloadOffset,cell.payloadSize,cell.localSize));
+              if(rec.length>=2)metadata[String(rec[0])]=String(rec[1]);
+            });
+          }
+          const scheme=(metadata.scheme||'tms').toLowerCase()==='xyz'?'xyz':'tms';
+          const format=(metadata.format||'png').toLowerCase();
+          const mime=format.includes('jpg')||format.includes('jpeg')?'image/jpeg':format.includes('webp')?'image/webp':'image/png';
+          const tiles=new Map();let minzoom=99,maxzoom=0,count=0;
+          traverseTableBtree(db,tables.tiles.root,cell=>{
+            const payload=readSqlitePayload(db,cell.payloadOffset,cell.payloadSize,cell.localSize);
+            const rec=parseRecord(payload);
+            const z=Number(rec[0]),x=Number(rec[1]),y=Number(rec[2]);
+            if(Number.isFinite(z)&&Number.isFinite(x)&&Number.isFinite(y)&&rec[3] instanceof Uint8Array){
+              // We store exact payload location of blob by reparsing record less efficiently is hard, so store blob bytes for MBTiles file.
+              tiles.set(`${z}/${x}/${y}`, {bytes:rec[3]});
+              minzoom=Math.min(minzoom,z);maxzoom=Math.max(maxzoom,z);count++;
+            }
+          });
+          // Override object URL reader for byte-backed records.
+          state.mbtiles={db,tiles,metadata,scheme,mime,minzoom:minzoom===99?(Number(metadata.minzoom)||0):minzoom,maxzoom:maxzoom||Number(metadata.maxzoom)||22,attr:metadata.attribution||metadata.name||file.name,name:file.name};
+          for(const url of state.mbtileUrlCache.values())URL.revokeObjectURL(url);
+          state.mbtileUrlCache.clear();
+          // Patch tile reader for byte records.
+          state.sourceKey='mbtiles';$('baseSelect').value='mbtiles';$('mbtilesName').value=file.name;
+          const info=`${file.name} · ${count.toLocaleString('ru-RU')} тайлов · z${state.mbtiles.minzoom}–${state.mbtiles.maxzoom} · ${scheme.toUpperCase()} · ${format.toUpperCase()}`;
+          $('mbtilesInfo').textContent=info;
+          if(metadata.center){
+            const parts=metadata.center.split(',').map(s=>Number(s.trim()));
+            if(parts.length>=2&&Number.isFinite(parts[0])&&Number.isFinite(parts[1]))setCenter(parts[1],parts[0],Number(parts[2])||state.mbtiles.minzoom||state.zoom);
+          }else if(metadata.bounds){
+            const b=metadata.bounds.split(',').map(s=>Number(s.trim()));
+            if(b.length>=4)setCenter((b[1]+b[3])/2,(b[0]+b[2])/2,state.mbtiles.minzoom||state.zoom);
+          }else renderMap();
+          toast('MBTiles подключён: '+info,'ok');
+          log('MBTiles: '+info);
+        }catch(e){console.error(e);toast('Не удалось открыть MBTiles: '+e.message,'err');log('MBTiles ошибка: '+e.message)}
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function savePrefs(){syncSecondLayerState();localStorage.setItem('ps_grid_prefs_v8',JSON.stringify({customUrl:$('customUrl').value,customAttr:$('customAttr').value,tileCors:$('tileCors').checked,secondSourceKey:state.secondSourceKey,secondOpacity:Math.round(state.secondOpacity*100)}))}
+    function loadPrefs(){try{const p=JSON.parse(localStorage.getItem('ps_grid_prefs_v8')||'{}');if(p.customUrl)$('customUrl').value=p.customUrl;if(p.customAttr)$('customAttr').value=p.customAttr;if(typeof p.tileCors==='boolean')$('tileCors').checked=p.tileCors;if($('secondBaseSelect')){const key=(p.secondSourceKey&&sources[p.secondSourceKey])?p.secondSourceKey:'none';$('secondBaseSelect').value=key}if($('secondOpacity')&&Number.isFinite(Number(p.secondOpacity)))$('secondOpacity').value=String(Math.max(0,Math.min(100,Number(p.secondOpacity))));syncSecondLayerState()}catch(e){}}
+
+    function bindWheelNumberInput(el){
+      if(!el)return;
+      el.addEventListener('wheel',e=>{
+        e.preventDefault();
+        const step=Number(el.step)||1;
+        const decimals=(String(el.step||'').split('.')[1]||'').length;
+        const cur=Number(el.value)||0;
+        const next=cur+(e.deltaY<0?step:-step);
+        el.value=decimals?Number(next).toFixed(decimals):String(Math.round(next));
+        if(el.id==='angle')updateAngleUi(true);
+        else if(state.gridVisible)buildGrid({silent:true});
+      },{passive:false})
+    }
+    function updateAreaButtons(){const screen=$('selectViewport'),draw=$('drawArea');if(!screen||!draw)return;screen.classList.remove('active','gridDangerState');draw.classList.remove('active','gridDangerState');screen.textContent='Вывести сетку на экран';draw.textContent='Нарисовать сетку';if(state.gridVisible&&$('followViewport')&&$('followViewport').checked){screen.textContent='Убрать сетку с экрана';screen.classList.add('active','gridDangerState')}else if(state.gridVisible&&state.selectedBounds){draw.textContent='Удалить сетку';draw.classList.add('active','gridDangerState')}}
+    function setModeActive(mode){updateAreaButtons()}
+    function flashButton(btn){if(!btn)return;btn.classList.add('active');setTimeout(()=>btn.classList.remove('active'),650)}
+    function bindEvents(){
+      $('goBtn').addEventListener('click',goToCoords);$('coordInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();goToCoords()}});$('coordInput').addEventListener('input',()=>{if(!$('coordInput').value.trim())clearCoordMarker()});$('zoomPlus').addEventListener('click',()=>zoomBy(1));$('zoomMinus').addEventListener('click',()=>zoomBy(-1));$('placeBtn').addEventListener('click',searchPlace);$('placeInput').addEventListener('keydown',e=>{if(e.key==='Enter')searchPlace()});let st=null;$('placeInput').addEventListener('input',()=>{if(!$('placeInput').value.trim())clearCoordMarker();clearTimeout(st);st=setTimeout(searchPlace,450)});
+      $('baseSelect').addEventListener('change',e=>{state.sourceKey=e.target.value;const moved=applySourceDefaultView(state.sourceKey);resetTileStats();renderMap();updateTopbar();savePrefs();toast(moved?'Подложка переключена, открыт рабочий масштаб слоя':'Подложка переключена','ok')});$('sourceGear').addEventListener('click',()=>{$('sourceSettings').open=!$('sourceSettings').open});$('applyCustom').addEventListener('click',()=>{$('baseSelect').value='custom';state.sourceKey='custom';savePrefs();resetTileStats();renderMap()});if($('loadMbtilesBtn'))$('loadMbtilesBtn').addEventListener('click',()=>$('mbtilesFile').click());if($('mbtilesFile'))$('mbtilesFile').addEventListener('change',e=>openMbtilesFile(e.target.files&&e.target.files[0]));['customUrl','customAttr','customMaxZoom','tileCors'].forEach(id=>$(id).addEventListener('change',()=>{savePrefs();resetTileStats();renderMap()}));
+      if($('secondBaseSelect'))$('secondBaseSelect').addEventListener('change',()=>{syncSecondLayerState();const moved=state.secondLayerEnabled&&applySourceDefaultView(state.secondSourceKey);renderMap();updateTopbar();savePrefs();if(moved)toast('Открыта область доступности второй подложки','ok')});
+      if($('secondOpacity')){
+        $('secondOpacity').addEventListener('input',()=>{syncSecondLayerState();renderSecondLayer();savePrefs()});
+        $('secondOpacity').addEventListener('wheel',e=>{e.preventDefault();const el=e.currentTarget;const cur=Number(el.value)||0;const next=Math.max(0,Math.min(100,cur+(e.deltaY<0?5:-5)));el.value=String(next);syncSecondLayerState();renderSecondLayer();savePrefs()},{passive:false});
+      }
+      $('selectViewport').addEventListener('click',()=>{if(state.gridVisible&&$('followViewport').checked){clearSelection();setModeActive(null);toast('Сетка по экрану выключена','ok');return}setModeActive('screen');$('followViewport').checked=true;setSelection(getViewportBounds(20),{silent:false})});$('clearArea').addEventListener('click',e=>{flashButton(e.currentTarget);clearSelection();setModeActive(null)});$('drawArea').addEventListener('click',e=>{if(state.gridVisible&&!$('followViewport').checked&&$('drawArea').classList.contains('active')){clearSelection();setModeActive(null);toast('Нарисованная сетка выключена','ok');return}setModeActive('draw');startDrawArea()});$('followViewport').addEventListener('change',()=>{if($('followViewport').checked){setSelection(getViewportBounds(20),{silent:true});toast('Сетка теперь следует за экраном','ok')}});
+      document.querySelectorAll('.presetbar button').forEach(btn=>btn.addEventListener('click',()=>{const p=btn.dataset.preset;document.querySelectorAll('.presetbar button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(p==='custom'){$('autoCell').checked=true;applyAutoCellSize()}else{$('autoCell').checked=false;$('cellW').value=p;$('cellH').value=p}if(state.gridVisible)buildGrid()}));$('autoCell').addEventListener('change',()=>{if($('autoCell').checked)applyAutoCellSize();if(state.gridVisible)buildGrid()});$('maxCells').addEventListener('change',()=>{if($('autoCell').checked&&state.gridVisible){applyAutoCellSize();buildGrid()}});['cellW','cellH','offsetX','offsetY','labelMode','labelPlacement','startNum','prefix','gridColor','gridWeight','showLabels'].forEach(id=>$(id).addEventListener('change',()=>{if(state.gridVisible)buildGrid()}));['angle','offsetX','offsetY'].forEach(id=>bindWheelNumberInput($(id)));updateDpiHint();
+      $('angleDial').addEventListener('pointerdown',startDialDrag);$('angle').addEventListener('input',()=>updateAngleUi());$('useDeclination').addEventListener('change',()=>{updateAutoDeclination();if(state.gridVisible)buildGrid()});$('buildGrid').addEventListener('click',e=>{flashButton(e.currentTarget);if(!state.selectedBounds)setSelection(getViewportBounds(20),{silent:true});buildGrid()});$('clearGrid').addEventListener('click',()=>{state.currentCells=[];state.vertexPoints=[];state.lastGpx='';state.lastCentersGpx='';state.gridVisible=false;gridSvg.innerHTML='';handlesLayer.innerHTML='';$('cellCount').textContent='0';$('gpxSize').textContent='—';updateStats();toast('Сетка скрыта','ok')});
+      $('downloadGpx').addEventListener('click',e=>{flashButton(e.currentTarget);if(!state.currentCells.length){toast('Сначала построй сетку','warn');return}downloadText(fileStamp('grid','gpx'),state.lastGpx,'application/gpx+xml;charset=utf-8');toast('GPX сетки скачан','ok')});$('downloadCenterGpx').addEventListener('click',e=>{flashButton(e.currentTarget);if(!state.currentCells.length&&!state.annotations.length){toast('Сначала построй сетку или нанеси разметку','warn');return}downloadText(fileStamp('grid-with-drawings','gpx'),makeGridWithAnnotationsGpx(),'application/gpx+xml;charset=utf-8');toast('GPX сетки с нанесением скачан','ok')});$('exportPng').addEventListener('click',e=>exportMap('png',e.currentTarget));$('exportJpg').addEventListener('click',e=>exportMap('jpg',e.currentTarget));$('exportPdf').addEventListener('click',e=>exportMap('pdf',e.currentTarget));$('exportScale').addEventListener('change',updateDpiHint);
+
+      document.querySelectorAll('.drawToolBtn[data-tool]').forEach(btn=>btn.addEventListener('click',e=>{showMobileTipOnce(btn);setAnnotationMode(btn.dataset.tool);if(['point','line','radius','polygon','text'].includes(btn.dataset.tool)||(btn.dataset.tool==='select'&&state.selectedAnnotationId))showDrawSizePopup(btn);else hideDrawSizePopup()}));document.querySelectorAll('.drawSizeBtn').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();setDrawSize(btn.dataset.size)}));document.addEventListener('click',e=>{if($('drawSizePopup')&&!e.target.closest('#drawToolbar'))hideDrawSizePopup()});if($('undoDrawing'))$('undoDrawing').addEventListener('click',undoAnnotation);if($('clearDrawings'))$('clearDrawings').addEventListener('click',clearAnnotations);if($('saveProjectData'))$('saveProjectData').addEventListener('click',e=>{showMobileTipOnce(e.currentTarget);saveProjectFile()});if($('loadProjectDataBtn'))$('loadProjectDataBtn').addEventListener('click',e=>{showMobileTipOnce(e.currentTarget);$('loadProjectDataInput').click()});if($('loadProjectDataInput'))$('loadProjectDataInput').addEventListener('change',e=>loadProjectFile(e.target.files&&e.target.files[0]));if($('deleteAnnotation'))$('deleteAnnotation').addEventListener('click',deleteSelectedAnnotation);if($('drawLabel'))$('drawLabel').addEventListener('input',applyAnnotationLabel);if($('drawColor'))$('drawColor').addEventListener('input',applyAnnotationColor);
+      function setGridPaletteOpen(open){if(!$('gridPalette'))return;$('gridPalette').classList.toggle('open',!!open);if($('gridPaletteBtn'))$('gridPaletteBtn').classList.toggle('active',!!open)}if($('gridPaletteBtn')){$('gridPaletteBtn').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();setGridPaletteOpen(!$('gridPalette').classList.contains('open'))});$('gridPaletteBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation()})}document.querySelectorAll('#gridPalette .swatch').forEach(sw=>sw.addEventListener('click',()=>{$('gridColor').value=sw.dataset.color;setGridPaletteOpen(false);if(state.gridVisible)buildGrid({silent:true})}));document.addEventListener('click',e=>{if($('gridPalette')&&!e.target.closest('.gridColorWrap'))setGridPaletteOpen(false)});
+      document.addEventListener('keydown',e=>{const tag=(document.activeElement&&document.activeElement.tagName||'').toLowerCase();if(e.key==='Delete'&&state.selectedAnnotationId&&!['input','textarea','select'].includes(tag)){e.preventDefault();deleteSelectedAnnotation()}});
+      ['cellW','cellH','maxCells','offsetX','offsetY','startNum','prefix'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',()=>{if(state.gridVisible&&state.selectedBounds)scheduleRebuild(120)})});
+      ['gridColor','gridWeight'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',()=>{if(state.gridVisible)renderGridSvg()})});
+      mapEl.addEventListener('touchstart',handleMapTouchStart,{passive:false});mapEl.addEventListener('touchmove',handleMapTouchMove,{passive:false});mapEl.addEventListener('touchend',handleMapTouchEnd,{passive:false});mapEl.addEventListener('touchcancel',handleMapTouchEnd,{passive:false});mapEl.addEventListener('pointerdown',startPan);mapEl.addEventListener('wheel',e=>{e.preventDefault();const p=mouseToPoint(e);zoomBy(e.deltaY<0?1:-1,p)},{passive:false});mapEl.addEventListener('mousemove',e=>{const g=pointToGeo(mouseToPoint(e));$('cursorPos').textContent=`курсор: ${fmt(g.lat,5)}, ${fmt(g.lon,5)}`});window.addEventListener('resize',()=>{renderMap();if(state.gridVisible&&$('followViewport').checked){state.selectedBounds=getViewportBounds(20);buildGrid({silent:true})}});
+    }
+    loadPrefs();annotateBaseLayerOptions();bindEvents();restoreProjectAutosave();resetTileStats();renderMap();updateTopbar();updateAutoDeclination();updateAngleUi(false);scheduleWeather();setTimeout(()=>{renderMap();updateStats();updateTileStatus(state.tileErrors?'частично':'готово')},80);
+  })();
+  </script>
+</body>
+</html>
