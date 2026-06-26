@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Инструмент построения графика розы ветров и переноса запаха</title>
+  <title>Роза ветров и перенос запаха</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root{
@@ -290,11 +290,426 @@
     .sourceHint .keyMissing{color:#ff8a8a;font-weight:800}
 
     .hidden{display:none!important}
+
+    :root{
+      --bg:#eaf6fb;
+      --panel:#f9fdff;
+      --panel2:#edf7fd;
+      --text:#071923;
+      --ink:#071923;
+      --muted:#607888;
+      --line:#bcd7e6;
+      --accent:#1967d2;
+      --accent2:#0d47a1;
+      --soft:#d8edf8;
+      --good:#0f7b4f;
+      --warn:#9a5b00;
+      --bad:#b42318;
+      --shadow:0 10px 30px rgba(7,25,35,.14);
+      --radius:16px;
+    }
+    body{
+      background:var(--bg)!important;
+      color:var(--ink)!important;
+    }
+    header{
+      max-width:none!important;
+      margin:0!important;
+      padding:8px 12px!important;
+      background:#ffffffdf!important;
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid var(--line);
+      box-shadow:0 3px 16px rgba(7,25,35,.05);
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:6px 12px;
+      align-items:center;
+    }
+    header h1{
+      margin:0!important;
+      color:var(--ink)!important;
+      font-size:clamp(18px,2.1vw,27px)!important;
+      line-height:1.12;
+      letter-spacing:.01em;
+    }
+    header h1::before{
+      content:"РВ";
+      display:inline-grid;
+      place-items:center;
+      width:34px;
+      height:34px;
+      margin-right:9px;
+      border-radius:12px;
+      background:linear-gradient(135deg,#cfeeff,#fff 50%,#88b9ff);
+      box-shadow:inset 0 0 0 1px #a6cbe4;
+      color:var(--accent2);
+      font-size:14px;
+      font-weight:900;
+      vertical-align:middle;
+    }
+    header p{
+      grid-column:1 / -1;
+      margin:0!important;
+      color:var(--muted)!important;
+      font-size:12px;
+      max-width:980px;
+    }
+    .modeBar{
+      grid-column:2;
+      grid-row:1;
+      max-width:none!important;
+      margin:0!important;
+      justify-content:flex-end;
+    }
+    .modeBar span{color:var(--muted)!important}
+    .wrap{max-width:1280px!important;padding-top:12px!important}
+    .card{
+      background:linear-gradient(180deg,#ffffffd8,#edf7fd)!important;
+      border:1px solid var(--line)!important;
+      color:var(--ink)!important;
+      box-shadow:0 3px 16px rgba(7,25,35,.05)!important;
+      border-radius:var(--radius)!important;
+    }
+    .cardHead{border-bottom:0!important}
+    h2,h3,.cardHead h2,.helpBlock h3{color:var(--ink)!important}
+    p,.mini,.muted,.mapHint,.sourceHint,.metric span,.metric .metricLabel{color:var(--muted)!important}
+    label{color:var(--muted)!important}
+    input,select,button,textarea{
+      background:#fff!important;
+      color:var(--ink)!important;
+      border:1px solid var(--line)!important;
+      border-radius:10px!important;
+    }
+    input:focus,select:focus,textarea:focus{
+      border-color:#78aef0!important;
+      box-shadow:0 0 0 3px rgba(25,103,210,.12)!important;
+    }
+    button{
+      background:var(--soft)!important;
+      color:var(--ink)!important;
+      font-weight:800;
+      box-shadow:none!important;
+    }
+    button:hover{background:#c7e3f6!important;filter:none!important}
+    button.active,.segmented button.active,.modeBar button.active{
+      background:var(--accent)!important;
+      color:#fff!important;
+      border-color:var(--accent)!important;
+      box-shadow:0 5px 16px rgba(25,103,210,.22)!important;
+    }
+    button.secondary,.collapseBtn,.iconBtn,.smallInfoBtn,.questionBtn{
+      background:#fff!important;
+      color:var(--ink)!important;
+      border:1px solid var(--line)!important;
+    }
+    button.ghost{
+      background:#fff!important;
+      color:var(--accent2)!important;
+      border:1px dashed #78aef0!important;
+    }
+    button.danger{
+      background:#ffe8e5!important;
+      color:var(--bad)!important;
+      border-color:#ffc9c2!important;
+    }
+    .actionBtn{
+      background:#d9f4e8!important;
+      color:#063d29!important;
+      border:1px solid #9ed8bf!important;
+    }
+    .actionBtn:hover{background:#c5ecd9!important}
+    .status,.noteBox,details,.sourceDetails,.fieldHelp,.helpBlock,.settingsItem,.metric,.suggestion,.canvasBox,.mapBox,.tableWrap{
+      background:#fafdff!important;
+      border:1px solid var(--line)!important;
+      color:var(--ink)!important;
+      box-shadow:none!important;
+    }
+    .status.good{border-color:rgba(15,123,79,.45)!important;color:#063d29!important;background:#f0fff8!important}
+    .status.warn{border-color:rgba(154,91,0,.42)!important;color:#674000!important;background:#fff9ec!important}
+    .status.bad{border-color:rgba(180,35,24,.38)!important;color:#842029!important;background:#fff2f0!important}
+    .suggestion:hover{border-color:#78aef0!important;background:#eef8ff!important}
+    .metric b{color:var(--ink)!important}
+    .metric.primary{border-color:rgba(25,103,210,.40)!important;background:#f3f9ff!important}
+    .metric.goodish{border-color:rgba(15,123,79,.36)!important;background:#f0fff8!important}
+    .metric.warnish{border-color:rgba(245,158,11,.36)!important;background:#fff9ec!important}
+    .metric.badish{border-color:rgba(180,35,24,.36)!important;background:#fff2f0!important}
+    .pill,.legend span{
+      background:#f4fbff!important;
+      border:1px solid var(--line)!important;
+      color:var(--ink)!important;
+      border-radius:999px;
+    }
+    .segmented button,.modeBar button{
+      background:#fff!important;
+      color:var(--ink)!important;
+      border:1px solid var(--line)!important;
+    }
+    th{background:#edf7fd!important;color:var(--ink)!important;border-bottom:1px solid var(--line)!important}
+    td{border-bottom:1px solid var(--line)!important;color:var(--ink)!important}
+    .modalOverlay{background:rgba(7,25,35,.35)!important;backdrop-filter:blur(2px)}
+    .modal{
+      background:linear-gradient(180deg,#ffffff,#edf7fd)!important;
+      border:1px solid var(--line)!important;
+      color:var(--ink)!important;
+      box-shadow:var(--shadow)!important;
+    }
+    .settingsItem a{color:var(--accent2)!important}
+    .leaflet-container{background:#dfeaf0!important;color:var(--ink)!important}
+    .toast{
+      background:#09202f!important;
+      color:#fff!important;
+      border:0!important;
+      box-shadow:var(--shadow)!important;
+    }
+    footer{
+      color:var(--muted)!important;
+      background:transparent!important;
+    }
+    .kbd, code{
+      background:#eef8ff!important;
+      border:1px solid var(--line)!important;
+      color:var(--accent2)!important;
+      border-radius:6px;
+      padding:1px 4px;
+    }
+    .sourceLine .iconBtn,.modalHead .iconBtn{background:#fff!important}
+    .sourceHint .keyOk{color:var(--good)!important}.sourceHint .keyMissing{color:var(--bad)!important}
+    #sourceSelect option.sourceNoKey{color:var(--ink)!important}
+    #sourceSelect option.sourceKeyOk{color:var(--good)!important;font-weight:800}
+    #sourceSelect option.sourceKeyMissing{color:var(--bad)!important;font-weight:800}
+    #sourceSelect optgroup{color:var(--muted)!important;font-weight:900}
+    @media (max-width:720px){
+      header{grid-template-columns:1fr!important;padding:7px 9px!important}
+      header h1::before{width:30px;height:30px;border-radius:10px;font-size:12px;margin-right:7px}
+      .modeBar{grid-column:1!important;grid-row:auto!important;justify-content:flex-start!important}
+      header p{font-size:11px!important}
+    }
+
+
+    /* Доработки интерфейса */
+    .themeToggleBtn{
+      grid-column:2!important;
+      grid-row:1!important;
+      justify-self:end!important;
+      align-self:start!important;
+      width:auto!important;
+      min-width:0!important;
+      padding:7px 10px!important;
+      border-radius:999px!important;
+      font-size:12px!important;
+      line-height:1!important;
+      white-space:nowrap!important;
+      background:#fff!important;
+      color:#315064!important;
+      border:1px solid var(--line)!important;
+      box-shadow:none!important;
+      opacity:.86;
+    }
+    .themeToggleBtn:hover{opacity:1;background:#eef8ff!important}
+    header .modeBar{
+      grid-column:1!important;
+      grid-row:2!important;
+      justify-content:flex-start!important;
+      justify-self:start!important;
+      margin:3px 0 0!important;
+    }
+    header p{
+      grid-column:1 / -1!important;
+      grid-row:3!important;
+      max-width:980px!important;
+    }
+    .summaryHelpRow summary,
+    details > summary{
+      color:#17384d!important;
+    }
+    .summaryHelpRow details[open] summary,
+    details[open] > summary{
+      color:#071923!important;
+    }
+    .metric.goodish{
+      border-color:rgba(25,103,210,.34)!important;
+      background:#edf7ff!important;
+    }
+    .metric.warnish{
+      border-color:rgba(245,158,11,.36)!important;
+      background:#fff5df!important;
+    }
+    .metric.badish{
+      border-color:rgba(180,35,24,.32)!important;
+      background:#fff0ed!important;
+    }
+    .metric.goodish b{color:#0d47a1!important}
+    .metric.warnish b{color:#7a4a00!important}
+    .metric.badish b{color:#8f1f14!important}
+
+    body.original-theme{
+      --bg:#0b1020;
+      --panel:#121a2c;
+      --panel2:#182238;
+      --text:#eef3ff;
+      --ink:#eef3ff;
+      --muted:#a9b6d3;
+      --line:#2d3a59;
+      --accent:#7dd3fc;
+      --accent2:#7dd3fc;
+      --soft:#22304d;
+      --good:#8ddf9a;
+      --warn:#ffd166;
+      --bad:#ff8a8a;
+      --shadow:0 14px 36px rgba(0,0,0,.28);
+      background:radial-gradient(circle at top left, #1e2d4c 0, #0b1020 34%, #070a12 100%)!important;
+      color:var(--text)!important;
+    }
+    body.original-theme header{
+      background:transparent!important;
+      backdrop-filter:none!important;
+      border-bottom:0!important;
+      box-shadow:none!important;
+    }
+    body.original-theme header h1,
+    body.original-theme h2,
+    body.original-theme h3,
+    body.original-theme .cardHead h2,
+    body.original-theme .helpBlock h3{
+      color:#eef3ff!important;
+    }
+    body.original-theme header h1::before{
+      background:linear-gradient(135deg,#22304d,#121a2c)!important;
+      box-shadow:inset 0 0 0 1px #2d3a59!important;
+      color:#7dd3fc!important;
+    }
+    body.original-theme header p,
+    body.original-theme p,
+    body.original-theme .mini,
+    body.original-theme .muted,
+    body.original-theme .mapHint,
+    body.original-theme .sourceHint,
+    body.original-theme .metric span,
+    body.original-theme .metric .metricLabel,
+    body.original-theme label{
+      color:#a9b6d3!important;
+    }
+    body.original-theme .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018)), #121a2c!important;
+      border:1px solid rgba(255,255,255,.08)!important;
+      color:#eef3ff!important;
+      box-shadow:var(--shadow)!important;
+    }
+    body.original-theme input,
+    body.original-theme select,
+    body.original-theme button,
+    body.original-theme textarea{
+      background:#0c1324!important;
+      color:#eef3ff!important;
+      border:1px solid #2d3a59!important;
+    }
+    body.original-theme input:focus,
+    body.original-theme select:focus,
+    body.original-theme textarea:focus{
+      border-color:#7dd3fc!important;
+      box-shadow:0 0 0 3px rgba(125,211,252,.12)!important;
+    }
+    body.original-theme button,
+    body.original-theme .segmented button,
+    body.original-theme .modeBar button{
+      background:#101a2f!important;
+      color:#dce6ff!important;
+      border:1px solid #2d3a59!important;
+    }
+    body.original-theme button.active,
+    body.original-theme .segmented button.active,
+    body.original-theme .modeBar button.active{
+      background:linear-gradient(135deg,#38bdf8,#60a5fa)!important;
+      color:#04101f!important;
+      border-color:transparent!important;
+      box-shadow:none!important;
+    }
+    body.original-theme .themeToggleBtn{
+      background:#22304d!important;
+      color:#dce6ff!important;
+      border:1px solid #2d3a59!important;
+    }
+    body.original-theme button.secondary,
+    body.original-theme .collapseBtn,
+    body.original-theme .iconBtn,
+    body.original-theme .smallInfoBtn,
+    body.original-theme .questionBtn{
+      background:#22304d!important;
+      color:#dce6ff!important;
+      border:1px solid #2d3a59!important;
+    }
+    body.original-theme button.ghost{
+      background:transparent!important;
+      color:#7dd3fc!important;
+      border:1px dashed #3d567d!important;
+    }
+    body.original-theme .actionBtn{
+      background:linear-gradient(135deg,#86efac,#34d399)!important;
+      color:#042015!important;
+      border:0!important;
+    }
+    body.original-theme .status,
+    body.original-theme .noteBox,
+    body.original-theme details,
+    body.original-theme .sourceDetails,
+    body.original-theme .fieldHelp,
+    body.original-theme .helpBlock,
+    body.original-theme .settingsItem,
+    body.original-theme .metric,
+    body.original-theme .suggestion,
+    body.original-theme .canvasBox,
+    body.original-theme .mapBox,
+    body.original-theme .tableWrap{
+      background:#0d1528!important;
+      border:1px solid #2d3a59!important;
+      color:#d9e7ff!important;
+      box-shadow:none!important;
+    }
+    body.original-theme .status.good{border-color:rgba(141,223,154,.55)!important;color:#dfffe4!important;background:#0d1528!important}
+    body.original-theme .status.warn{border-color:rgba(255,209,102,.55)!important;color:#fff1c2!important;background:#0d1528!important}
+    body.original-theme .status.bad{border-color:rgba(255,138,138,.55)!important;color:#ffe0e0!important;background:#0d1528!important}
+    body.original-theme .metric.goodish{border-color:rgba(141,223,154,.42)!important;background:#0d1528!important}
+    body.original-theme .metric.warnish{border-color:rgba(255,209,102,.42)!important;background:#0d1528!important}
+    body.original-theme .metric.badish{border-color:rgba(255,138,138,.42)!important;background:#0d1528!important}
+    body.original-theme .metric.goodish b{color:#dfffe4!important}
+    body.original-theme .metric.warnish b{color:#fff1c2!important}
+    body.original-theme .metric.badish b{color:#ffe0e0!important}
+    body.original-theme .metric b{color:#eef3ff!important}
+    body.original-theme .pill,
+    body.original-theme .legend span{
+      background:#0e1729!important;
+      border:1px solid #2d3a59!important;
+      color:#d8e5ff!important;
+    }
+    body.original-theme th{background:#0d1528!important;color:#dce6ff!important;border-bottom:1px solid #26334f!important}
+    body.original-theme td{border-bottom:1px solid #26334f!important;color:#eef3ff!important}
+    body.original-theme .modalOverlay{background:rgba(0,0,0,.62)!important;backdrop-filter:none!important}
+    body.original-theme .modal{
+      background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.022)), #121a2c!important;
+      border:1px solid rgba(255,255,255,.13)!important;
+      color:#eef3ff!important;
+      box-shadow:var(--shadow)!important;
+    }
+    body.original-theme .settingsItem a{color:#7dd3fc!important}
+    body.original-theme .leaflet-container{background:#0c1324!important;color:#eef3ff!important}
+    body.original-theme .toast{background:#0d1528!important;color:#dfffe4!important;border:1px solid rgba(141,223,154,.65)!important}
+    body.original-theme footer{color:#a9b6d3!important}
+    body.original-theme .kbd,
+    body.original-theme code{background:#07101f!important;border:1px solid #2d3a59!important;color:#dce6ff!important}
+    body.original-theme .summaryHelpRow summary,
+    body.original-theme details > summary{color:#dce6ff!important}
+    @media (max-width:720px){
+      .themeToggleBtn{grid-column:1!important;grid-row:2!important;justify-self:start!important;margin-top:2px!important}
+      header .modeBar{grid-row:3!important}
+      header p{grid-row:4!important}
+    }
+
   </style>
 </head>
 <body class="simple-mode">
 <header>
   <h1>Инструмент построения графика розы ветров и переноса запаха</h1>
+  <button id="themeToggleBtn" class="themeToggleBtn" type="button" title="Вернуть исходное тёмное оформление">Оригинальная тема</button>
   <p>Инструмент разработан кинологом @podKiT кинологического поискового отряда «2-К» для свободного использования и распространения.</p>
   <div class="modeBar" aria-label="Режим интерфейса">
     <span>Режим:</span>
@@ -678,18 +1093,18 @@
   const DIR16_FULL = ['Север','Северо-северо-восток','Северо-восток','Востоко-северо-восток','Восток','Востоко-юго-восток','Юго-восток','Юго-юго-восток','Юг','Юго-юго-запад','Юго-запад','Западо-юго-запад','Запад','Западо-северо-запад','Северо-запад','Северо-северо-запад'];
   const DIR8_FULL = ['Север','Северо-восток','Восток','Юго-восток','Юг','Юго-запад','Запад','Северо-запад'];
   const SPEED_CLASSES = [
-    {name:'0–0.5', min:0, max:0.5, color:'#7b879c', label:'штиль/почти штиль'},
-    {name:'0.5–2', min:0.5, max:2, color:'#7dd3fc', label:'слабый'},
-    {name:'2–5', min:2, max:5, color:'#8ddf9a', label:'рабочий слабый-средний'},
-    {name:'5–8', min:5, max:8, color:'#ffd166', label:'заметный'},
-    {name:'8+', min:8, max:Infinity, color:'#ff8a8a', label:'сильный/порывистый'}
+    {name:'0–0.5', min:0, max:0.5, color:'#607888', label:'штиль/почти штиль'},
+    {name:'0.5–2', min:0.5, max:2, color:'#1967d2', label:'слабый'},
+    {name:'2–5', min:2, max:5, color:'#0f7b4f', label:'рабочий слабый-средний'},
+    {name:'5–8', min:5, max:8, color:'#f59e0b', label:'заметный'},
+    {name:'8+', min:8, max:Infinity, color:'#b42318', label:'сильный/порывистый'}
   ];
   const SCENT_CLASSES = [
-    {name:'0–0.5', color:'#706b9f'},
-    {name:'0.5–2', color:'#c4b5fd'},
-    {name:'2–5', color:'#a78bfa'},
-    {name:'5–8', color:'#f0abfc'},
-    {name:'8+', color:'#f472b6'}
+    {name:'0–0.5', color:'#f3e8ff'},
+    {name:'0.5–2', color:'#e9d5ff'},
+    {name:'2–5', color:'#d8b4fe'},
+    {name:'5–8', color:'#c084fc'},
+    {name:'8+', color:'#a855f7'}
   ];
 
   const KEY_FIELDS = ['yandexKey','gismeteoKey','danioCid','openWeatherKey','weatherApiKey','windyKey','visualCrossingKey','tomorrowKey'];
@@ -2446,24 +2861,85 @@
     el.innerHTML = parts.join('');
   }
 
+  function isOriginalTheme(){
+    return document.body.classList.contains('original-theme');
+  }
+
+  function currentSpeedClasses(){
+    const colors = isOriginalTheme()
+      ? ['#7b879c','#7dd3fc','#8ddf9a','#ffd166','#ff8a8a']
+      : ['#607888','#1967d2','#0f7b4f','#f59e0b','#b42318'];
+    return SPEED_CLASSES.map((c,i)=>({...c,color:colors[i] || c.color}));
+  }
+
+  function currentScentClasses(){
+    const colors = isOriginalTheme()
+      ? ['#706b9f','#c4b5fd','#a78bfa','#f0abfc','#f472b6']
+      : ['#f3e8ff','#e9d5ff','#d8b4fe','#c084fc','#a855f7'];
+    return SCENT_CLASSES.map((c,i)=>({...c,color:colors[i] || c.color}));
+  }
+
+  function roseColors(){
+    if (isOriginalTheme()) {
+      return {
+        bg:'#08101f', grid:'#273654', muted:'#a9b6d3',
+        wind:'#ffffff', scent:'#d9f99d',
+        scentStroke:'rgba(255,255,255,.18)',
+        labelHalo:'rgba(0,0,0,.72)',
+        shadow:'rgba(0,0,0,.55)',
+        footer:'#0d1528', footerText:'#dce6ff', footerLine:'#2d3a59'
+      };
+    }
+    return {
+      bg:'#fafdff', grid:'#bcd7e6', muted:'#607888',
+      wind:'#071923', scent:'#8b5cf6',
+      scentStroke:'rgba(139,92,246,.28)',
+      labelHalo:'rgba(255,255,255,.92)',
+      shadow:'rgba(7,25,35,.22)',
+      footer:'#f4fbff', footerText:'#071923', footerLine:'#bcd7e6'
+    };
+  }
+
+  function applyTheme(theme){
+    const original = theme === 'original';
+    document.body.classList.toggle('original-theme', original);
+    localStorage.setItem('psr_windrose_theme', original ? 'original' : 'grid');
+    const btn = $('themeToggleBtn');
+    if (btn) {
+      btn.textContent = original ? 'Светлая тема' : 'Оригинальная тема';
+      btn.title = original ? 'Вернуть светлое оформление Генератора сетки' : 'Вернуть исходное тёмное оформление';
+    }
+    if (state.stats) {
+      drawRose($('roseCanvas'));
+      renderLegend($('legendRose'));
+    } else if ($('roseCanvas')) {
+      drawEmpty($('roseCanvas'), 'Роза ветров / перенос запаха');
+      renderLegend($('legendRose'));
+    }
+  }
+
   function renderLegend(el){
-    const wind = SPEED_CLASSES.map(c=>`<span><i class="swatch" style="background:${c.color}"></i>${c.name} м/с · ${c.label}</span>`).join('');
-    const scent = state.roseMode === 'both' ? `<span><i class="swatch" style="background:#a78bfa; opacity:.55"></i>бледно-фиолетовый слой: куда несло запах</span>` : '';
+    const speedClasses = currentSpeedClasses();
+    const wind = speedClasses.map(c=>`<span><i class="swatch" style="background:${c.color}"></i>${c.name} м/с · ${c.label}</span>`).join('');
+    const scentLayerText = isOriginalTheme() ? 'бледно-фиолетовый слой: куда несло запах' : 'пастельно-фиолетовый слой: куда несло запах';
+    const scentArrowText = isOriginalTheme() ? 'светлая стрелка' : 'фиолетовая стрелка';
+    const scent = state.roseMode === 'both' ? `<span><i class="swatch" style="background:${currentScentClasses()[2].color}; opacity:.75"></i>${scentLayerText}</span>` : '';
     const arrows = state.roseMode === 'scent'
-      ? '<span>➜ стрелка: средневзвешенный перенос запаха</span>'
+      ? `<span>➜ ${scentArrowText}: средневзвешенный перенос запаха</span>`
       : state.roseMode === 'both'
-        ? '<span>⇥ белая стрелка: откуда дуло</span><span>➜ светлая стрелка: куда несло запах</span>'
-        : '<span>⇥ белая стрелка: средневзвешенно откуда дуло</span>';
+        ? `<span>⇥ ${isOriginalTheme() ? 'белая' : 'тёмная'} стрелка: откуда дуло</span><span>➜ ${scentArrowText}: куда несло запах</span>`
+        : `<span>⇥ ${isOriginalTheme() ? 'белая' : 'тёмная'} стрелка: средневзвешенно откуда дуло</span>`;
     el.innerHTML = wind + scent + arrows;
   }
 
   function drawBaseRose(ctx, cssSize, R, bins){
     const cx = cssSize/2, cy = cssSize/2;
-    ctx.fillStyle = '#08101f';
+    const colors = roseColors();
+    ctx.fillStyle = colors.bg;
     ctx.fillRect(0,0,cssSize,cssSize);
-    ctx.strokeStyle = '#273654';
+    ctx.strokeStyle = colors.grid;
     ctx.lineWidth = 1;
-    ctx.fillStyle = '#9fb2d8';
+    ctx.fillStyle = colors.muted;
     ctx.font = '12px system-ui';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -2543,7 +3019,7 @@
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.lineWidth = 4;
-    ctx.strokeStyle = 'rgba(0,0,0,.72)';
+    ctx.strokeStyle = roseColors().labelHalo;
     ctx.fillStyle = color;
     ctx.strokeText(text, 0, -13);
     ctx.fillText(text, 0, -13);
@@ -2556,10 +3032,11 @@
     const cx = cssSize/2, cy = cssSize/2;
     const rad = (deg - 90)*Math.PI/180;
     const len = R * Math.max(0.32, Math.min(1, rValue));
+    const colors = roseColors();
     ctx.lineWidth = kind === 'wind' ? 4.5 : 4;
-    ctx.strokeStyle = kind === 'wind' ? '#ffffff' : '#d9f99d';
+    ctx.strokeStyle = kind === 'wind' ? colors.wind : colors.scent;
     ctx.fillStyle = ctx.strokeStyle;
-    ctx.shadowColor = 'rgba(0,0,0,.55)';
+    ctx.shadowColor = colors.shadow;
     ctx.shadowBlur = 4;
     if (kind === 'wind') {
       // Метеорологическое направление — это сектор, ОТКУДА дуло.
@@ -2572,13 +3049,13 @@
       ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(ex,ey); ctx.stroke();
       drawArrowHead(ctx, ex, ey, flowRad, 15);
       ctx.shadowBlur = 0;
-      drawArrowLabel(ctx, label, sx, sy, ex, ey, '#ffffff');
+      drawArrowLabel(ctx, label, sx, sy, ex, ey, colors.wind);
     } else {
       const ex = cx + Math.cos(rad)*len, ey = cy + Math.sin(rad)*len;
       ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(ex,ey); ctx.stroke();
       drawArrowHead(ctx, ex, ey, rad, 15);
       ctx.shadowBlur = 0;
-      drawArrowLabel(ctx, label, cx, cy, ex, ey, '#d9f99d');
+      drawArrowLabel(ctx, label, cx, cy, ex, ey, colors.scent);
     }
     ctx.shadowBlur = 0;
   }
@@ -2600,21 +3077,21 @@
     drawBaseRose(ctx, cssSize, R, s.bins);
     let maxSector = 1;
     if (state.roseMode === 'wind') {
-      maxSector = drawRoseLayer(ctx, s.windSec, SPEED_CLASSES, {cssSize,R,bins:s.bins,alpha:.9});
+      maxSector = drawRoseLayer(ctx, s.windSec, currentSpeedClasses(), {cssSize,R,bins:s.bins,alpha:.9});
       drawMeanArrow(ctx, s.windVec.mean, s.windVec.r, 'wind', {cssSize,R,label:'Усредненное направление ветра'});
     } else if (state.roseMode === 'scent') {
-      maxSector = drawRoseLayer(ctx, s.scentSec, SCENT_CLASSES, {cssSize,R,bins:s.bins,alpha:.9});
+      maxSector = drawRoseLayer(ctx, s.scentSec, currentScentClasses(), {cssSize,R,bins:s.bins,alpha:.9});
       drawMeanArrow(ctx, s.scentVec.mean, s.scentVec.r, 'scent', {cssSize,R,label:'Усредненное направление переноса запаха'});
     } else {
-      const maxWind = drawRoseLayer(ctx, s.windSec, SPEED_CLASSES, {cssSize,R,bins:s.bins,alpha:.82});
-      const maxScent = drawRoseLayer(ctx, s.scentSec, SCENT_CLASSES, {cssSize,R,bins:s.bins,alpha:.42,radiusScale:.96,stroke:'rgba(255,255,255,.18)'});
+      const maxWind = drawRoseLayer(ctx, s.windSec, currentSpeedClasses(), {cssSize,R,bins:s.bins,alpha:.82});
+      const maxScent = drawRoseLayer(ctx, s.scentSec, currentScentClasses(), {cssSize,R,bins:s.bins,alpha:.50,radiusScale:.96,stroke:roseColors().scentStroke});
       maxSector = Math.max(maxWind, maxScent);
       drawMeanArrow(ctx, s.windVec.mean, s.windVec.r, 'wind', {cssSize,R});
       drawMeanArrow(ctx, s.scentVec.mean, s.scentVec.r, 'scent', {cssSize,R});
     }
 
     ctx.font = '12px system-ui';
-    ctx.fillStyle = '#a9b6d3';
+    ctx.fillStyle = roseColors().muted;
     ctx.textAlign = 'center';
     ctx.fillText(`макс. сектор: ${state.roseMode === 'scent' ? round(maxSector,1) + ' усл.ч' : round(maxSector,1) + ' ч'}`, cssSize/2, cssSize/2+12);
   }
@@ -2777,18 +3254,19 @@
     out.width = canvas.width;
     out.height = canvas.height + footerH;
     const ctx = out.getContext('2d');
-    ctx.fillStyle = '#08101f';
+    const colors = roseColors();
+    ctx.fillStyle = colors.bg;
     ctx.fillRect(0, 0, out.width, out.height);
     ctx.drawImage(canvas, 0, 0);
-    ctx.fillStyle = '#0d1528';
+    ctx.fillStyle = colors.footer;
     ctx.fillRect(0, canvas.height, out.width, footerH);
-    ctx.strokeStyle = '#2d3a59';
+    ctx.strokeStyle = colors.footerLine;
     ctx.beginPath();
     ctx.moveTo(0, canvas.height + 0.5);
     ctx.lineTo(out.width, canvas.height + 0.5);
     ctx.stroke();
     ctx.font = `${13 * dpr}px system-ui, -apple-system, Segoe UI, sans-serif`;
-    ctx.fillStyle = '#dce6ff';
+    ctx.fillStyle = colors.footerText;
     ctx.textBaseline = 'top';
     lines.forEach((line, i) => {
       ctx.fillText(line, pad, canvas.height + pad + i * lineH);
@@ -2968,6 +3446,7 @@
   let searchTimer = null;
   $('simpleModeBtn')?.addEventListener('click', () => setUiMode('simple'));
   $('advancedModeBtn')?.addEventListener('click', () => setUiMode('advanced'));
+  $('themeToggleBtn')?.addEventListener('click', () => applyTheme(isOriginalTheme() ? 'grid' : 'original'));
   $('placeInput').addEventListener('input', () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(searchPlace, 450);
@@ -3028,6 +3507,7 @@
   setUiMode('simple');
   initMap();
   applyPreset();
+  applyTheme(localStorage.getItem('psr_windrose_theme') || 'grid');
   drawEmpty($('roseCanvas'), 'Роза ветров / перенос запаха');
   renderLegend($('legendRose'));
   updateActionState();
@@ -3035,8 +3515,9 @@
   function drawEmpty(canvas, title){
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = '#08101f'; ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle = '#a9b6d3'; ctx.font = '22px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline='middle';
+    const colors = roseColors();
+    ctx.fillStyle = colors.bg; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = colors.muted; ctx.font = '22px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline='middle';
     ctx.fillText(title, canvas.width/2, canvas.height/2 - 14);
     ctx.font = '15px system-ui'; ctx.fillText('выберите место и период', canvas.width/2, canvas.height/2 + 18);
   }
