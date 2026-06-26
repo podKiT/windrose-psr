@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Роза ветров и перенос запаха</title>
+  <title>Роза ветров</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root{
@@ -704,13 +704,217 @@
       header p{grid-row:4!important}
     }
 
+
+    /* Верхняя панель — компактная строка в стиле Генератора сетки */
+    header{
+      max-width:none!important;
+      margin:0!important;
+      padding:6px 10px!important;
+      min-height:54px!important;
+      background:#ffffffdf!important;
+      backdrop-filter:blur(10px);
+      border-bottom:1px solid var(--line)!important;
+      box-shadow:0 3px 16px rgba(7,25,35,.05)!important;
+      display:flex!important;
+      align-items:center!important;
+      gap:10px!important;
+      flex-wrap:nowrap!important;
+      overflow:hidden!important;
+    }
+    header h1{
+      order:1!important;
+      display:flex!important;
+      align-items:center!important;
+      flex:0 0 auto!important;
+      min-width:0!important;
+      margin:0!important;
+      color:var(--ink)!important;
+      font-size:16px!important;
+      line-height:1.08!important;
+      font-weight:800!important;
+      letter-spacing:0!important;
+      white-space:nowrap!important;
+    }
+    header h1::before{
+      content:"РВ";
+      display:inline-grid!important;
+      place-items:center!important;
+      width:34px!important;
+      height:34px!important;
+      min-width:34px!important;
+      margin-right:8px!important;
+      border-radius:12px!important;
+      background:linear-gradient(135deg,#cfeeff,#fff 50%,#88b9ff)!important;
+      box-shadow:inset 0 0 0 1px #a6cbe4!important;
+      color:var(--accent2)!important;
+      font-size:14px!important;
+      font-weight:900!important;
+      vertical-align:middle!important;
+    }
+    header .modeBar{
+      order:2!important;
+      grid-column:auto!important;
+      grid-row:auto!important;
+      display:flex!important;
+      align-items:center!important;
+      justify-content:flex-start!important;
+      justify-self:auto!important;
+      flex:0 0 auto!important;
+      max-width:none!important;
+      margin:0!important;
+      gap:8px!important;
+      flex-wrap:nowrap!important;
+    }
+    .modeBar span{font-size:13px!important;font-weight:700!important;white-space:nowrap!important}
+    .modeBar button{
+      width:auto!important;
+      flex:0 0 auto!important;
+      padding:7px 12px!important;
+      border-radius:999px!important;
+      font-size:13px!important;
+      line-height:1.2!important;
+      white-space:nowrap!important;
+    }
+    header p{
+      order:3!important;
+      grid-column:auto!important;
+      grid-row:auto!important;
+      flex:1 1 auto!important;
+      min-width:40px!important;
+      max-width:none!important;
+      margin:0 0 0 4px!important;
+      color:var(--muted)!important;
+      font-size:11px!important;
+      line-height:1.2!important;
+      white-space:nowrap!important;
+      overflow:hidden!important;
+      text-overflow:ellipsis!important;
+      opacity:.55;
+    }
+    .themeToggleBtn{
+      order:4!important;
+      grid-column:auto!important;
+      grid-row:auto!important;
+      justify-self:auto!important;
+      align-self:center!important;
+      flex:0 0 auto!important;
+      width:auto!important;
+      min-width:0!important;
+      margin:0!important;
+      padding:7px 10px!important;
+      border-radius:999px!important;
+      font-size:12px!important;
+      line-height:1.2!important;
+      white-space:nowrap!important;
+      background:#fff!important;
+      color:#315064!important;
+      border:1px solid var(--line)!important;
+      box-shadow:none!important;
+      opacity:.74;
+    }
+    .themeToggleBtn:hover{opacity:1;background:#eef8ff!important}
+    body.original-theme header{
+      background:transparent!important;
+      backdrop-filter:none!important;
+      border-bottom:0!important;
+      box-shadow:none!important;
+    }
+    body.original-theme header h1{color:#eef3ff!important}
+    body.original-theme header h1::before{
+      background:linear-gradient(135deg,#22304d,#121a2c)!important;
+      box-shadow:inset 0 0 0 1px #2d3a59!important;
+      color:#7dd3fc!important;
+    }
+    body.original-theme header p{color:#a9b6d3!important}
+    body.original-theme .themeToggleBtn{
+      background:#22304d!important;
+      color:#dce6ff!important;
+      border:1px solid #2d3a59!important;
+    }
+    @media(max-width:760px){
+      header{padding:4px 6px!important;gap:5px!important;min-height:42px!important}
+      header h1{font-size:14px!important}
+      header h1::before{width:30px!important;height:30px!important;min-width:30px!important;border-radius:10px!important;font-size:12px!important;margin-right:6px!important}
+      .modeBar{gap:4px!important}
+      .modeBar span{display:none!important}
+      .modeBar button{padding:6px 8px!important;font-size:12px!important}
+      header p{display:none!important}
+      .themeToggleBtn{padding:6px 8px!important;font-size:11px!important;max-width:112px!important;overflow:hidden!important;text-overflow:ellipsis!important}
+    }
+    @media(max-width:430px){
+      .themeToggleBtn{font-size:0!important;width:32px!important;height:32px!important;padding:0!important}
+      .themeToggleBtn::before{content:"◐";font-size:15px!important}
+      .modeBar button{padding:6px 7px!important}
+    }
+
+
+    /* Тонкая атрибуция и компактное переключение темы */
+    header .modeBar{order:2!important}
+    .themeToggleBtn{
+      order:3!important;
+      width:34px!important;
+      height:34px!important;
+      min-width:34px!important;
+      max-width:34px!important;
+      padding:0!important;
+      display:grid!important;
+      place-items:center!important;
+      border-radius:11px!important;
+      font-size:16px!important;
+      line-height:1!important;
+      opacity:.68!important;
+      overflow:visible!important;
+      text-overflow:clip!important;
+      background:#fff!important;
+      color:#315064!important;
+    }
+    .themeToggleBtn::before{content:none!important}
+    .themeToggleBtn:hover{opacity:.95!important;background:#eef8ff!important}
+    header p.headerCredit{
+      order:4!important;
+      flex:1 1 auto!important;
+      min-width:70px!important;
+      margin-left:auto!important;
+      text-align:right!important;
+      opacity:.38!important;
+      font-size:10.5px!important;
+      line-height:1.15!important;
+      white-space:nowrap!important;
+      overflow:hidden!important;
+      text-overflow:ellipsis!important;
+    }
+    header p.headerCredit a{
+      color:var(--muted)!important;
+      text-decoration:none!important;
+    }
+    header p.headerCredit a:hover{
+      text-decoration:underline!important;
+      color:var(--accent2)!important;
+    }
+    footer a{color:inherit!important;text-decoration:none!important}
+    footer a:hover{text-decoration:underline!important}
+    body.original-theme .themeToggleBtn{
+      background:#22304d!important;
+      color:#dce6ff!important;
+      border:1px solid #2d3a59!important;
+    }
+    body.original-theme header p.headerCredit a{color:#a9b6d3!important}
+    @media(max-width:760px){
+      header p.headerCredit{display:none!important}
+      .themeToggleBtn{width:32px!important;height:32px!important;min-width:32px!important;max-width:32px!important;font-size:15px!important}
+    }
+    @media(max-width:430px){
+      .themeToggleBtn{font-size:15px!important;width:32px!important;height:32px!important;padding:0!important}
+      .themeToggleBtn::before{content:none!important}
+    }
+
   </style>
 </head>
 <body class="simple-mode">
 <header>
-  <h1>Инструмент построения графика розы ветров и переноса запаха</h1>
-  <button id="themeToggleBtn" class="themeToggleBtn" type="button" title="Вернуть исходное тёмное оформление">Оригинальная тема</button>
-  <p>Инструмент разработан кинологом @podKiT кинологического поискового отряда «2-К» для свободного использования и распространения.</p>
+  <h1>Роза ветров</h1>
+  <button id="themeToggleBtn" class="themeToggleBtn" type="button" title="Вернуть исходное тёмное оформление" aria-label="Переключить тему">🌙</button>
+  <p class="headerCredit"><a href="https://t.me/Pod_whale" target="_blank" rel="noopener">Инструмент разработан кинологом @podKiT кинологического поискового отряда «2-К» для свободного использования и распространения.</a></p>
   <div class="modeBar" aria-label="Режим интерфейса">
     <span>Режим:</span>
     <button id="simpleModeBtn" type="button" class="active">Простой</button>
@@ -1062,7 +1266,7 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <footer>
-  Инструмент разработан кинологом @podKiT кинологического поискового отряда «2-К» для свободного использования и распространения. Источники: Open‑Meteo, NASA POWER, Open‑Meteo GFS/NOAA и MET Norway без ключей; OpenWeather, WeatherAPI.com, Visual Crossing и Tomorrow.io с персональными ключами; Яндекс/Meteum, Gismeteo, ДАНИО/HMN и Windy при отдельном доступе/тарифе. Проверка на месте обязательна для рабочих решений.
+  <a href="https://t.me/Pod_whale" target="_blank" rel="noopener">Инструмент разработан кинологом @podKiT кинологического поискового отряда «2-К» для свободного использования и распространения.</a> Источники: Open‑Meteo, NASA POWER, Open‑Meteo GFS/NOAA и MET Norway без ключей; OpenWeather, WeatherAPI.com, Visual Crossing и Tomorrow.io с персональными ключами; Яндекс/Meteum, Gismeteo, ДАНИО/HMN и Windy при отдельном доступе/тарифе. Проверка на месте обязательна для рабочих решений.
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -2906,8 +3110,9 @@
     localStorage.setItem('psr_windrose_theme', original ? 'original' : 'grid');
     const btn = $('themeToggleBtn');
     if (btn) {
-      btn.textContent = original ? 'Светлая тема' : 'Оригинальная тема';
+      btn.textContent = original ? '☀️' : '🌙';
       btn.title = original ? 'Вернуть светлое оформление Генератора сетки' : 'Вернуть исходное тёмное оформление';
+      btn.setAttribute('aria-label', original ? 'Переключить на светлую тему' : 'Переключить на тёмную тему');
     }
     if (state.stats) {
       drawRose($('roseCanvas'));
