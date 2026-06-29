@@ -908,12 +908,94 @@
       .themeToggleBtn::before{content:none!important}
     }
 
+
+    /* v4.4: ключи, справка, простая выгрузка и диагностика доступа */
+    .settingsDivider{
+      grid-column:1 / -1;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin:4px 0 0;
+      color:var(--muted)!important;
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+    .settingsDivider::before,
+    .settingsDivider::after{
+      content:"";
+      height:1px;
+      background:var(--line);
+      flex:1 1 auto;
+      opacity:.7;
+    }
+    .keyInstruction{
+      margin-top:10px;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#f4fbff;
+      color:var(--ink);
+      font-size:12px;
+      line-height:1.35;
+    }
+    .keyInstruction b{color:var(--ink)}
+    .keyInstruction ol{margin:7px 0 0 18px;padding:0;color:var(--muted)}
+    .keyInstruction li{margin:4px 0}
+    .keyInstruction p{margin:8px 0 0!important;font-size:12px!important;color:var(--muted)!important}
+    .keyInstruction a{font-weight:800;color:var(--accent2)!important;text-decoration:none}
+    .keyInstruction a:hover{text-decoration:underline}
+    body.original-theme .keyInstruction{background:#0d1528;border-color:#2d3a59;color:#eef3ff}
+    body.original-theme .keyInstruction b{color:#eef3ff}
+    body.original-theme .keyInstruction ol,
+    body.original-theme .keyInstruction p{color:#a9b6d3!important}
+    body.original-theme .keyInstruction a{color:#7dd3fc!important}
+    .simpleOnly{display:none!important}
+    body.simple-mode .simpleOnly{display:flex!important}
+    .simpleExportRow{justify-content:center;margin-top:10px}
+    .simpleExportRow button{width:auto!important;padding:8px 14px!important;border-radius:999px!important;font-size:13px!important}
+    .headerHelpBtn{
+      order:4!important;
+      flex:0 0 auto!important;
+      width:auto!important;
+      min-width:0!important;
+      height:34px!important;
+      padding:0 11px!important;
+      display:inline-flex!important;
+      align-items:center!important;
+      justify-content:center!important;
+      border-radius:11px!important;
+      font-size:12px!important;
+      line-height:1!important;
+      background:#fff!important;
+      color:#315064!important;
+      border:1px solid var(--line)!important;
+      box-shadow:none!important;
+      opacity:.72!important;
+      font-weight:800!important;
+      white-space:nowrap!important;
+    }
+    .headerHelpBtn:hover{opacity:1!important;background:#eef8ff!important}
+    .headerHelpIcon{display:none}
+    header p.headerCredit{order:5!important}
+    body.original-theme .headerHelpBtn{background:#22304d!important;color:#dce6ff!important;border-color:#2d3a59!important}
+    @media(max-width:760px){
+      .headerHelpBtn{width:32px!important;min-width:32px!important;max-width:32px!important;height:32px!important;padding:0!important;font-size:14px!important}
+      .headerHelpText{display:none!important}
+      .headerHelpIcon{display:inline!important}
+    }
+    @media(max-width:430px){
+      .modeBar button{padding:6px 6px!important}
+    }
+
   </style>
 </head>
 <body class="simple-mode">
 <header>
   <h1>Роза ветров</h1>
   <button id="themeToggleBtn" class="themeToggleBtn" type="button" title="Вернуть исходное тёмное оформление" aria-label="Переключить тему">🌙</button>
+  <button id="headerHelpBtn" class="headerHelpBtn" type="button" title="Справка" aria-label="Открыть справку"><span class="headerHelpText">Справка</span><span class="headerHelpIcon">?</span></button>
   <p class="headerCredit"><a href="https://t.me/Pod_whale" target="_blank" rel="noopener">Инструмент разработан кинологом @podKiT кинологического поискового отряда «2-К» для свободного использования и распространения.</a></p>
   <div class="modeBar" aria-label="Режим интерфейса">
     <span>Режим:</span>
@@ -933,6 +1015,7 @@
         <button id="searchPlaceBtn" style="flex:.42">Найти</button>
       </div>
       <div class="mini">Поиск идёт через Open‑Meteo Geocoding. Можно выбирать ближайший крупный населённый пункт.</div>
+      <div id="internetStatus" class="status warn hidden">Проверяю доступ к интернету…</div>
       <div id="suggestions" class="suggestions"></div>
       <div class="fieldTitle advancedOnly">
         <label for="coordInput">Или вставьте координаты / ссылку с карт</label>
@@ -1008,7 +1091,7 @@
         </div>
         <button id="sourceSettingsBtn" class="iconBtn" type="button" title="Ключи и настройки источников">⚙</button>
       </div>
-      <div class="mini advancedOnly">По умолчанию включён режим «Авто»: программа сама перебирает подходящие источники с учётом периода, доступности ключей и типа данных. Красный маркер означает: ключа нет; зелёный — ключ есть; серый — ключ не нужен.</div>
+      <div class="mini advancedOnly">В режиме «Авто» программа сама перебирает доступные источники. Многие погодные сервисы из некоторых сетей открываются только с ВПН. Если источники не работают, включите ВПН или добавьте API‑ключи: простая инструкция находится справа, за иконкой ⚙. Красный маркер — ключа нет; зелёный — ключ есть; серый — ключ не нужен.</div>
 
       <button id="loadWeatherBtn" class="actionBtn" disabled>Получить ветер и построить розу</button>
       <div id="loadStatus" class="status">Готов к запросу.</div>
@@ -1063,6 +1146,7 @@
       </div>
       <div class="canvasBox"><canvas id="roseCanvas" width="620" height="620"></canvas></div>
       <div class="legend" id="legendRose"></div>
+      <div class="simpleOnly simpleExportRow"><button id="exportRosePngSimpleBtn" class="secondary" type="button">Сохранить розу картинкой</button></div>
     </div>
 
     <div class="card wideCard advancedOnly">
@@ -1109,18 +1193,50 @@
 <div id="sourceSettingsModal" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="sourceSettingsTitle">
   <div class="modal">
     <div class="modalHead">
-      <h2 id="sourceSettingsTitle">Ключи источников данных</h2>
+      <h2 id="sourceSettingsTitle">Ключи и настройки источников</h2>
       <button id="sourceSettingsClose" class="iconBtn" type="button" title="Закрыть">×</button>
     </div>
-    <p class="mini">Ключи сохраняются только в localStorage этого браузера. В HTML‑версии они видимы пользователю файла, поэтому сюда стоит вставлять только ключи, которые допустимо использовать внутри вашей группы. Универсальных «общих бесплатных ключей» у этих сервисов нет: бесплатный ключ выдаётся персонально после регистрации.</p>
+    <p class="mini">Ключи сохраняются только в localStorage этого браузера. Вставляем ключи и жмем сохранить. Теперь если один источник не работает будет подключаться другой. Автосохранение тоже включено: если пользователь ввёл ключ и закрыл окно, значение всё равно останется в этом браузере.</p>
+    <p class="mini">В режиме «Авто» программа перебирает подходящие источники: сначала без ключа, затем с добавленными персональными ключами, а затем источники с отдельным доступом. При анализе прошлого периода источники только с прогнозом пропускаются; при прогнозе пропускаются источники только с архивом.</p>
     <div class="settingsGrid">
+      <div class="settingsItem topSourceKey">
+        <label for="weatherApiKey">WeatherAPI.com key</label>
+        <input id="weatherApiKey" type="password" placeholder="WeatherAPI.com key" autocomplete="off" />
+        <div class="mini"><a href="https://www.weatherapi.com/signup.aspx" target="_blank" rel="noopener">Получить бесплатный ключ</a> · <a href="https://www.weatherapi.com/docs/" target="_blank" rel="noopener">документация</a>: архив и прогноз зависят от условий аккаунта.</div>
+        <div class="keyInstruction">
+          <b>Как получить ключ WeatherAPI</b>
+          <ol>
+            <li>Переходим на сайт <a href="https://www.weatherapi.com" target="_blank" rel="noopener">weatherapi.com</a>.</li>
+            <li>Регистрируемся, подтверждаем регистрацию через почту, если сайт попросит.</li>
+            <li>Логинимся на сайте.</li>
+            <li>Переходим по ссылке <a href="https://www.weatherapi.com/my/" target="_blank" rel="noopener">weatherapi.com/my/</a>.</li>
+            <li>В верхней части окна будет надпись <b>API Key</b>, дальше набор букв и цифр с кнопкой <b>Copy</b>.</li>
+          </ol>
+          <p>Это и будет ваш персональный ключ, который нужно сохранить и вставить в поле <b>WeatherAPI.com key</b>.</p>
+        </div>
+      </div>
+      <div class="settingsItem topSourceKey">
+        <label for="visualCrossingKey">Visual Crossing API key</label>
+        <input id="visualCrossingKey" type="password" placeholder="Visual Crossing key" autocomplete="off" />
+        <div class="mini"><a href="https://www.visualcrossing.com/sign-up/" target="_blank" rel="noopener">Получить бесплатный ключ</a> · <a href="https://www.visualcrossing.com/weather-api/" target="_blank" rel="noopener">описание API</a>: бесплатный лимит можно использовать для архива, прогноза и текущей погоды.</div>
+        <div class="keyInstruction">
+          <b>Как получить ключ Visual Crossing</b>
+          <ol>
+            <li>Переходим на сайт <a href="https://www.visualcrossing.com/sign-up/" target="_blank" rel="noopener">visualcrossing.com/sign-up/</a>.</li>
+            <li>Регистрируемся, подтверждаем регистрацию через почту, если сайт попросит.</li>
+            <li>Логинимся на сайте: справа вверху кнопка <b>Sign in</b>.</li>
+            <li>Переходим по ссылке <a href="https://www.visualcrossing.com/account/" target="_blank" rel="noopener">visualcrossing.com/account/</a>.</li>
+            <li>В верхней части, в поле <b>Your details</b>, во втором столбике будет <b>&lt;/&gt;Key</b> и дальше набор заглавных букв и цифр.</li>
+          </ol>
+          <p>Это и будет ваш персональный ключ, который нужно сохранить и вставить в поле <b>Visual Crossing API key</b>.</p>
+        </div>
+      </div>
+      <div class="settingsDivider">Дополнительные источники</div>
       <div class="settingsItem"><label for="yandexKey">Яндекс/Meteum API key</label><input id="yandexKey" type="password" placeholder="X-Yandex-Weather-Key / X-Yandex-API-Key" autocomplete="off" /><div class="mini"><a href="https://yandex.ru/dev/weather/doc/ru/concepts/how-to" target="_blank" rel="noopener">Как получить ключ</a>: тестовый ключ через кабинет разработчика. Прямой запрос из браузера может блокироваться CORS.</div></div>
       <div class="settingsItem"><label for="gismeteoKey">Gismeteo token</label><input id="gismeteoKey" type="password" placeholder="X-Gismeteo-Token" autocomplete="off" /><div class="mini"><a href="https://docs.gismeteo.net/v3/weather" target="_blank" rel="noopener">Документация API</a>: нужен токен доступа, обычно через B2B/обращение к Gismeteo.</div></div>
       <div class="settingsItem"><label for="danioCid">ДАНИО/HMN cid</label><input id="danioCid" type="password" placeholder="cid клиента hmn.ru" autocomplete="off" /><div class="mini"><a href="https://danio.ru/weather-json-api/" target="_blank" rel="noopener">Описание API</a>: для доступа используется клиентский идентификатор <code>cid</code>.</div></div>
       <div class="settingsItem"><label for="openWeatherKey">OpenWeather API key</label><input id="openWeatherKey" type="password" placeholder="appid" autocomplete="off" /><div class="mini"><a href="https://home.openweathermap.org/users/sign_up" target="_blank" rel="noopener">Получить бесплатный ключ</a> · <a href="https://openweathermap.org/appid" target="_blank" rel="noopener">инструкция</a>: после регистрации ключ появляется в личном кабинете. В бесплатном режиме удобнее использовать прогноз 5 дней / 3 часа.</div></div>
-      <div class="settingsItem"><label for="weatherApiKey">WeatherAPI.com key</label><input id="weatherApiKey" type="password" placeholder="WeatherAPI.com key" autocomplete="off" /><div class="mini"><a href="https://www.weatherapi.com/signup.aspx" target="_blank" rel="noopener">Получить бесплатный ключ</a> · <a href="https://www.weatherapi.com/docs/" target="_blank" rel="noopener">документация</a>: архив и прогноз зависят от условий аккаунта.</div></div>
       <div class="settingsItem"><label for="windyKey">Windy Point Forecast key</label><input id="windyKey" type="password" placeholder="Windy API key" autocomplete="off" /><div class="mini"><a href="https://api.windy.com/point-forecast/docs" target="_blank" rel="noopener">Point Forecast API</a>: ключ получается в кабинете Windy API, запросы идут POST.</div></div>
-      <div class="settingsItem"><label for="visualCrossingKey">Visual Crossing API key</label><input id="visualCrossingKey" type="password" placeholder="Visual Crossing key" autocomplete="off" /><div class="mini"><a href="https://www.visualcrossing.com/sign-up" target="_blank" rel="noopener">Получить бесплатный ключ</a> · <a href="https://www.visualcrossing.com/weather-api/" target="_blank" rel="noopener">описание API</a>: бесплатный лимит можно использовать для архива, прогноза и текущей погоды.</div></div>
       <div class="settingsItem"><label for="tomorrowKey">Tomorrow.io API key</label><input id="tomorrowKey" type="password" placeholder="Tomorrow.io apikey" autocomplete="off" /><div class="mini"><a href="https://app.tomorrow.io/signup" target="_blank" rel="noopener">Получить бесплатный ключ</a> · <a href="https://docs.tomorrow.io/reference/weather-forecast" target="_blank" rel="noopener">прогноз</a> · <a href="https://docs.tomorrow.io/reference/retrieve-historical-timelines" target="_blank" rel="noopener">история</a>: аккаунт имеет лимиты, при их превышении источник вернёт 429.</div></div>
     </div>
     <div class="row" style="margin-top:14px"><button id="saveSourceSettingsBtn" type="button">Сохранить</button><button id="clearSourceSettingsBtn" class="secondary" type="button">Очистить ключи</button></div>
@@ -1134,119 +1250,111 @@
       <h2 id="helpInfoTitle">Справка</h2>
       <button id="helpInfoClose" class="iconBtn" type="button" title="Закрыть">×</button>
     </div>
-    <p class="mini">Инструмент помогает быстро оценить розу ветров и вероятный перенос запаха по выбранной точке и периоду. Это штабная подсказка для планирования, а не замена фактической проверки ветра, рельефа и работы собаки на месте.</p>
+    <p class="mini">Инструмент помогает быстро оценить ветер и вероятный перенос запаха по выбранной точке и периоду. Это рабочая подсказка для планирования, а не замена фактической проверки ветра на месте, чтения рельефа и работы собаки.</p>
 
     <div class="helpGrid">
       <div class="helpBlock">
-        <h3>1. Что делает инструмент</h3>
-        <p>Программа получает почасовые погодные данные по координатам, берёт скорость и направление ветра, строит розу ветров и разворачивает направление на 180°, чтобы показать вероятный сектор переноса запаха.</p>
+        <h3>1. Что показывает инструмент</h3>
+        <p>Инструмент получает почасовые погодные данные, строит розу ветров и разворачивает направление ветра на 180°, чтобы показать, куда могло относить запах.</p>
         <ul>
-          <li><b>Роза ветров</b> показывает, откуда дул ветер.</li>
-          <li><b>Перенос запаха</b> показывает, куда могло относить запах.</li>
-          <li><b>Наложение</b> позволяет сравнить оба слоя на одном графике.</li>
+          <li><b>Роза ветров</b> — откуда дул ветер.</li>
+          <li><b>Перенос запаха</b> — куда этот ветер мог уносить запах.</li>
+          <li><b>Наложение</b> — ветер и запах на одном графике.</li>
         </ul>
       </div>
 
       <div class="helpBlock">
-        <h3>2. Как выбрать место</h3>
-        <p>Можно найти населённый пункт, вставить координаты, вставить ссылку с карт или выбрать точку кликом по карте.</p>
+        <h3>2. Простой и продвинутый режим</h3>
+        <p><b>Простой режим</b> оставляет только главное: место, период, кнопку построения, график и сохранение картинки. Он рассчитан на быстрый полевой сценарий.</p>
+        <p><b>Продвинутый режим</b> открывает координаты, карту, выбор источника, таймаут, экспорт CSV, текст отчёта, таблицы, технические данные и подробную сводку.</p>
+      </div>
+
+      <div class="helpBlock">
+        <h3>3. Как выбрать место</h3>
+        <p>Можно найти населённый пункт, вставить координаты, вставить ссылку с карт или выбрать точку кликом по карте в продвинутом режиме.</p>
         <ul>
-          <li><b>Самый точный способ для Яндекс.Карт:</b> щёлкните правой кнопкой мыши по нужной точке, выберите <b>«Что здесь?»</b>, после этого скопируйте ссылку из браузерной строки и вставьте её в поле координат.</li>
-          <li>В такой ссылке обычно есть параметр <code>whatshere[point]=долгота,широта</code>. Если в ссылке Яндекс.Карт несколько координат, программа берёт именно <code>whatshere[point]</code>, потому что это выбранная точка.</li>
-          <li>Можно без <b>«Что здесь?»</b>: открыть нужное место, приблизить карту и скопировать ссылку из браузера. Тогда будет использован центр карты <code>ll=долгота,широта</code>. Это менее точно, но для первичной розы ветров с учётом погрешности погодных данных обычно нормально.</li>
-          <li>Для Google Maps поддерживаются длинные ссылки с <code>@широта,долгота</code>, <code>q=широта,долгота</code> и <code>query=широта,долгота</code>.</li>
-          <li>Короткие ссылки Google вида <code>maps.app.goo.gl</code> этот HTML сам не раскрывает.</li>
+          <li>Для Яндекс.Карт самый точный способ: правый клик по точке → <b>«Что здесь?»</b> → скопировать ссылку из адресной строки.</li>
+          <li>Поддерживаются обычные координаты: <code>55.7558, 37.6173</code>, <code>N55.7558 E37.6173</code>, DMS-формат.</li>
+          <li>Короткие ссылки Google вида <code>maps.app.goo.gl</code> браузерный HTML сам не раскрывает.</li>
         </ul>
       </div>
 
       <div class="helpBlock">
-        <h3>3. Источники данных</h3>
-        <p>По умолчанию выбран режим <b>Авто</b>. В нём программа сначала перебирает источники без ключа, затем источники с добавленным персональным ключом, и только потом источники с отдельным доступом. При анализе прошлого периода прогнозные источники пропускаются; при прогнозе пропускаются архивные источники.</p>
+        <h3>4. Как выбрать период</h3>
+        <p>Быстрые периоды подходят для оперативной оценки: последние 6, 12, 24, 48 или 96 часов. В продвинутом режиме можно задать произвольное начало и конец.</p>
         <ul>
-          <li>Ключи добавляются через шестерёнку рядом с выбором источника. В списке источников видно кратко: ключ есть/ключа нет/без ключа, архив в часах и прогноз в часах.</li>
-          <li>Источник можно выбрать вручную, но многие API без ключа работать не будут. В ручном режиме программа попробует выбранный источник даже тогда, когда он хуже подходит под период.</li>
-          <li>Если источник не отвечает за выбранный таймаут, программа пробует следующий.</li>
-          <li>Если ни один источник не вернул данные, появится сообщение об ошибке доступа или отсутствии данных.</li>
-          <li><b>Tomorrow.io</b> — источник с персональным ключом: почасовой архив и прогноз отображаются в списке кратко.</li>
-          <li><b>Open‑Meteo GFS/NOAA</b> — резервный почасовой источник без ключа: он использует модель NOAA GFS через Open‑Meteo и полезен, если нужен ещё один расчётный слой после NASA POWER.</li>
+          <li>Для свежей задачи обычно начинают с последних 6–12 часов.</li>
+          <li>Для разбора старой задачи полезны 24–96 часов.</li>
+          <li>Прогноз нужен для планирования будущего выхода, а не для восстановления уже прошедшей запаховой картины.</li>
         </ul>
       </div>
 
       <div class="helpBlock">
-        <h3>4. Период и настройки</h3>
-        <p>Быстрые периоды подходят для оперативной оценки. Произвольный период удобен, если надо анализировать интервал от пропажи до начала работы или отдельные ночные/утренние часы.</p>
+        <h3>5. Источники данных и ВПН</h3>
+        <p>В режиме <b>Авто</b> программа сама пробует доступные источники. Некоторые погодные сервисы из отдельных сетей могут открываться только с ВПН. Если источники без ключа не отвечают, включите ВПН или добавьте API‑ключи через шестерёнку.</p>
         <ul>
-          <li><b>Секторы розы:</b> 8 направлений проще читать, 16 направлений точнее по сектору.</li>
-          <li><b>Игнорировать ветер слабее:</b> отсекает почти штиль, который часто даёт нестабильную картину.</li>
-          <li><b>Таймаут:</b> сколько секунд ждать каждый источник перед переходом к следующему.</li>
+          <li><b>Без ключа</b>: Open‑Meteo, NASA POWER, Open‑Meteo GFS/NOAA, MET Norway.</li>
+          <li><b>С персональным ключом</b>: WeatherAPI.com, Visual Crossing, OpenWeather, Tomorrow.io.</li>
+          <li>Красный маркер — ключа нет; зелёный — ключ есть; серый — ключ не нужен.</li>
         </ul>
+      </div>
+
+      <div class="helpBlock">
+        <h3>6. Как получить ключи</h3>
+        <p>Откройте шестерёнку рядом с источниками. Первыми показаны два наиболее простых варианта: <b>WeatherAPI.com</b> и <b>Visual Crossing</b>. Под каждым полем есть пошаговая инструкция.</p>
+        <p>Ключи сохраняются в этом браузере. Кнопку «Сохранить» лучше нажать, но автосохранение тоже включено.</p>
       </div>
 
       <div class="helpBlock helpWide">
-        <h3>5. Как читать сводку</h3>
-        <p><b>Усредненное направление ветра</b> — откуда в среднем дул ветер с учётом скорости. Это не просто самый частый румб: сильный ветер влияет на расчёт больше слабого.</p>
-        <p><b>Усредненное направление переноса запаха</b> — куда в среднем относило запах. Это направление ветра, развёрнутое на 180°.</p>
-        <p><b>Стабильность переноса</b> показывает, насколько направления за период складываются в один устойчивый сектор. Высокая стабильность означает, что средняя стрелка читается лучше. Низкая стабильность означает, что ветер менялся, и надо смотреть почасовую динамику и несколько верхних секторов.</p>
-        <p><b>Устойчивость запаха</b> — оперативная оценка того, насколько погодные условия поддерживали или разрушали старую запаховую картину. Это эвристика, а не лабораторная модель.</p>
-      </div>
-
-      <div class="helpBlock">
-        <h3>6. Устойчивость запаха</h3>
-        <p>Оценка учитывает погодные факторы по часам и возраст данных относительно самых свежих часов.</p>
-        <ul>
-          <li>Влажность примерно 55–90% обычно поддерживает сохранность.</li>
-          <li>Жара, активное солнце и сухой воздух снижают вес старых часов.</li>
-          <li>Слабое увлажнение может помогать, но заметный дождь и сильный дождь снижают читаемость старого следа.</li>
-          <li>Умеренный ветер помогает формировать сектор. Штиль делает картину пятнистой, сильный ветер и порывы рассеивают запах.</li>
-          <li>Свежие часы на розе переноса имеют больший вес, старые постепенно ослабляются.</li>
-        </ul>
-      </div>
-
-      <div class="helpBlock">
-        <h3>7. Как применять в ПСР</h3>
-        <p>Результат лучше использовать как ориентир для выбора сектора, проверки гипотез и планирования работы, а не как единственный критерий.</p>
-        <ul>
-          <li>При устойчивом ветре и хорошей устойчивости запаха основной сектор можно брать увереннее.</li>
-          <li>При слабом ветре, переменном направлении или низкой устойчивости смотрите несколько секторов и почасовую динамику.</li>
-          <li>После смены ветра старый сектор не исчезает мгновенно: запах может оставаться в тени, подстилке, низинах, у препятствий, в закрытом лесу и на влажных участках.</li>
-          <li>На открытой продуваемой местности старый перенос обычно быстрее теряет практическую ценность.</li>
-        </ul>
-      </div>
-
-      <div class="helpBlock">
-        <h3>8. График розы</h3>
+        <h3>7. Как читать график</h3>
         <p>Цвета показывают диапазоны скорости ветра. Длина сектора показывает, насколько часто или насколько значимо этот сектор встречался в выбранном периоде.</p>
         <ul>
-          <li>В режиме <b>Только ветер</b> стрелка показывает усреднённое направление, откуда дуло.</li>
-          <li>В режиме <b>Только перенос запаха</b> стрелка показывает, куда несло запах.</li>
-          <li>В режиме <b>Наложение</b> одновременно видны ветер и перенос запаха, но подписи стрелок убраны, чтобы не перегружать график.</li>
+          <li>Ветер читается как направление <b>откуда дуло</b>.</li>
+          <li>Запах читается как направление <b>куда могло нести</b>.</li>
+          <li>Если включено наложение, фиолетовый слой показывает перенос запаха, а основной слой — ветер.</li>
         </ul>
       </div>
 
       <div class="helpBlock">
-        <h3>9. Таблицы</h3>
-        <p>Окно «Секторы и почасовая динамика» переключается между двумя режимами.</p>
+        <h3>8. Среднее направление и стабильность</h3>
+        <p><b>Усреднённое направление</b> считается не простым голосованием по часам. Каждый час превращается в вектор, а скорость ветра даёт ему вес: сильный ветер влияет на расчёт больше слабого.</p>
+        <p><b>Стабильность переноса</b> показывает, насколько направления складывались в один понятный сектор. Если стабильность низкая, одну стрелку читать опасно: нужно смотреть почасовую динамику и несколько главных секторов.</p>
+      </div>
+
+      <div class="helpBlock">
+        <h3>9. Устойчивость запаха</h3>
+        <p>Это прикладная оценка, насколько погода могла сохранять или разрушать запаховую картину. Она учитывает влажность, температуру, осадки, солнце, силу ветра, порывы и возраст часовой точки.</p>
         <ul>
-          <li><b>Главные секторы</b> быстро показывает, откуда чаще дул ветер.</li>
-          <li><b>Почасовая динамика</b> нужна, если ветер менялся, был дождь, порывы, слабый ветер или требуется понять момент перестройки переноса.</li>
+          <li>Умеренная влажность, тень, ночь и умеренный ветер обычно помогают сохранности.</li>
+          <li>Жара, активное солнце, сухой воздух, заметный дождь, сильный ветер и порывы снижают вклад старых часов.</li>
+          <li>Это не лабораторная модель, а полевая эвристика.</li>
         </ul>
       </div>
 
       <div class="helpBlock">
-        <h3>10. Экспорт</h3>
-        <p>Блок экспорта позволяет передать результат другому участнику поиска.</p>
+        <h3>10. Что делать с результатом</h3>
+        <p>Результат помогает выбрать рабочий сектор, проверить гипотезу, понять, где ветер мог помогать собаке, а где картина была нестабильной.</p>
         <ul>
-          <li><b>CSV</b> сохраняет почасовые данные для дальнейшего анализа.</li>
-          <li><b>Текст отчёта</b> копирует в буфер полный прикладной отчёт: координаты, период, источник, ветер, перенос запаха, устойчивость, сектора и ограничения.</li>
-          <li><b>PNG розы</b> сохраняет график с подписью: точка, координаты, период, ветер, перенос запаха, устойчивость и источник.</li>
-          <li><b>Источник и технические данные</b> показывает, какой API сработал, тип данных, станцию/расстояние, если источник это отдаёт, и список попыток источников.</li>
+          <li>При устойчивом ветре основной сектор можно учитывать увереннее.</li>
+          <li>При слабом или переменном ветре лучше смотреть несколько секторов.</li>
+          <li>После смены ветра старый сектор не исчезает мгновенно: запах может оставаться в тени, подстилке, низинах, у препятствий и во влажных местах.</li>
+        </ul>
+      </div>
+
+      <div class="helpBlock">
+        <h3>11. Экспорт</h3>
+        <p>В простом режиме можно сохранить розу ветров картинкой. В продвинутом режиме дополнительно доступны CSV, текст отчёта, PNG розы, источник и технические данные.</p>
+        <ul>
+          <li><b>PNG</b> удобно отправить в чат задачи.</li>
+          <li><b>Текст отчёта</b> подходит для штаба или разбора.</li>
+          <li><b>CSV</b> нужен, если кто-то хочет отдельно разобрать почасовые данные.</li>
         </ul>
       </div>
 
       <div class="helpBlock helpWide">
-        <h3>11. Ограничения</h3>
-        <p>Большинство источников дают модельные, сеточные или реаналитические данные по координате, а не измерение анемометром в конкретной точке поиска. Ветер на высоте 10 м может отличаться от ветра у земли.</p>
-        <p>Лес, овраги, склоны, вода, просеки, здания, густая растительность, ночь и утренний прогрев могут менять фактический перенос сильнее, чем видно в модели. Рабочее решение всегда сверяется с местностью, фактическим ветром у земли и поведением собаки.</p>
+        <h3>12. Ограничения</h3>
+        <p>Погодные источники дают модельные, сеточные или станционные данные, а не измерение анемометром прямо у носа собаки. Ветер на высоте 10 м может отличаться от ветра у земли.</p>
+        <p>Лес, овраги, склоны, вода, просеки, здания, густая растительность, ночь и утренний прогрев могут менять фактический перенос сильнее, чем видно в модели. Рабочее решение всегда сверяется с местностью, фактическим ветром и поведением собаки.</p>
       </div>
     </div>
   </div>
@@ -1996,6 +2104,58 @@
       return data;
     } finally {
       clearTimeout(timer);
+    }
+  }
+
+
+
+  async function probeJson(url, timeoutMs=5000){
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const r = await fetch(url, {signal:controller.signal, cache:'no-store'});
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const text = await r.text();
+      if (!text) throw new Error('пустой ответ');
+      try { JSON.parse(text); } catch(e) { throw new Error('ответ не JSON'); }
+      return true;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function formatYmdUTC(d){
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}`;
+  }
+
+  async function checkInternetAccess(){
+    const el = $('internetStatus');
+    if (!el) return;
+    setStatus(el, 'Проверяю доступ к интернету…', 'warn');
+    try {
+      await probeJson('https://geocoding-api.open-meteo.com/v1/search?name=Moscow&count=1&language=ru&format=json', 4500);
+      el.classList.add('hidden');
+    } catch(e) {
+      setStatus(el, 'Проблема с доступом к интернету. Запустите инструмент в другом браузере, включите интернет/ВПН или откройте файл именно через браузер. На iPhone файл иногда открывается во встроенном просмотрщике, где сетевые запросы работают некорректно.', 'bad');
+    }
+  }
+
+  async function checkPrimarySourceAvailability(){
+    const yesterday = formatYmdUTC(new Date(Date.now() - 86400000));
+    const openUrl = 'https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.62&hourly=wind_speed_10m&forecast_days=1&wind_speed_unit=ms&timezone=UTC';
+    const nasaUrl = 'https://power.larc.nasa.gov/api/temporal/hourly/point?' + new URLSearchParams({
+      parameters:'WS10M', community:'AG', longitude:'37.62', latitude:'55.75', start:yesterday, end:yesterday, 'time-standard':'UTC', format:'JSON'
+    }).toString();
+    const [openOk, nasaOk] = await Promise.all([
+      probeJson(openUrl, 5000).then(()=>true).catch(()=>false),
+      probeJson(nasaUrl, 6000).then(()=>true).catch(()=>false)
+    ]);
+    if (!openOk && !nasaOk) {
+      const el = $('loadStatus');
+      if (el && (!el.textContent || el.textContent.trim() === 'Готов к запросу.')) {
+        setStatus(el, 'Необходимо включить ВПН или вставить API ключ в продвинутом режиме', 'warn');
+      }
     }
   }
 
@@ -3549,6 +3709,15 @@
     refreshSourceOptions();
   }
 
+  let sourceKeyAutosaveTimer = null;
+  function autosaveSourceKey(field){
+    const el = $(field);
+    if (!el) return;
+    localStorage.setItem(KEY_STORAGE[field] || field, el.value || '');
+    clearTimeout(sourceKeyAutosaveTimer);
+    sourceKeyAutosaveTimer = setTimeout(() => refreshSourceOptions(), 180);
+  }
+
   function saveSourceKeys(){
     for (const field of KEY_FIELDS) {
       const el = $(field);
@@ -3641,10 +3810,8 @@
       }
     });
     for (const field of KEY_FIELDS) {
-      $(field)?.addEventListener('change', () => {
-        localStorage.setItem(KEY_STORAGE[field] || field, $(field).value || '');
-        refreshSourceOptions();
-      });
+      $(field)?.addEventListener('input', () => autosaveSourceKey(field));
+      $(field)?.addEventListener('change', () => autosaveSourceKey(field));
     }
   }
 
@@ -3652,6 +3819,7 @@
   $('simpleModeBtn')?.addEventListener('click', () => setUiMode('simple'));
   $('advancedModeBtn')?.addEventListener('click', () => setUiMode('advanced'));
   $('themeToggleBtn')?.addEventListener('click', () => applyTheme(isOriginalTheme() ? 'grid' : 'original'));
+  $('headerHelpBtn')?.addEventListener('click', openHelpInfo);
   $('placeInput').addEventListener('input', () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(searchPlace, 450);
@@ -3693,6 +3861,7 @@
   $('exportCsvBtn').addEventListener('click', exportCsv);
   $('copyReportBtn').addEventListener('click', copyReport);
   $('exportRosePngBtn').addEventListener('click', () => exportCanvas($('roseCanvas'), 'psr_windrose_scent.png'));
+  $('exportRosePngSimpleBtn')?.addEventListener('click', () => exportCanvas($('roseCanvas'), 'psr_windrose_scent.png'));
   document.querySelectorAll('#roseModeSwitch button').forEach(btn => btn.addEventListener('click', () => {
     state.roseMode = btn.dataset.roseMode || 'wind';
     setSwitchActive('roseModeSwitch', 'data-rose-mode', state.roseMode);
@@ -3716,6 +3885,8 @@
   drawEmpty($('roseCanvas'), 'Роза ветров / перенос запаха');
   renderLegend($('legendRose'));
   updateActionState();
+  checkInternetAccess();
+  checkPrimarySourceAvailability();
 
   function drawEmpty(canvas, title){
     const ctx = canvas.getContext('2d');
