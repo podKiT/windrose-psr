@@ -989,6 +989,298 @@
       .modeBar button{padding:6px 6px!important}
     }
 
+
+    /* v4.5: круговой почасовой слайдер вокруг розы */
+    .roseCanvasBox{
+      position:relative!important;
+      overflow:visible!important;
+    }
+    .roseCanvasWrap{
+      position:relative;
+      width:min(100%,640px);
+      max-width:640px;
+      margin:0 auto;
+      display:grid;
+      place-items:center;
+      overflow:visible;
+    }
+    .roseCanvasWrap canvas{grid-area:1/1}
+    .timeDial{
+      grid-area:1/1;
+      position:absolute;
+      inset:0;
+      width:100%;
+      aspect-ratio:1/1;
+      max-width:640px;
+      margin:auto;
+      border-radius:50%;
+      pointer-events:auto;
+      z-index:6;
+      touch-action:none;
+    }
+    .timeDial.hidden{display:none!important}
+    .timeDialRing{
+      position:absolute;
+      inset:10px;
+      border-radius:50%;
+      border:3px solid rgba(25,103,210,.24);
+      box-shadow:0 0 0 8px rgba(25,103,210,.045), inset 0 0 0 1px rgba(255,255,255,.55);
+      cursor:grab;
+      background:conic-gradient(from -90deg, rgba(25,103,210,.32) var(--dial-progress,0deg), transparent var(--dial-progress,0deg));
+    }
+    .timeDial:active .timeDialRing{cursor:grabbing}
+    .timeDialKnob{
+      position:absolute;
+      left:50%;
+      top:10px;
+      transform:translate(-50%,-50%);
+      min-width:88px;
+      max-width:145px;
+      padding:7px 10px;
+      border-radius:999px;
+      background:linear-gradient(135deg,#1967d2,#60a5fa);
+      color:#fff;
+      border:2px solid #fff;
+      box-shadow:0 8px 22px rgba(7,25,35,.28);
+      font-size:12px;
+      font-weight:900;
+      line-height:1.1;
+      text-align:center;
+      cursor:grab;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .timeDialKnob:active{cursor:grabbing}
+    .timeDialKnob small{
+      display:block;
+      margin-top:2px;
+      font-size:10px;
+      font-weight:800;
+      opacity:.88;
+    }
+    .timeDialCenterBadge{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      width:min(250px,44%);
+      padding:8px 10px;
+      border-radius:14px;
+      background:rgba(255,255,255,.86);
+      border:1px solid var(--line);
+      color:var(--ink);
+      font-size:12px;
+      line-height:1.25;
+      font-weight:800;
+      text-align:center;
+      box-shadow:0 4px 14px rgba(7,25,35,.10);
+      pointer-events:none;
+    }
+    .timeDialCenterBadge span{display:block;color:var(--muted);font-weight:700;font-size:11px;margin-top:2px}
+    .timeDialInfo{
+      margin-top:10px;
+      text-align:center;
+      font-size:12px;
+      line-height:1.35;
+      color:var(--muted)!important;
+    }
+    .timeDialInfo b{color:var(--ink)}
+    body.original-theme .timeDialRing{
+      border-color:rgba(125,211,252,.38);
+      box-shadow:0 0 0 8px rgba(125,211,252,.055), inset 0 0 0 1px rgba(255,255,255,.08);
+      background:conic-gradient(from -90deg, rgba(125,211,252,.32) var(--dial-progress,0deg), transparent var(--dial-progress,0deg));
+    }
+    body.original-theme .timeDialKnob{
+      background:linear-gradient(135deg,#38bdf8,#60a5fa);
+      color:#04101f;
+      border-color:#0d1528;
+    }
+    body.original-theme .timeDialCenterBadge{
+      background:rgba(13,21,40,.88);
+      color:#eef3ff;
+      border-color:#2d3a59;
+    }
+    body.original-theme .timeDialCenterBadge span{color:#a9b6d3}
+    body.original-theme .timeDialInfo b{color:#eef3ff}
+    @media(max-width:760px){
+      .timeDialKnob{min-width:74px;padding:6px 8px;font-size:11px}
+      .timeDialKnob small{font-size:9px}
+      .timeDialCenterBadge{width:min(220px,52%);font-size:11px}
+    }
+
+
+    /* v4.7: стабильные метрики, верхняя точка почасового ярлыка */
+    #metrics .metric{
+      height:108px!important;
+      min-height:108px!important;
+      display:flex!important;
+      flex-direction:column!important;
+      justify-content:center!important;
+      overflow:visible!important;
+      gap:3px!important;
+    }
+    #metrics .metric .metricLabel{
+      min-height:30px!important;
+      display:flex!important;
+      align-items:flex-end!important;
+      flex:0 0 auto!important;
+    }
+    #metrics .metric b{
+      white-space:nowrap!important;
+      overflow:hidden!important;
+      text-overflow:ellipsis!important;
+      max-width:100%!important;
+      line-height:1.08!important;
+      flex:0 0 auto!important;
+    }
+    #metrics .metric b + span{
+      display:block!important;
+      white-space:nowrap!important;
+      overflow:visible!important;
+      text-overflow:clip!important;
+      line-height:1.2!important;
+      flex:0 0 auto!important;
+    }
+    #metrics .metric:not(.directionMetric) b{
+      font-size:20px!important;
+    }
+    #metrics .metric.directionMetric b{
+      font-size:20px!important;
+      letter-spacing:-.01em!important;
+    }
+    #metrics .metric.directionMetric b.longDir{
+      font-size:17px!important;
+    }
+    #metrics .metric.primary{
+      background:#fafdff!important;
+      border-color:var(--line)!important;
+    }
+    body.original-theme #metrics .metric.primary{
+      background:#0d1528!important;
+      border-color:#2d3a59!important;
+    }
+    .timeDialRing{
+      background:transparent!important;
+      border-color:rgba(96,120,136,.32)!important;
+      box-shadow:0 0 0 7px rgba(96,120,136,.05), inset 0 0 0 1px rgba(255,255,255,.55)!important;
+    }
+    .timeDialKnob{
+      --knob-fill-pct:0%;
+      --knob-fill-color:rgba(96,120,136,.18);
+      --knob-empty:#ffffff;
+      --knob-text:#071923;
+      min-width:92px!important;
+      background:linear-gradient(90deg, var(--knob-fill-color) 0 var(--knob-fill-pct), var(--knob-empty) var(--knob-fill-pct) 100%)!important;
+      color:var(--knob-text)!important;
+      border:2px solid #ffffff!important;
+    }
+    .timeDialKnob.future{
+      --knob-fill-color:rgba(187,247,208,.88);
+      --knob-empty:#ffffff;
+      color:#063d29!important;
+      border-color:#8bd8b1!important;
+    }
+    .timeDialKnob.past{
+      --knob-fill-color:rgba(96,120,136,.22);
+      --knob-empty:#ffffff;
+      color:#071923!important;
+    }
+    .timeDialKnob.nowish{
+      --knob-fill-color:rgba(196,220,232,.42);
+      --knob-empty:#ffffff;
+      color:#071923!important;
+    }
+    .timeDialKnob .sunIcon{
+      display:block;
+      font-size:17px;
+      line-height:1;
+      margin-bottom:2px;
+    }
+    body.original-theme .timeDialRing{
+      background:transparent!important;
+      border-color:rgba(169,182,211,.34)!important;
+      box-shadow:0 0 0 7px rgba(169,182,211,.06), inset 0 0 0 1px rgba(255,255,255,.08)!important;
+    }
+    body.original-theme .timeDialKnob{
+      --knob-empty:#0d1528;
+      --knob-text:#eef3ff;
+      border-color:#2d3a59!important;
+      color:var(--knob-text)!important;
+    }
+    body.original-theme .timeDialKnob.future{
+      --knob-fill-color:rgba(141,223,154,.42);
+      --knob-empty:#0d1528;
+      color:#dfffe4!important;
+    }
+    body.original-theme .timeDialKnob.past{
+      --knob-fill-color:rgba(169,182,211,.18);
+      --knob-empty:#0d1528;
+      color:#eef3ff!important;
+    }
+
+
+
+    /* v4.8: более крупная сводка без пустого воздуха */
+    #metrics{
+      gap:16px!important;
+    }
+    #metrics .metric{
+      height:108px!important;
+      min-height:108px!important;
+      padding:14px 16px!important;
+      justify-content:center!important;
+      gap:7px!important;
+    }
+    #metrics .metric .metricLabel{
+      min-height:0!important;
+      font-size:13.5px!important;
+      line-height:1.18!important;
+      font-weight:650!important;
+      align-items:flex-start!important;
+      margin-bottom:0!important;
+    }
+    #metrics .metric b{
+      font-size:28px!important;
+      line-height:1.02!important;
+      font-weight:900!important;
+      letter-spacing:-.02em!important;
+    }
+    #metrics .metric.directionMetric b{
+      font-size:30px!important;
+      line-height:1!important;
+      letter-spacing:-.025em!important;
+    }
+    #metrics .metric.directionMetric b.longDir{
+      font-size:26px!important;
+    }
+    #metrics .metric.directionMetric b.wideDir{
+      font-size:20px!important;
+      letter-spacing:-.035em!important;
+    }
+    #metrics .metric b + span{
+      font-size:13px!important;
+      line-height:1.12!important;
+      margin-top:-2px!important;
+    }
+    @media(max-width:920px){
+      #metrics .metric{height:100px!important;min-height:100px!important;padding:12px 14px!important}
+      #metrics .metric .metricLabel{font-size:13px!important}
+      #metrics .metric b{font-size:25px!important}
+      #metrics .metric.directionMetric b{font-size:27px!important}
+      #metrics .metric.directionMetric b.longDir{font-size:23px!important}
+      #metrics .metric.directionMetric b.wideDir{font-size:19px!important}
+      #metrics .metric b + span{font-size:12.5px!important}
+    }
+    @media(max-width:720px){
+      #metrics .metric{height:auto!important;min-height:88px!important;padding:11px 12px!important}
+      #metrics .metric .metricLabel{font-size:12.5px!important}
+      #metrics .metric b{font-size:23px!important}
+      #metrics .metric.directionMetric b{font-size:24px!important}
+      #metrics .metric.directionMetric b.longDir{font-size:21px!important}
+      #metrics .metric.directionMetric b.wideDir{font-size:18px!important}
+      #metrics .metric b + span{font-size:12px!important}
+    }
+
   </style>
 </head>
 <body class="simple-mode">
@@ -1040,7 +1332,7 @@
         <option value="12" selected>Последние 12 часов</option>
         <option value="24">Последние 24 часа</option>
         <option value="48">Последние 48 часов</option>
-        <option value="96">Последние 96 часов</option>
+        <option value="72">Последние 72 часа</option>
         <option value="future6">Прогноз: ближайшие 6 часов</option>
         <option value="future12">Прогноз: ближайшие 12 часов</option>
         <option value="future24">Прогноз: ближайшие 24 часа</option>
@@ -1115,8 +1407,8 @@
     <div class="card advancedOnly">
       <h2>Сводка</h2>
       <div class="grid three" id="metrics">
-        <div class="metric"><span class="metricLabel">Усредненное направление ветра</span><b>—</b></div>
-        <div class="metric"><span class="metricLabel">Усредненное направление переноса запаха</span><b>—</b></div>
+        <div class="metric"><span class="metricLabel">Усреднённый вектор ветра</span><b>—</b></div>
+        <div class="metric"><span class="metricLabel">Усредненный вектор запаха</span><b>—</b></div>
         <div class="metric"><span class="metricLabel">Устойчивость запаха</span><b>—</b></div>
       </div>
       <div id="analysisText" class="status">После загрузки здесь появится прикладной вывод.</div>
@@ -1144,7 +1436,17 @@
         <button type="button" data-rose-mode="scent">Только перенос запаха</button>
         <button type="button" data-rose-mode="both">Наложение</button>
       </div>
-      <div class="canvasBox"><canvas id="roseCanvas" width="620" height="620"></canvas></div>
+      <div class="canvasBox roseCanvasBox">
+        <div class="roseCanvasWrap">
+          <canvas id="roseCanvas" width="620" height="620"></canvas>
+          <div id="timeDial" class="timeDial advancedOnly hidden" aria-label="Почасовой круговой слайдер">
+            <div class="timeDialRing"></div>
+            <div id="timeDialKnob" class="timeDialKnob"><span class="sunIcon">🕒</span><small>—</small></div>
+            <div id="timeDialCenterBadge" class="timeDialCenterBadge">Почасовой срез<span>перетащите ярлык по кругу</span></div>
+          </div>
+        </div>
+      </div>
+      <div id="timeDialInfo" class="timeDialInfo advancedOnly hidden">После загрузки данных здесь появится почасовой срез.</div>
       <div class="legend" id="legendRose"></div>
       <div class="simpleOnly simpleExportRow"><button id="exportRosePngSimpleBtn" class="secondary" type="button">Сохранить розу картинкой</button></div>
     </div>
@@ -1281,10 +1583,10 @@
 
       <div class="helpBlock">
         <h3>4. Как выбрать период</h3>
-        <p>Быстрые периоды подходят для оперативной оценки: последние 6, 12, 24, 48 или 96 часов. В продвинутом режиме можно задать произвольное начало и конец.</p>
+        <p>Быстрые периоды подходят для оперативной оценки: последние 6, 12, 24, 48 или 72 часа. В продвинутом режиме можно задать произвольное начало и конец.</p>
         <ul>
           <li>Для свежей задачи обычно начинают с последних 6–12 часов.</li>
-          <li>Для разбора старой задачи полезны 24–96 часов.</li>
+          <li>Для разбора старой задачи полезны 24–72 часа.</li>
           <li>Прогноз нужен для планирования будущего выхода, а не для восстановления уже прошедшей запаховой картины.</li>
         </ul>
       </div>
@@ -1352,7 +1654,13 @@
       </div>
 
       <div class="helpBlock helpWide">
-        <h3>12. Ограничения</h3>
+        <h3>12. Почасовой круговой слайдер</h3>
+        <p>В продвинутом режиме после построения розы вокруг графика появляется круговой слайдер. Его можно перетаскивать по часовой и против часовой стрелки с шагом в 1 час. На ярлыке меняется иконка времени суток: восход, солнце, закат или луна. Если солнечную оценку для точки определить нельзя, остаётся обычная иконка часов.</p>
+        <p>Выбранный час становится расчётной точкой: будущие относительно него часы не показываются, а предыдущие часы остаются в модели с быстро убывающим весом. Если строится прошлый период, инструмент дополнительно пытается подгрузить прогноз на ближайшие 24 часа, чтобы можно было провернуть слайдер в будущее и посмотреть ожидаемую картину.</p>
+      </div>
+
+      <div class="helpBlock helpWide">
+        <h3>13. Ограничения</h3>
         <p>Погодные источники дают модельные, сеточные или станционные данные, а не измерение анемометром прямо у носа собаки. Ветер на высоте 10 м может отличаться от ветра у земли.</p>
         <p>Лес, овраги, склоны, вода, просеки, здания, густая растительность, ночь и утренний прогрев могут менять фактический перенос сильнее, чем видно в модели. Рабочее решение всегда сверяется с местностью, фактическим ветром и поведением собаки.</p>
       </div>
@@ -1386,6 +1694,7 @@
   const state = {
     location: null,
     rows: [],
+    fullRows: [],
     stats: null,
     lastApiUrl: '',
     lastEndpoint: '',
@@ -1397,7 +1706,13 @@
     reportText: '',
     roseMode: 'both',
     dataMode: 'sectors',
-    uiMode: 'simple'
+    uiMode: 'simple',
+    timeFocusIndex: null,
+    timeFocusActive: false,
+    initialAnalysisText: '',
+    initialAnalysisKind: '',
+    keepInitialAnalysis: false,
+    initialFocusTime: null
   };
 
   const DIR16 = ['С','ССВ','СВ','ВСВ','В','ВЮВ','ЮВ','ЮЮВ','Ю','ЮЮЗ','ЮЗ','ЗЮЗ','З','ЗСЗ','СЗ','ССЗ'];
@@ -2849,6 +3164,59 @@
     throw new Error('неизвестный источник данных.');
   }
 
+
+  function addHoursToLocalInput(localInput, hours){
+    const d = localDateFromHour(localInput);
+    if (!d) return localInput;
+    return floorToHourInput(toDateInput(new Date(d.getTime() + hours * 3600000), undefined));
+  }
+
+  function currentLocalHour(){
+    return floorToHourInput(toDateInput(new Date(), state.location?.timezone || undefined));
+  }
+
+  function dedupeRowsByTime(rows){
+    const m = new Map();
+    for (const r of rows || []) {
+      if (!r || !r.time) continue;
+      if (!m.has(r.time)) m.set(r.time, r);
+      else {
+        const prev = m.get(r.time);
+        if (prev?._futureForecast && !r._futureForecast) m.set(r.time, r);
+      }
+    }
+    return [...m.values()].sort((a,b) => String(a.time).localeCompare(String(b.time)));
+  }
+
+  function nearestTimeFocusIndex(targetTime){
+    const ticks = buildTimeFocusTicks();
+    if (!ticks.length) return 0;
+    if (!targetTime) return ticks.length - 1;
+    const targetMs = rowHourMs({time: targetTime});
+    if (!Number.isFinite(targetMs)) return Math.max(0, ticks.indexOf(targetTime));
+    let best = 0, bestDiff = Infinity;
+    ticks.forEach((t,i) => {
+      const ms = rowHourMs({time:t});
+      const diff = Number.isFinite(ms) ? Math.abs(ms - targetMs) : Infinity;
+      if (diff < bestDiff) { best = i; bestDiff = diff; }
+    });
+    return best;
+  }
+
+  async function fetchFuture24RowsForSlider(period){
+    const nowLocal = currentLocalHour();
+    if (!nowLocal || period.start >= nowLocal) return {rows:[], message:''};
+    const futureEnd = addHoursToLocalInput(nowLocal, 24);
+    try {
+      const future = await fetchOpenMeteo({start:nowLocal, end:futureEnd, startDate:new Date(nowLocal), endDate:new Date(futureEnd)});
+      const rows = (future.rows || []).map(r => ({...r, _futureForecast:true}));
+      return {rows, message: rows.length ? ` Прогноз +24 ч добавлен для почасового слайдера: ${rows.length} ч.` : ''};
+    } catch(e) {
+      console.warn('future24 forecast failed', e);
+      return {rows:[], message:' Прогноз +24 ч для слайдера не добавлен: источник прогноза не ответил.'};
+    }
+  }
+
   async function loadWeather(){
     const period = getPeriodWindow();
     const sources = selectedSourceIds(period.start, period.end);
@@ -2856,13 +3224,24 @@
     const errors = [];
     state.lastTriedSources = [];
     state.lastSourceMeta = null;
+    state.keepInitialAnalysis = false;
+    state.initialAnalysisText = '';
+    state.initialAnalysisKind = '';
+    state.initialFocusTime = null;
     for (const id of sources) {
       state.lastTriedSources.push({id, status:'trying'});
       setStatus($('loadStatus'), `Пробую источник: ${sourceHumanName(id)}…`);
       try {
         const result = await fetchWeatherForSource(id, period);
         if (!result.rows?.length) throw new Error('источник ответил, но не дал подходящих почасовых точек.');
-        state.rows = result.rows;
+
+        const originalRows = [...result.rows].sort((a,b) => String(a.time).localeCompare(String(b.time)));
+        const futurePack = await fetchFuture24RowsForSlider(period);
+        state.fullRows = dedupeRowsByTime([...originalRows, ...(futurePack.rows || [])]);
+        state.rows = originalRows.map(r => ({...r, timeFocusWeight:1}));
+        state.timeFocusActive = true;
+        state.initialFocusTime = originalRows.at(-1)?.time || period.end;
+        state.timeFocusIndex = nearestTimeFocusIndex(state.initialFocusTime);
         state.lastApiUrl = result.url;
         state.lastEndpoint = result.endpoint;
         state.lastSourceLabel = result.sourceLabel;
@@ -2871,10 +3250,12 @@
         last.status = 'ok';
         last.message = `${result.rows.length} ч`;
         updatePlaceStatus();
-        state.stats = analyze(result.rows);
-        renderAll();
+        applyTimeFocus(state.timeFocusIndex, true);
+        state.initialAnalysisText = $('analysisText')?.textContent || '';
+        state.initialAnalysisKind = (($('analysisText')?.className || '').match(/\b(good|warn|bad)\b/) || [,''])[1];
+        state.keepInitialAnalysis = true;
         const triedText = state.lastTriedSources.map(x => `${sourceHumanName(x.id)}: ${x.status === 'ok' ? 'успех' : 'ошибка'}`).join('; ');
-        setStatus($('loadStatus'), `Готово. Получено ${result.rows.length} почасовых точек. Источник: ${result.sourceLabel}.\nПроверка источников: ${triedText}.`, 'good');
+        setStatus($('loadStatus'), `Готово. Получено ${result.rows.length} почасовых точек. Источник: ${result.sourceLabel}.${futurePack.message || ''}\nПроверка источников: ${triedText}.`, 'good');
         return;
       } catch(e) {
         console.warn(id, e);
@@ -2904,14 +3285,39 @@
     return Math.floor((d - start) / 86400000);
   }
 
+  function timeZoneOffsetHours(timeZone, date){
+    if (!timeZone || !(date instanceof Date) || isNaN(date)) return null;
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone, hour12:false,
+        year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
+      }).formatToParts(date).reduce((acc,p)=>{acc[p.type]=p.value; return acc;},{});
+      const asUTC = Date.UTC(Number(parts.year), Number(parts.month)-1, Number(parts.day), Number(parts.hour), Number(parts.minute));
+      return (asUTC - date.getTime()) / 3600000;
+    } catch(e) {
+      return null;
+    }
+  }
+
   function estimateSolarElevation(time, lat){
     const d = localDateFromHour(time);
     if (!d || !Number.isFinite(lat)) return null;
     const n = dayOfYear(d);
-    const decl = 23.44 * Math.sin((360 / 365) * (n - 81) * Math.PI / 180);
-    const hour = d.getHours() + d.getMinutes()/60;
-    const ha = 15 * (hour - 12);
     const toRad = x => x * Math.PI / 180;
+    const decl = 23.44 * Math.sin(toRad((360 / 365) * (n - 81)));
+    const b = toRad((360 / 365) * (n - 81));
+    const equationOfTimeMin = 9.87 * Math.sin(2*b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
+    const lon = Number(state.location?.longitude);
+    let hour = d.getHours() + d.getMinutes()/60;
+    if (Number.isFinite(lon)) {
+      const utcGuess = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()));
+      const offsetH = timeZoneOffsetHours(state.location?.timezone, utcGuess);
+      if (Number.isFinite(offsetH)) hour += (4 * (lon - 15 * offsetH) + equationOfTimeMin) / 60;
+      else hour += equationOfTimeMin / 60;
+    } else {
+      hour += equationOfTimeMin / 60;
+    }
+    const ha = 15 * (hour - 12);
     const sinEl = Math.sin(toRad(lat))*Math.sin(toRad(decl)) + Math.cos(toRad(lat))*Math.cos(toRad(decl))*Math.cos(toRad(ha));
     return Math.asin(clamp(sinEl, -1, 1)) * 180 / Math.PI;
   }
@@ -3029,8 +3435,9 @@
     for (const r of rows) {
       const speed = r.speed || 0;
       if (speed < minSpeed) continue;
+      const timeWeight = r.timeFocusWeight ?? 1;
       const scentWeight = mode === 'scent' ? (r.scentWeight ?? 1) : 1;
-      const w = Math.max(speed, 0.1) * scentWeight;
+      const w = Math.max(speed, 0.1) * scentWeight * timeWeight;
       const deg = mode === 'scent' ? normDeg(r.dir + 180) : normDeg(r.dir);
       const rad = deg * Math.PI / 180;
       x += Math.sin(rad) * w;
@@ -3053,8 +3460,9 @@
     for (const r of rows) {
       const speed = r.speed || 0;
       if (speed < minSpeed) { ignored++; if (speed < 0.5) calm++; continue; }
+      const timeWeight = r.timeFocusWeight ?? 1;
       const scentWeight = mode === 'scent' ? (r.scentWeight ?? 1) : 1;
-      const durationWeight = mode === 'scent' ? scentWeight : 1;
+      const durationWeight = (mode === 'scent' ? scentWeight : 1) * timeWeight;
       const deg = mode === 'scent' ? normDeg(r.dir + 180) : normDeg(r.dir);
       const i = binIndex(deg, bins);
       const s = sectors[i];
@@ -3115,14 +3523,257 @@
     return {text:'переменный ветер', cls:'bad'};
   }
 
+  function rowHourMs(r){
+    const d = localDateFromHour(r?.time);
+    return d ? d.getTime() : NaN;
+  }
+
+  function localHourStringFromMs(ms){
+    const d = new Date(ms);
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:00`;
+  }
+
+  function buildTimeFocusTicks(){
+    if (!state.fullRows?.length) return [];
+    const times = state.fullRows.map(rowHourMs).filter(Number.isFinite);
+    if (!times.length) return state.fullRows.map(r => r.time);
+    const start = Math.min(...times);
+    const end = Math.max(...times);
+    const ticks = [];
+    for (let t = start; t <= end + 1; t += 3600000) ticks.push(localHourStringFromMs(t));
+    return ticks;
+  }
+
+  function formatFocusTime(time){
+    if (!time) return '—';
+    const s = String(time).replace('T',' ');
+    return s.slice(0,16);
+  }
+
+  function timeFocusRows(index){
+    if (!state.fullRows?.length) return [];
+    const ticks = buildTimeFocusTicks();
+    const safeIndex = Math.max(0, Math.min(ticks.length - 1, Number(index) || 0));
+    const targetTime = ticks[safeIndex] || state.fullRows.at(-1)?.time;
+    const targetMs = rowHourMs({time:targetTime});
+    return state.fullRows
+      .filter(r => String(r.time) <= String(targetTime))
+      .map(r => {
+        const ageH = Number.isFinite(targetMs) && Number.isFinite(rowHourMs(r)) ? Math.max(0, (targetMs - rowHourMs(r)) / 3600000) : 0;
+        // Быстрое затухание: выбранный час читается как основной, предыдущие часы остаются только фоном.
+        const timeFocusWeight = clamp(Math.exp(-ageH / 2.15), 0.015, 1);
+        return {...r, timeFocusWeight, timeFocusAgeHours: ageH, timeFocusTarget: targetTime};
+      });
+  }
+
+  function applyTimeFocus(index, shouldRender=true){
+    if (!state.fullRows?.length) return;
+    const ticks = buildTimeFocusTicks();
+    if (!ticks.length) return;
+    state.timeFocusActive = true;
+    state.timeFocusIndex = Math.max(0, Math.min(ticks.length - 1, Number(index) || 0));
+    state.rows = timeFocusRows(state.timeFocusIndex);
+    state.stats = analyze(state.rows);
+    if (shouldRender) renderAll();
+  }
+
+  function currentFocusRow(){
+    if (!state.fullRows?.length || state.timeFocusIndex == null) return null;
+    const ticks = buildTimeFocusTicks();
+    if (!ticks.length) return null;
+    return {time:ticks[Math.max(0, Math.min(ticks.length - 1, state.timeFocusIndex))]};
+  }
+
+  function focusTimeIcon(time){
+    const lat = Number(state.location?.latitude);
+    const sun = estimateSolarElevation(time, lat);
+    if (sun == null || !Number.isFinite(sun)) return '🕒';
+    const prev = estimateSolarElevation(addHoursToLocalInput(time, -1), lat);
+    const next = estimateSolarElevation(addHoursToLocalInput(time, 1), lat);
+    const rising = Number.isFinite(prev) && Number.isFinite(next) ? next > prev : null;
+    if (sun < -6) return '🌙';
+    if (sun < 8) return rising === false ? '🌇' : '🌅';
+    if (sun < 18 && rising === false) return '🌇';
+    if (sun < 18 && rising === true) return '🌅';
+    return '☀️';
+  }
+
+  function applyKnobFill(knob, time){
+    const ticks = buildTimeFocusTicks();
+    const times = ticks.map(t => rowHourMs({time:t})).filter(Number.isFinite);
+    const focusMs = rowHourMs({time});
+    const nowMs = rowHourMs({time:currentLocalHour()});
+    if (!Number.isFinite(focusMs) || !Number.isFinite(nowMs) || !times.length) {
+      knob.className = 'timeDialKnob nowish';
+      knob.style.setProperty('--knob-fill-pct', '55%');
+      return;
+    }
+    const minMs = Math.min(...times);
+    const maxMs = Math.max(...times);
+    knob.classList.remove('past','future','nowish');
+    if (focusMs > nowMs + 1800000) {
+      const span = Math.max(3600000, maxMs - nowMs);
+      const pct = clamp(((focusMs - nowMs) / span) * 100, 12, 100);
+      knob.classList.add('future');
+      knob.style.setProperty('--knob-fill-pct', `${pct.toFixed(0)}%`);
+    } else if (focusMs < nowMs - 1800000) {
+      const span = Math.max(3600000, nowMs - minMs);
+      const pct = clamp(100 - ((nowMs - focusMs) / span) * 88, 8, 100);
+      knob.classList.add('past');
+      knob.style.setProperty('--knob-fill-pct', `${pct.toFixed(0)}%`);
+    } else {
+      knob.classList.add('nowish');
+      knob.style.setProperty('--knob-fill-pct', '55%');
+    }
+  }
+
+  function timeDialOriginIndex(){
+    const ticks = buildTimeFocusTicks();
+    if (!ticks.length) return 0;
+    const originTime = state.initialFocusTime || currentLocalHour() || ticks[Math.floor(ticks.length / 2)];
+    return Math.max(0, Math.min(ticks.length - 1, nearestTimeFocusIndex(originTime)));
+  }
+
+  function timeDialAngleForIndex(idx){
+    const ticks = buildTimeFocusTicks();
+    const n = ticks.length;
+    if (n < 2) return 0;
+    const origin = timeDialOriginIndex();
+    const maxOffset = Math.max(origin, n - 1 - origin, 1);
+    const step = 180 / maxOffset;
+    return (idx - origin) * step;
+  }
+
+  function timeDialIndexForAngle(deg){
+    const ticks = buildTimeFocusTicks();
+    const n = ticks.length;
+    if (n < 2) return 0;
+    const origin = timeDialOriginIndex();
+    const maxOffset = Math.max(origin, n - 1 - origin, 1);
+    const step = 180 / maxOffset;
+    const signedDeg = deg <= 180 ? deg : deg - 360;
+    return Math.max(0, Math.min(n - 1, origin + Math.round(signedDeg / step)));
+  }
+
+  function renderTimeDial(){
+    const dial = $('timeDial');
+    const knob = $('timeDialKnob');
+    const info = $('timeDialInfo');
+    const badge = $('timeDialCenterBadge');
+    if (!dial || !knob || !info) return;
+    const ticks = buildTimeFocusTicks();
+    const n = ticks.length;
+    if (n < 2 || !state.stats) {
+      dial.classList.add('hidden');
+      info.classList.add('hidden');
+      return;
+    }
+    dial.classList.remove('hidden');
+    info.classList.remove('hidden');
+    const idx = Math.max(0, Math.min(n - 1, state.timeFocusIndex ?? n - 1));
+    const row = {time:ticks[idx]};
+    const deg = timeDialAngleForIndex(idx);
+    dial.style.setProperty('--dial-progress', `${deg}deg`);
+    const rect = dial.getBoundingClientRect();
+    const size = Math.min(rect.width || 620, rect.height || 620);
+    const radius = Math.max(118, size / 2 - 20);
+    const cx = (rect.width || size) / 2;
+    const cy = (rect.height || size) / 2;
+    const rad = (deg - 90) * Math.PI / 180;
+    const x = cx + Math.cos(rad) * radius;
+    const y = cy + Math.sin(rad) * radius;
+    knob.style.left = `${x}px`;
+    knob.style.top = `${y}px`;
+    applyKnobFill(knob, row.time);
+    const dateShort = formatFocusTime(row?.time);
+    const visibleRows = state.rows?.length || 0;
+    const futureCut = n - idx - 1;
+    const icon = focusTimeIcon(row.time);
+    knob.innerHTML = `<span class="sunIcon">${icon}</span><small>${escapeHtml(String(row?.time || '—').slice(11,16))}</small>`;
+    if (badge) badge.innerHTML = `Почасовой срез<span>${escapeHtml(dateShort)}</span>`;
+    info.innerHTML = `<b>Почасовой срез:</b> ${escapeHtml(dateShort)} · в расчёте ${visibleRows} ч; будущие часы скрыты: ${futureCut}. Соседние часы быстро теряют влияние.`;
+  }
+
+  function updateTimeDialFromPointer(e){
+    const dial = $('timeDial');
+    if (!dial || !state.fullRows?.length) return;
+    const rect = dial.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = e.clientX - cx;
+    const dy = e.clientY - cy;
+    const deg = (Math.atan2(dy, dx) * 180 / Math.PI + 90 + 360) % 360;
+    const n = buildTimeFocusTicks().length;
+    const idx = timeDialIndexForAngle(deg);
+    if (idx !== state.timeFocusIndex) applyTimeFocus(idx, true);
+  }
+
+  function setupTimeDial(){
+    const dial = $('timeDial');
+    if (!dial) return;
+    let dragging = false;
+    const start = (e) => {
+      if (!state.fullRows?.length) return;
+      dragging = true;
+      dial.setPointerCapture?.(e.pointerId);
+      updateTimeDialFromPointer(e);
+      e.preventDefault();
+    };
+    const move = (e) => {
+      if (!dragging) return;
+      updateTimeDialFromPointer(e);
+      e.preventDefault();
+    };
+    const stop = (e) => {
+      dragging = false;
+      try { dial.releasePointerCapture?.(e.pointerId); } catch(_) {}
+    };
+    dial.addEventListener('pointerdown', start);
+    dial.addEventListener('pointermove', move);
+    dial.addEventListener('pointerup', stop);
+    dial.addEventListener('pointercancel', stop);
+    dial.addEventListener('wheel', e => {
+      if (!state.fullRows?.length) return;
+      const delta = e.deltaY > 0 ? -1 : 1;
+      applyTimeFocus((state.timeFocusIndex ?? buildTimeFocusTicks().length - 1) + delta, true);
+      e.preventDefault();
+    }, {passive:false});
+  }
+
   function renderAll(){
     renderMetrics();
     drawRose($('roseCanvas'));
     renderLegend($('legendRose'));
-  updateActionState();
+    renderTimeDial();
+    updateActionState();
     renderDataPanel();
     renderScentDetails();
     buildReport();
+  }
+
+
+  function metricDirDisplayName(deg, bins=16){
+    const short = dirShortName(deg, bins);
+    if (short === '—') return '—';
+    const fullAllowed = new Set(['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ']);
+    return fullAllowed.has(short) ? dirName(deg, bins) : short;
+  }
+
+  function formatMetricDir(deg, bins=16){
+    if (deg == null) return {short:'—', full:'—', className:''};
+    const full = formatDir(deg, bins);
+    const displayName = metricDirDisplayName(deg, bins);
+    const short = `${displayName} · ${round(deg,0)}°`;
+    let className = '';
+    if (short.length > 16) className = 'wideDir';
+    else if (short.length > 11) className = 'longDir';
+    return {short, full, className};
+  }
+
+  function metricDirectionHtml(label, dirObj, extraClass=''){
+    const cls = dirObj.className || '';
+    return `<div class="metric directionMetric ${extraClass}"><span class="metricLabel">${label}</span><b class="${cls}" title="${escapeHtml(dirObj.full)}">${escapeHtml(dirObj.short)}</b></div>`;
   }
 
   function renderMetrics(){
@@ -3132,6 +3783,8 @@
     const durability = s.scentDurability?.label || {text:'—', cls:''};
     const windMean = formatDir(s.windVec.mean, s.bins);
     const scentMean = formatDir(s.scentVec.mean, s.bins);
+    const windMetric = formatMetricDir(s.windVec.mean, s.bins);
+    const scentMetric = formatMetricDir(s.scentVec.mean, s.bins);
     const calmPct = s.calmCount / s.total * 100;
     const weakPct = s.weakCount / s.total * 100;
     const topScent = [...s.scentSec.sectors].sort((a,b)=>b.count-a.count || b.weighted-a.weighted)[0];
@@ -3140,8 +3793,8 @@
     const switchRate = s.total > 1 ? s.directionSwitches / (s.total-1) * 100 : 0;
 
     $('metrics').innerHTML = `
-      <div class="metric"><span class="metricLabel">Усредненное направление ветра</span><b>${windMean}</b></div>
-      <div class="metric primary"><span class="metricLabel">Усредненное направление переноса запаха</span><b>${scentMean}</b></div>
+      ${metricDirectionHtml('Усреднённый вектор ветра', windMetric)}
+      ${metricDirectionHtml('Усредненный вектор запаха', scentMetric, 'primary')}
       <div class="metric ${durability.cls === 'good' ? 'goodish' : durability.cls === 'bad' ? 'badish' : 'warnish'}"><span class="metricLabel">Устойчивость запаха</span><b>${durability.text}</b></div>
       <div class="metric ${stability.cls === 'good' ? 'goodish' : stability.cls === 'bad' ? 'badish' : 'warnish'}"><span class="metricLabel">Стабильность переноса</span><b>${stability.text}</b></div>
       <div class="metric"><span class="metricLabel">Скорость ветра</span><b>${round(s.avg,1)} м/с</b><span>медиана ${round(s.median,1)} м/с</span></div>
@@ -3165,7 +3818,11 @@
     if (s.maxGust != null && s.avg > 0 && s.maxGust / s.avg >= 2.5) lines.push('Порывы выражены: возможны короткие выбросы запаха дальше основного сектора, особенно на открытых местах и просеках.');
     if (s.precipHours >= 2 || s.precipTotal >= 1) lines.push(`Осадки отмечены ${s.precipHours} ч, сумма ${round(s.precipTotal,1)} мм: слабое увлажнение может поддерживать запах, но заметный дождь снижает читаемость старого следа и смывает часть материала.`);
     if (s.avgRh != null && s.avgRh >= 85 && s.avg < 2) lines.push(`Высокая влажность при слабом ветре (RH≈${round(s.avgRh,0)}%) усиливает зависимость от микрорельефа, ночного стока воздуха и закрытых участков.`);
-    setStatus($('analysisText'), lines.join('\n'), stability.cls);
+    if (state.keepInitialAnalysis && state.initialAnalysisText) {
+      setStatus($('analysisText'), state.initialAnalysisText, state.initialAnalysisKind || stability.cls);
+    } else {
+      setStatus($('analysisText'), lines.join('\n'), stability.cls);
+    }
     renderSourceInfo();
 
     const flags = [];
@@ -3443,10 +4100,10 @@
     let maxSector = 1;
     if (state.roseMode === 'wind') {
       maxSector = drawRoseLayer(ctx, s.windSec, currentSpeedClasses(), {cssSize,R,bins:s.bins,alpha:.9});
-      drawMeanArrow(ctx, s.windVec.mean, s.windVec.r, 'wind', {cssSize,R,label:'Усредненное направление ветра'});
+      drawMeanArrow(ctx, s.windVec.mean, s.windVec.r, 'wind', {cssSize,R,label:'Усреднённый вектор ветра'});
     } else if (state.roseMode === 'scent') {
       maxSector = drawRoseLayer(ctx, s.scentSec, currentScentClasses(), {cssSize,R,bins:s.bins,alpha:.9});
-      drawMeanArrow(ctx, s.scentVec.mean, s.scentVec.r, 'scent', {cssSize,R,label:'Усредненное направление переноса запаха'});
+      drawMeanArrow(ctx, s.scentVec.mean, s.scentVec.r, 'scent', {cssSize,R,label:'Усредненный вектор запаха'});
     } else {
       const maxWind = drawRoseLayer(ctx, s.windSec, currentSpeedClasses(), {cssSize,R,bins:s.bins,alpha:.82});
       const maxScent = drawRoseLayer(ctx, s.scentSec, currentScentClasses(), {cssSize,R,bins:s.bins,alpha:.50,radiusScale:.96,stroke:roseColors().scentStroke});
@@ -3531,7 +4188,7 @@
       '1. Точка и период',
       `Место/точка: ${l.name || 'точка'}`,
       `Координаты: ${round(l.latitude,5)}, ${round(l.longitude,5)}`,
-      `Период анализа: ${$('startTime').value} — ${$('endTime').value}${l.timezone ? ' ('+l.timezone+')' : ''}`,
+      `Период анализа: ${$('startTime').value} — ${$('endTime').value}${l.timezone ? ' ('+l.timezone+')' : ''}${currentFocusRow() ? '; почасовой срез: ' + formatFocusTime(currentFocusRow().time) : ''}`,
       `Источник данных: ${source}`,
       `Метеостанция/расчётная точка: ${station}; расстояние: ${distance}`,
       '',
@@ -3600,9 +4257,11 @@
     const windMean = s.windVec.mean == null ? '—' : `${dirName(s.windVec.mean,s.bins)} ${round(s.windVec.mean,0)}°`;
     const scentMean = s.scentVec.mean == null ? '—' : `${dirName(s.scentVec.mean,s.bins)} ${round(s.scentVec.mean,0)}°`;
     const source = state.lastSourceMeta?.sourceName || state.lastSourceLabel || '—';
+    const focus = currentFocusRow();
+    const focusLine = focus ? ` · срез: ${formatFocusTime(focus.time)}` : '';
     return [
       `Точка: ${l.name || 'точка'} · координаты ${round(l.latitude,5)}, ${round(l.longitude,5)}`,
-      `Период: ${$('startTime').value} — ${$('endTime').value}${l.timezone ? ' · ' + l.timezone : ''}`,
+      `Период: ${$('startTime').value} — ${$('endTime').value}${l.timezone ? ' · ' + l.timezone : ''}${focusLine}`,
       `Ветер: ${windMean} · перенос запаха: ${scentMean} · устойчивость запаха: ${s.scentDurability?.label?.text || '—'} (${round(s.scentDurability?.score,0)}/100)`,
       `Источник: ${source}`
     ];
@@ -3696,6 +4355,7 @@
     if (state.stats) {
       drawRose($('roseCanvas'));
       renderLegend($('legendRose'));
+      renderTimeDial();
     }
     setTimeout(() => { if (state.map) state.map.invalidateSize(); }, 80);
   }
@@ -3741,7 +4401,7 @@
 
   function openSourceSettings(){
     $('sourceSettingsModal')?.classList.remove('hidden');
-    setTimeout(() => $('yandexKey')?.focus(), 30);
+    setTimeout(() => $('weatherApiKey')?.focus(), 30);
   }
 
   function closeSourceSettings(){
@@ -3830,8 +4490,8 @@
   $('savePointBtn')?.addEventListener('click', savePoint);
   $('loadPointBtn')?.addEventListener('click', loadPoint);
   $('presetSelect').addEventListener('change', applyPreset);
-  $('binCount').addEventListener('change', () => { if (state.rows.length) { state.stats = analyze(state.rows); renderAll(); }});
-  $('minSpeed').addEventListener('change', () => { if (state.rows.length) { state.stats = analyze(state.rows); renderAll(); }});
+  $('binCount').addEventListener('change', () => { if (state.fullRows.length) applyTimeFocus(state.timeFocusIndex ?? buildTimeFocusTicks().length - 1, true); else if (state.rows.length) { state.stats = analyze(state.rows); renderAll(); }});
+  $('minSpeed').addEventListener('change', () => { if (state.fullRows.length) applyTimeFocus(state.timeFocusIndex ?? buildTimeFocusTicks().length - 1, true); else if (state.rows.length) { state.stats = analyze(state.rows); renderAll(); }});
   $('sourceSelect')?.addEventListener('change', () => {
     const src = $('sourceSelect').value;
     const timeout = getSourceTimeoutMs()/1000;
@@ -3872,11 +4532,12 @@
     setSwitchActive('dataModeSwitch', 'data-data-mode', state.dataMode);
     if (state.stats) renderDataPanel();
   }));
-  window.addEventListener('resize', () => { if (state.stats) drawRose($('roseCanvas')); });
+  window.addEventListener('resize', () => { if (state.stats) { drawRose($('roseCanvas')); renderTimeDial(); } });
 
   const savedTimeout = localStorage.getItem('psr_source_timeout_sec');
   if (savedTimeout && $('sourceTimeout') && [...$('sourceTimeout').options].some(o => o.value === savedTimeout)) $('sourceTimeout').value = savedTimeout;
   setupSourceSettings();
+  setupTimeDial();
   setupCollapsibleCards();
   setUiMode('simple');
   initMap();
@@ -3889,6 +4550,8 @@
   checkPrimarySourceAvailability();
 
   function drawEmpty(canvas, title){
+    $('timeDial')?.classList.add('hidden');
+    $('timeDialInfo')?.classList.add('hidden');
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0,0,canvas.width,canvas.height);
     const colors = roseColors();
