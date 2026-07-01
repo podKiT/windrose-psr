@@ -5,12 +5,12 @@
 <p align="center">
   <img alt="HTML" src="https://img.shields.io/badge/HTML-100%25-E34F26?style=for-the-badge&logo=html5&logoColor=white">
   <img alt="Browser" src="https://img.shields.io/badge/работает_в_браузере-без_установки-1967d2?style=for-the-badge">
-  <img alt="PSR" src="https://img.shields.io/badge/PSR-поисково--спасательные_задачи-0f7b4f?style=for-the-badge">
+  <img alt="PSR" src="https://img.shields.io/badge/PSR-поисково--спасательные_работы-0f7b4f?style=for-the-badge">
 </p>
 
 ## Что это
 
-**Windrose PSR** — это репозиторий с автономными HTML-инструментами для полевой и штабной работы в поисково-спасательных задачах.
+**Windrose PSR** — это репозиторий с автономными HTML-инструментами для полевой и штабной работы в поисково-спасательных работах.
 
 Инструменты помогают:
 
