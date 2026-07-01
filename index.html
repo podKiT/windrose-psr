@@ -1,4 +1,10 @@
 <!doctype html>
+<!--
+  Роза ветров — однофайловый HTML-инструмент для полевой оценки ветра,
+  вероятного переноса запаха, сохранности запаха и стабильности шлейфа.
+  В файле намеренно собраны HTML, CSS и JS: так инструмент проще пересылать,
+  открывать локально и выкладывать как статическую страницу.
+-->
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
@@ -6,6 +12,10 @@
   <title>Роза ветров</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
+    /*
+      Базовая тёмная палитра. Ниже есть переопределение :root для светлой
+      темы и отдельный блок body.original-theme для возврата тёмного вида.
+    */
     :root{
       --bg:#0b1020;
       --panel:#121a2c;
@@ -41,9 +51,8 @@
     .grid{display:grid; gap:16px}
     .grid > *{min-width:0}
     .grid.main{grid-template-columns: 410px minmax(0,1fr)}
-    .grid.two{grid-template-columns: repeat(2,minmax(0,1fr))}
     .grid.three{grid-template-columns: repeat(3,minmax(0,1fr))}
-    @media (max-width: 1100px){.grid.main,.grid.two,.grid.three{grid-template-columns:1fr}}
+    @media (max-width: 1100px){.grid.main,.grid.three{grid-template-columns:1fr}}
     .card{
       background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.018)), var(--panel);
       border:1px solid rgba(255,255,255,.08);
@@ -77,7 +86,6 @@
     button:active{transform:translateY(1px)}
     button.secondary{background:#22304d;color:var(--text);border:1px solid var(--line)}
     button.ghost{background:transparent;color:var(--accent);border:1px dashed #3d567d}
-    button.danger{background:#6f2631;color:#ffe5e5;border:1px solid #9d3b46}
     .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
     .row > *{flex:1; min-width:0}
     .mini{font-size:12px; color:var(--muted)}
@@ -114,21 +122,14 @@
     .questionBtn{display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:999px; background:#22304d; color:#dce6ff; border:1px solid var(--line); font-weight:900; font-size:13px; cursor:pointer; user-select:none}
     .fieldTitle{display:flex; align-items:center; gap:8px; margin:10px 0 6px}
     .fieldTitle label{margin:0}
-    .fieldHelp{background:#0d1528;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:8px 0;color:var(--muted);font-size:12px}
-    .fieldHelp code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; color:#dce6ff}
     .actionBtn{background:linear-gradient(135deg,#86efac,#34d399)!important;color:#042015!important; margin-top:14px}
     .actionBtn:disabled{opacity:.45; cursor:not-allowed; filter:grayscale(.35); transform:none}
-    .sourceDetails{background:#0d1528;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:10px}
-    .sourceDetails summary{cursor:pointer;font-weight:750;color:#dce6ff}
     .summaryHelpRow{display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:start; margin-top:10px}
     .summaryHelpRow details{margin-top:0}
     .summaryTools{display:flex; justify-content:flex-end; margin-top:10px}
     .smallInfoBtn{width:auto; flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:8px 12px; border-radius:12px; background:#22304d; color:#dce6ff; border:1px solid var(--line); font-size:13px; font-weight:750}
     .smallInfoBtn:hover{border-color:var(--accent); filter:brightness(1.06)}
     .metric.primary{border-color:rgba(125,211,252,.42)}
-    .metric.goodish{border-color:rgba(141,223,154,.42)}
-    .metric.warnish{border-color:rgba(255,209,102,.42)}
-    .metric.badish{border-color:rgba(255,138,138,.42)}
     @media (max-width:720px){.compactPair,.twoButtonRow,.settingsGrid,.summaryHelpRow{grid-template-columns:1fr}}
 
     .status{padding:10px 12px;border-radius:12px;background:#0d1528;border:1px solid var(--line); color:#d9e7ff; margin-top:10px; white-space:pre-line}
@@ -157,7 +158,6 @@
     th{color:#dce6ff; font-size:12px; background:#0d1528; position:sticky; top:0}
     .tableWrap{max-height:360px; overflow:auto; border:1px solid var(--line); border-radius:14px; background:#0c1324}
     .muted{color:var(--muted)}
-    .kbd{font-family:ui-monospace,SFMono-Regular,Consolas,monospace; background:#07101f; padding:2px 6px; border-radius:6px; border:1px solid var(--line)}
     details{background:#0d1528;border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:10px}
     summary{cursor:pointer;font-weight:700;color:#dce6ff}
     .legend{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:8px}
@@ -183,7 +183,7 @@
       h2{font-size:17px}
       .row{display:grid; grid-template-columns:1fr; gap:8px}
       .row > *{width:100%}
-      .grid.two,.grid.three{gap:10px}
+      .grid.three{gap:10px}
       .canvasBox{min-height:280px; padding:6px}
       canvas{max-width:100%}
       .tableWrap{max-height:330px}
@@ -285,12 +285,13 @@
     #sourceSelect option.sourceKeyOk{color:#8ddf9a;font-weight:700}
     #sourceSelect option.sourceKeyMissing{color:#ff8a8a;font-weight:700}
     #sourceSelect optgroup{color:#a9b6d3;font-weight:800}
-    .sourceHint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.35}
-    .sourceHint .keyOk{color:#8ddf9a;font-weight:800}
-    .sourceHint .keyMissing{color:#ff8a8a;font-weight:800}
 
     .hidden{display:none!important}
 
+    /*
+      Светлая тема по умолчанию. Большинство правил ниже используют !important,
+      потому что слой добавлялся поверх ранней тёмной версии без полной переделки CSS.
+    */
     :root{
       --bg:#eaf6fb;
       --panel:#f9fdff;
@@ -372,7 +373,7 @@
     }
     .cardHead{border-bottom:0!important}
     h2,h3,.cardHead h2,.helpBlock h3{color:var(--ink)!important}
-    p,.mini,.muted,.mapHint,.sourceHint,.metric span,.metric .metricLabel{color:var(--muted)!important}
+    p,.mini,.muted,.mapHint,.metric span,.metric .metricLabel{color:var(--muted)!important}
     label{color:var(--muted)!important}
     input,select,button,textarea{
       background:#fff!important;
@@ -407,18 +408,13 @@
       color:var(--accent2)!important;
       border:1px dashed #78aef0!important;
     }
-    button.danger{
-      background:#ffe8e5!important;
-      color:var(--bad)!important;
-      border-color:#ffc9c2!important;
-    }
     .actionBtn{
       background:#d9f4e8!important;
       color:#063d29!important;
       border:1px solid #9ed8bf!important;
     }
     .actionBtn:hover{background:#c5ecd9!important}
-    .status,.noteBox,details,.sourceDetails,.fieldHelp,.helpBlock,.settingsItem,.metric,.suggestion,.canvasBox,.mapBox,.tableWrap{
+    .status,.noteBox,details,.helpBlock,.settingsItem,.metric,.suggestion,.canvasBox,.mapBox,.tableWrap{
       background:#fafdff!important;
       border:1px solid var(--line)!important;
       color:var(--ink)!important;
@@ -430,9 +426,6 @@
     .suggestion:hover{border-color:#78aef0!important;background:#eef8ff!important}
     .metric b{color:var(--ink)!important}
     .metric.primary{border-color:rgba(25,103,210,.40)!important;background:#f3f9ff!important}
-    .metric.goodish{border-color:rgba(15,123,79,.36)!important;background:#f0fff8!important}
-    .metric.warnish{border-color:rgba(245,158,11,.36)!important;background:#fff9ec!important}
-    .metric.badish{border-color:rgba(180,35,24,.36)!important;background:#fff2f0!important}
     .pill,.legend span{
       background:#f4fbff!important;
       border:1px solid var(--line)!important;
@@ -465,7 +458,7 @@
       color:var(--muted)!important;
       background:transparent!important;
     }
-    .kbd, code{
+    code{
       background:#eef8ff!important;
       border:1px solid var(--line)!important;
       color:var(--accent2)!important;
@@ -473,7 +466,6 @@
       padding:1px 4px;
     }
     .sourceLine .iconBtn,.modalHead .iconBtn{background:#fff!important}
-    .sourceHint .keyOk{color:var(--good)!important}.sourceHint .keyMissing{color:var(--bad)!important}
     #sourceSelect option.sourceNoKey{color:var(--ink)!important}
     #sourceSelect option.sourceKeyOk{color:var(--good)!important;font-weight:800}
     #sourceSelect option.sourceKeyMissing{color:var(--bad)!important;font-weight:800}
@@ -526,21 +518,6 @@
     details[open] > summary{
       color:#071923!important;
     }
-    .metric.goodish{
-      border-color:rgba(25,103,210,.34)!important;
-      background:#edf7ff!important;
-    }
-    .metric.warnish{
-      border-color:rgba(245,158,11,.36)!important;
-      background:#fff5df!important;
-    }
-    .metric.badish{
-      border-color:rgba(180,35,24,.32)!important;
-      background:#fff0ed!important;
-    }
-    .metric.goodish b{color:#0d47a1!important}
-    .metric.warnish b{color:#7a4a00!important}
-    .metric.badish b{color:#8f1f14!important}
 
     body.original-theme{
       --bg:#0b1020;
@@ -583,7 +560,6 @@
     body.original-theme .mini,
     body.original-theme .muted,
     body.original-theme .mapHint,
-    body.original-theme .sourceHint,
     body.original-theme .metric span,
     body.original-theme .metric .metricLabel,
     body.original-theme label{
@@ -651,8 +627,6 @@
     body.original-theme .status,
     body.original-theme .noteBox,
     body.original-theme details,
-    body.original-theme .sourceDetails,
-    body.original-theme .fieldHelp,
     body.original-theme .helpBlock,
     body.original-theme .settingsItem,
     body.original-theme .metric,
@@ -668,12 +642,6 @@
     body.original-theme .status.good{border-color:rgba(141,223,154,.55)!important;color:#dfffe4!important;background:#0d1528!important}
     body.original-theme .status.warn{border-color:rgba(255,209,102,.55)!important;color:#fff1c2!important;background:#0d1528!important}
     body.original-theme .status.bad{border-color:rgba(255,138,138,.55)!important;color:#ffe0e0!important;background:#0d1528!important}
-    body.original-theme .metric.goodish{border-color:rgba(141,223,154,.42)!important;background:#0d1528!important}
-    body.original-theme .metric.warnish{border-color:rgba(255,209,102,.42)!important;background:#0d1528!important}
-    body.original-theme .metric.badish{border-color:rgba(255,138,138,.42)!important;background:#0d1528!important}
-    body.original-theme .metric.goodish b{color:#dfffe4!important}
-    body.original-theme .metric.warnish b{color:#fff1c2!important}
-    body.original-theme .metric.badish b{color:#ffe0e0!important}
     body.original-theme .metric b{color:#eef3ff!important}
     body.original-theme .pill,
     body.original-theme .legend span{
@@ -694,7 +662,6 @@
     body.original-theme .leaflet-container{background:#0c1324!important;color:#eef3ff!important}
     body.original-theme .toast{background:#0d1528!important;color:#dfffe4!important;border:1px solid rgba(141,223,154,.65)!important}
     body.original-theme footer{color:#a9b6d3!important}
-    body.original-theme .kbd,
     body.original-theme code{background:#07101f!important;border:1px solid #2d3a59!important;color:#dce6ff!important}
     body.original-theme .summaryHelpRow summary,
     body.original-theme details > summary{color:#dce6ff!important}
@@ -1281,6 +1248,70 @@
       #metrics .metric b + span{font-size:12px!important}
     }
 
+
+    /* v4.16: тип задачи в сводке */
+    .summaryTaskMode{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin:-4px 0 12px;
+      padding:8px 10px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#fafdff;
+    }
+    .summaryTaskMode label{margin:0!important;font-size:13px!important;font-weight:800!important;color:var(--muted)!important}
+    .summaryTaskMode .segmented{margin:0!important;gap:6px!important}
+    .summaryTaskMode .segmented button{padding:7px 12px!important}
+    body.original-theme .summaryTaskMode{background:#0d1528!important;border-color:#2d3a59!important}
+    @media(max-width:720px){.summaryTaskMode{align-items:stretch}.summaryTaskMode .segmented{width:100%}.summaryTaskMode .segmented button{flex:1 1 0!important}}
+
+
+
+    /* v4.19: единые цвета статусов и подсказки таблицы */
+    .metric.statusRed{border-color:rgba(180,35,24,.42)!important;background:#fff2f0!important}
+    .metric.statusOrange{border-color:rgba(245,158,11,.46)!important;background:#fff5df!important}
+    .metric.statusGreen{border-color:rgba(15,123,79,.40)!important;background:#f0fff8!important}
+    .metric.statusBlue{border-color:rgba(25,103,210,.42)!important;background:#edf7ff!important}
+    .metric.statusRed b{color:#8f1f14!important}
+    .metric.statusOrange b{color:#9a5b00!important}
+    .metric.statusGreen b{color:#0f7b4f!important}
+    .metric.statusBlue b{color:#0d47a1!important}
+    .status.info{border-color:rgba(25,103,210,.42)!important;color:#0d47a1!important;background:#edf7ff!important}
+    th[title]{cursor:help;text-decoration:underline dotted rgba(96,120,136,.55);text-underline-offset:3px}
+    body.original-theme .metric.statusRed{border-color:rgba(255,138,138,.48)!important;background:#24131a!important}
+    body.original-theme .metric.statusOrange{border-color:rgba(255,209,102,.48)!important;background:#241c10!important}
+    body.original-theme .metric.statusGreen{border-color:rgba(141,223,154,.48)!important;background:#102019!important}
+    body.original-theme .metric.statusBlue{border-color:rgba(125,211,252,.50)!important;background:#101d2e!important}
+    body.original-theme .metric.statusRed b{color:#ffb4b4!important}
+    body.original-theme .metric.statusOrange b{color:#ffe19a!important}
+    body.original-theme .metric.statusGreen b{color:#baf3c4!important}
+    body.original-theme .metric.statusBlue b{color:#9ed8ff!important}
+    body.original-theme .status.info{border-color:rgba(125,211,252,.50)!important;color:#c8efff!important;background:#101d2e!important}
+    body.original-theme th[title]{text-decoration-color:rgba(169,182,211,.65)}
+
+
+    /* v4.23: два быстрых подёргивания ярлычка, затем пауза */
+    @keyframes timeDialKnobNudge{
+      0%, 12%, 26%, 100%{transform:translate(-50%, -50%)}
+      4%{transform:translate(calc(-50% - 5px), -50%)}
+      8%{transform:translate(calc(-50% + 5px), -50%)}
+      18%{transform:translate(calc(-50% - 4px), -50%)}
+      22%{transform:translate(calc(-50% + 4px), -50%)}
+    }
+    .timeDial:not(.hidden) .timeDialKnob{
+      animation:timeDialKnobNudge 4.4s ease-in-out infinite;
+      will-change:transform;
+    }
+    .timeDial:active .timeDialKnob{
+      animation:none!important;
+    }
+    @media (prefers-reduced-motion: reduce){
+      .timeDial:not(.hidden) .timeDialKnob{animation:none!important}
+    }
+
   </style>
 </head>
 <body class="simple-mode">
@@ -1296,8 +1327,10 @@
   </div>
 </header>
 
+<!-- Основной интерфейс: слева ввод места/периода/экспорт, справа расчёт и графики. -->
 <main class="wrap grid main">
   <section class="grid">
+    <!-- Блок выбора точки: поиск населённого пункта, координаты, геолокация и карта. -->
     <div class="card">
       <h2>1. Место</h2>
 
@@ -1324,6 +1357,7 @@
       <div class="mapHint advancedOnly">Кликните по карте, чтобы выбрать точку. Маркер можно перетаскивать.</div>
     </div>
 
+    <!-- Блок периода и источников: в простом режиме виден только быстрый выбор периода. -->
     <div class="card">
       <h2>2. Период</h2>
       <label for="presetSelect">Быстрый выбор</label>
@@ -1389,6 +1423,7 @@
       <div id="loadStatus" class="status">Готов к запросу.</div>
     </div>
 
+    <!-- Экспорт и технические окна доступны только в продвинутом режиме. -->
     <div class="card advancedOnly">
       <h2>3. Экспорт</h2>
       <div class="grid three">
@@ -1404,31 +1439,44 @@
   </section>
 
   <section class="grid">
+    <!-- Сводка: итоговые метрики, статусы и развёрнутые пояснения формул. -->
     <div class="card advancedOnly">
       <h2>Сводка</h2>
+      <div class="summaryTaskMode" aria-label="Тип задачи">
+        <label>Тип задачи</label>
+        <div class="segmented" id="taskModeSwitch" aria-label="Тип кинологической задачи">
+          <button type="button" data-task-mode="pss" class="active">ПСС</button>
+          <button type="button" data-task-mode="ptp">ПТП</button>
+        </div>
+      </div>
       <div class="grid three" id="metrics">
         <div class="metric"><span class="metricLabel">Усреднённый вектор ветра</span><b>—</b></div>
         <div class="metric"><span class="metricLabel">Усредненный вектор запаха</span><b>—</b></div>
-        <div class="metric"><span class="metricLabel">Устойчивость запаха</span><b>—</b></div>
+        <div class="metric"><span class="metricLabel">Сохранность запаха</span><b>—</b></div>
       </div>
       <div id="analysisText" class="status">После загрузки здесь появится прикладной вывод.</div>
       <div class="pillbar" id="flags"></div>
       <div class="summaryHelpRow">
         <details id="calcHelp">
-          <summary>Как читать расчёт</summary>
+          <summary>Как читать расчет и стабильность</summary>
           <div class="noteBox">
             <p><b>Средневзвешенное направление</b> — это не простое «самое частое направление». Каждый час превращается в вектор, а скорость ветра даёт ему вес: час с ветром 5 м/с влияет сильнее, чем час с 0.7 м/с.</p>
-            <p><b>Стабильность R</b> показывает, насколько направления складываются в одну линию. R≈1 — ветер держался в одном секторе; R≈0 — направления взаимно гасят друг друга, значит единственная стрелка малоинформативна.</p>
-            <p><b>Перенос запаха</b> считается разворотом направления ветра на 180°: если ветер дул с запада, запах в модели относило на восток. На вкладке «Перенос запаха» более старые часы дополнительно ослабляются по возрасту и погодным условиям.</p><p><b>Устойчивость запаха</b> — оперативная эвристика, а не лабораторная константа. Она учитывает влажность, температуру, дождь, силу ветра, порывы, ориентировочную солнечную нагрузку по времени суток/сезону и возраст часовой точки. В лесу, низинах и закрытых объёмах запах может сохраняться иначе.</p>
+            <p><b>Перенос запаха</b> считается разворотом направления ветра на 180°: если ветер дул с запада, запах в модели относило на восток. На вкладке «Перенос запаха» более старые часы дополнительно ослабляются по возрасту и погодным условиям.</p>
+            <p><b>Стабильность шлейфа:</b> <span id="stabilityHelpStatus">после загрузки появится статус</span>. <span id="stabilityHelpScore">Балл появится после расчёта.</span></p>
+            <p><b>Что означает балл стабильности:</b> 0–24 — ветер переменный, одну среднюю стрелку читать нельзя; 25–49 — низкая, нужен разбор почасовой динамики; 50–74 — средняя, основной сектор полезен, но с запасом; 75–100/100 — хорошая, направления хорошо складываются в один шлейф.</p>
+            <p><b>Как считается стабильность:</b> сначала берётся направленная согласованность <b>Rнапр</b>: Rнапр = √((Σw·sinα)² + (Σw·cosα)²) / Σw. Затем она умножается на ветровой штраф <b>Pветра</b>: сильный ветер и порывы снижают практическую читаемость даже при ровном направлении. Итоговый показатель <b>Rэфф</b> переводится в баллы 0–100.</p>
+            <p><b>Важно про круг:</b> разброс 318°–36° считается единым сектором через север, а не почти полным оборотом. Поэтому стабильность может быть хорошей, даже если численно минимальный и максимальный градусы выглядят далеко друг от друга.</p>
+            <p><b>Сохранность запаха</b> — оперативная эвристика, а не лабораторная константа. В режиме ПСС она оценивает условия для живого человека на поверхности, включая тепло тела, ветер, влажность, солнце и мороз. В режиме ПТП дополнительно учитывается, что объект холодный, снег может перекрывать выход запаха, а время суток и прогрев меняют каналы выхода запаха.</p>
           </div>
         </details>
         <details id="scentHelp">
-          <summary>Как оценена устойчивость запаха</summary>
+          <summary>Как оценена сохранность запаха</summary>
           <div id="scentDetails" class="noteBox">После загрузки здесь появится пояснение по влажности, солнцу, дождю, ветру и возрасту следа.</div>
         </details>
       </div>
     </div>
 
+    <!-- Основной canvas-график: роза ветров, роза переноса запаха и почасовой круговой слайдер. -->
     <div class="card wideCard">
       <h2>Роза ветров и перенос запаха</h2>
       <div class="segmented" id="roseModeSwitch" aria-label="Режим отображения розы">
@@ -1441,7 +1489,7 @@
           <canvas id="roseCanvas" width="620" height="620"></canvas>
           <div id="timeDial" class="timeDial advancedOnly hidden" aria-label="Почасовой круговой слайдер">
             <div class="timeDialRing"></div>
-            <div id="timeDialKnob" class="timeDialKnob"><span class="sunIcon">🕒</span><small>—</small></div>
+            <div id="timeDialKnob" class="timeDialKnob" title="Перетащите ярлык для почасового среза. Доступно вращение колесиком мыши."><span class="sunIcon">🕒</span><small>—</small></div>
             <div id="timeDialCenterBadge" class="timeDialCenterBadge">Почасовой срез<span>перетащите ярлык по кругу</span></div>
           </div>
         </div>
@@ -1451,7 +1499,7 @@
       <div class="simpleOnly simpleExportRow"><button id="exportRosePngSimpleBtn" class="secondary" type="button">Сохранить розу картинкой</button></div>
     </div>
 
-    <div class="card wideCard advancedOnly">
+    <div class="card wideCard advancedOnly defaultCollapsed">
       <h2>Секторы и почасовая динамика</h2>
       <div class="segmented" id="dataModeSwitch" aria-label="Режим таблицы">
         <button type="button" data-data-mode="sectors" class="active">Главные секторы</button>
@@ -1460,21 +1508,45 @@
       <div id="dataPanel" class="tableWrap"></div>
     </div>
 
-    <div class="card advancedOnly">
-      <h2>Полевые поправки</h2>
-      <p><b>Лес, овраги, реки, застройка и ночь</b> могут менять перенос запаха сильнее, чем это видно в модели. Если скорость меньше 1–2 м/с и направление прыгает, розу лучше читать как слабую подсказку, а не как основание для жёсткого планирования.</p>
+    <div class="card advancedOnly defaultCollapsed">
+      <h2>Полевые правки</h2>
+      <p><b>Этот блок нужен для ручной поправки к расчёту.</b> Погодные данные обычно описывают ветер на высоте около 10 м и не знают, что происходит у земли, в траве, под пологом леса, в овраге, у воды, в застройке или на снегу. Поэтому роза показывает аналитическую гипотезу, а полевая обстановка уточняет, куда запах реально мог лечь.</p>
+
+      <h3>Что проверить на месте</h3>
       <div class="pillbar">
-        <span class="pill">ветер 10 м ≠ ветер у земли</span>
+        <span class="pill">ветер на 10 м ≠ ветер у земли</span>
         <span class="pill">склон даёт сток воздуха</span>
         <span class="pill">лес гасит скорость</span>
         <span class="pill">просека канализирует поток</span>
-        <span class="pill">дождь меняет запаховую картину</span>
+        <span class="pill">овраг собирает холодный воздух</span>
+        <span class="pill">вода меняет влажность и бризы</span>
+        <span class="pill">снег может запечатывать запах</span>
+        <span class="pill">застройка создаёт завихрения</span>
       </div>
+
+      <h3>Рельеф</h3>
+      <p><b>Склоны, овраги и низины</b> часто дают движение воздуха, которого нет в общей погодной модели. Ночью и в холодное время воздух может стекать вниз по склону, а днём прогретый склон может давать подъём запаха. В низинах запах способен задерживаться карманами, особенно при слабом ветре и высокой влажности.</p>
+
+      <h3>Лес, просеки и растительность</h3>
+      <p><b>Лес снижает скорость ветра и дробит поток.</b> На опушке возможна «стена запаха»: в открытом поле ветер один, под пологом леса — другой. Просеки, дороги и вырубки могут работать как коридоры: запах тянется вдоль них, даже если средний ветер показывает немного другой сектор.</p>
+
+      <h3>Вода, болото и берег</h3>
+      <p><b>Вода и мокрые участки</b> поддерживают влажность и могут удерживать запах ниже и дольше, но береговые линии, канавы и заболоченные места часто дают локальные смещения. Утром и вечером возможны слабые бризовые эффекты, особенно у крупных водоёмов и открытых заболоченных пространств.</p>
+
+      <h3>Застройка и техногенные объекты</h3>
+      <p><b>Здания, заборы, ангары, трубы, насыпи и техника</b> создают завихрения, тени ветра и зоны обратного подсоса. В таких местах среднюю стрелку лучше читать не как точный луч, а как общий сектор, который нужно проверять с подветренных сторон препятствий, углов, проходов и открытых ворот.</p>
+
+      <h3>Покрытие и подложка</h3>
+      <p><b>Сухой песок, асфальт, трава, лесная подстилка, грязь и снег</b> удерживают запах по-разному. Сухая открытая поверхность быстрее теряет запах под солнцем и ветром. Влажная подстилка и тень могут сохранять запах пятнами. Свежий снег способен закрывать запах, старый снег и наст — выпускать его через трещины, следы, проталины и края препятствий.</p>
+
+      <h3>Тактическая правка</h3>
+      <p>Если расчёт показывает хороший сектор, но место сложное, расширяйте границы сектора. Если ветер слабый, переменный или участок закрыт лесом/застройкой, опирайтесь не на одну стрелку, а на несколько верхних секторов и почасовую динамику. Если собака показывает интерес вне расчётного сектора, сначала проверьте рельеф, кромки леса, канавы, проходы, перепады высот и влажные места — часто запах приходит именно через них.</p>
     </div>
   </section>
 </main>
 
 
+<!-- Модальные окна: справка по координатам, API-ключи, общая справка и технические данные. -->
 <div id="coordHelpModal" class="modalOverlay hidden" role="dialog" aria-modal="true" aria-labelledby="coordHelpTitle">
   <div class="modal smallModal">
     <div class="modalHead">
@@ -1498,7 +1570,7 @@
       <h2 id="sourceSettingsTitle">Ключи и настройки источников</h2>
       <button id="sourceSettingsClose" class="iconBtn" type="button" title="Закрыть">×</button>
     </div>
-    <p class="mini">Ключи сохраняются только в localStorage этого браузера. Вставляем ключи и жмем сохранить. Теперь если один источник не работает будет подключаться другой. Автосохранение тоже включено: если пользователь ввёл ключ и закрыл окно, значение всё равно останется в этом браузере.</p>
+    <p class="mini">Ключи сохраняются только в localStorage этого браузера. Вставляем ключи и жмем сохранить. Если один источник не работает, подключается другой. Автосохранение включено: если пользователь ввёл ключ и закрыл окно, значение всё равно останется в этом браузере.</p>
     <p class="mini">В режиме «Авто» программа перебирает подходящие источники: сначала без ключа, затем с добавленными персональными ключами, а затем источники с отдельным доступом. При анализе прошлого периода источники только с прогнозом пропускаются; при прогнозе пропускаются источники только с архивом.</p>
     <div class="settingsGrid">
       <div class="settingsItem topSourceKey">
@@ -1620,16 +1692,18 @@
       <div class="helpBlock">
         <h3>8. Среднее направление и стабильность</h3>
         <p><b>Усреднённое направление</b> считается не простым голосованием по часам. Каждый час превращается в вектор, а скорость ветра даёт ему вес: сильный ветер влияет на расчёт больше слабого.</p>
-        <p><b>Стабильность переноса</b> показывает, насколько направления складывались в один понятный сектор. Если стабильность низкая, одну стрелку читать опасно: нужно смотреть почасовую динамику и несколько главных секторов.</p>
+        <p><b>Стабильность шлейфа</b> показывает не только согласованность направлений, но и практическую читаемость шлейфа. Rнапр отвечает за взаимное гашение направлений: соседние направления складываются, противоположные снижают R. Rэфф дополнительно падает при сильном и порывистом ветре, потому что шлейф может растягиваться, рваться и рассеиваться.</p>
+        <p><b>Что означает балл стабильности:</b> 0–24 — ветер переменный, одну среднюю стрелку читать нельзя; 25–49 — низкая, нужен разбор почасовой динамики; 50–74 — средняя, основной сектор полезен, но с запасом; 75–100/100 — хорошая, направления хорошо складываются в один шлейф.</p>
       </div>
 
       <div class="helpBlock">
-        <h3>9. Устойчивость запаха</h3>
-        <p>Это прикладная оценка, насколько погода могла сохранять или разрушать запаховую картину. Она учитывает влажность, температуру, осадки, солнце, силу ветра, порывы и возраст часовой точки.</p>
+        <h3>9. Сохранность запаха и доступность</h3>
+        <p>Это прикладная оценка, насколько выбранные условия помогают или мешают собаке работать по запаху. Расчёт зависит от типа задачи: <b>ПСС</b> считает живого человека на поверхности, <b>ПТП</b> — погибший объект, который при морозе и снеге может отдавать запах совсем иначе.</p>
         <ul>
-          <li>Умеренная влажность, тень, ночь и умеренный ветер обычно помогают сохранности.</li>
-          <li>Жара, активное солнце, сухой воздух, заметный дождь, сильный ветер и порывы снижают вклад старых часов.</li>
-          <li>Это не лабораторная модель, а полевая эвристика.</li>
+          <li>В ПСС учитывается тепловой поток от живого человека, поэтому снег сам по себе не считается «крышкой» над источником.</li>
+          <li>В ПТП объект обычно имеет температуру среды: мороз снижает летучесть, а снег может дополнительно запирать выход запаха.</li>
+          <li>Жара, прямое солнце, сухость, сильный ветер, порывы и ливень снижают и сохранность, и читаемость.</li>
+          <li>Шкала сохранности: <b>0–15</b> — очень низкая, <b>16–39</b> — низкая, <b>40–69</b> — средняя, <b>70–100</b> — хорошая.</li>
         </ul>
       </div>
 
@@ -1656,7 +1730,8 @@
       <div class="helpBlock helpWide">
         <h3>12. Почасовой круговой слайдер</h3>
         <p>В продвинутом режиме после построения розы вокруг графика появляется круговой слайдер. Его можно перетаскивать по часовой и против часовой стрелки с шагом в 1 час. На ярлыке меняется иконка времени суток: восход, солнце, закат или луна. Если солнечную оценку для точки определить нельзя, остаётся обычная иконка часов.</p>
-        <p>Выбранный час становится расчётной точкой: будущие относительно него часы не показываются, а предыдущие часы остаются в модели с быстро убывающим весом. Если строится прошлый период, инструмент дополнительно пытается подгрузить прогноз на ближайшие 24 часа, чтобы можно было провернуть слайдер в будущее и посмотреть ожидаемую картину.</p>
+        <p>По умолчанию после построения показывается весь выбранный период — это верхняя позиция ярлыка с обычной иконкой часов. Первый шаг против часовой стрелки включает почасовой срез последнего часа выбранного периода, дальше идут более ранние часы; движение по часовой стрелке показывает прогнозные часы, если они подгрузились.</p>
+        <p>В почасовом режиме выбранный час становится расчётной точкой: будущие относительно него часы не показываются, а предыдущие часы остаются в модели с быстро убывающим весом. Если строится прошлый период, инструмент дополнительно пытается подгрузить прогноз на ближайшие 24 часа, чтобы можно было провернуть слайдер в будущее и посмотреть ожидаемую картину.</p>
       </div>
 
       <div class="helpBlock helpWide">
@@ -1690,10 +1765,23 @@
 (() => {
   'use strict';
 
+  /*
+    Архитектура скрипта:
+    1) состояние приложения хранится в объекте state;
+    2) погодные источники приводятся к единому массиву rows;
+    3) analyze() считает сектора, средние векторы, шлейф и запаховые показатели;
+    4) renderAll() перерисовывает DOM, таблицы, canvas и отчёт;
+    5) почасовой слайдер не меняет исходные данные, а строит временный срез rows.
+  */
+
+  // Короткий helper для доступа к элементам по id.
   const $ = (id) => document.getElementById(id);
+
+  // Единое состояние интерфейса и расчётов. Все рендеры читают данные отсюда.
   const state = {
     location: null,
     rows: [],
+    periodRows: [],
     fullRows: [],
     stats: null,
     lastApiUrl: '',
@@ -1709,12 +1797,16 @@
     uiMode: 'simple',
     timeFocusIndex: null,
     timeFocusActive: false,
+    timeFocusOverview: true,
     initialAnalysisText: '',
     initialAnalysisKind: '',
     keepInitialAnalysis: false,
-    initialFocusTime: null
+    initialFocusTime: null,
+    taskMode: 'pss'
   };
 
+
+  // Справочники румбов и цветов: используются в розе, таблицах, подписях и легенде.
   const DIR16 = ['С','ССВ','СВ','ВСВ','В','ВЮВ','ЮВ','ЮЮВ','Ю','ЮЮЗ','ЮЗ','ЗЮЗ','З','ЗСЗ','СЗ','ССЗ'];
   const DIR8 = ['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'];
   const DIR16_FULL = ['Север','Северо-северо-восток','Северо-восток','Востоко-северо-восток','Восток','Востоко-юго-восток','Юго-восток','Юго-юго-восток','Юг','Юго-юго-запад','Юго-запад','Западо-юго-запад','Запад','Западо-северо-запад','Северо-запад','Северо-северо-запад'];
@@ -1734,6 +1826,8 @@
     {name:'8+', color:'#a855f7'}
   ];
 
+
+  // API-ключи сохраняются только в localStorage текущего браузера.
   const KEY_FIELDS = ['yandexKey','gismeteoKey','danioCid','openWeatherKey','weatherApiKey','windyKey','visualCrossingKey','tomorrowKey'];
   const KEY_STORAGE = {
     yandexKey:'psr_yandex_key',
@@ -1754,6 +1848,8 @@
   };
 
 
+
+  // Описание источников: подписи, наличие ключа, поддержка архива/прогноза и текст для диагностики.
   const SOURCE_INFO = {
     openmeteo: {
       label:'Open‑Meteo', keyField:null, keyTier:'none', modes:['archive','forecast'], group:'none',
@@ -1817,6 +1913,8 @@
     }
   };
 
+
+  // Порядок автоперебора источников: сначала без ключей, затем персональные и ограниченные.
   const SOURCE_ORDER = ['openmeteo','nasa','openmeteogfs','metno','openweather','weatherapi','visualcrossing','tomorrowio','yandex','gismeteo','danio','windy'];
   const SOURCE_GROUPS = [
     {id:'none', label:'Без ключа'},
@@ -1824,9 +1922,12 @@
     {id:'restricted', label:'Отдельный ключ/доступ'}
   ];
 
+  // Читает значение API-ключа из поля настроек источников.
   function getKey(field){ return ($(`${field}`)?.value || '').trim(); }
+  // Проверяет, заполнен ли API-ключ для конкретного источника.
   function hasKey(field){ return Boolean(getKey(field)); }
 
+  // Нормализует направление ветра из градусов или румбов API в градусы 0–360.
   function parseWindDirection(value){
     if (value == null) return null;
     if (typeof value === 'number' && Number.isFinite(value)) return normDeg(value);
@@ -1836,6 +1937,7 @@
     return Number.isFinite(n) ? normDeg(n) : null;
   }
 
+  // Приводит ISO-дату/время из API к формату локального часа YYYY-MM-DDTHH:00.
   function isoToLocalHour(value){
     if (!value) return null;
     const s = String(value);
@@ -1846,6 +1948,7 @@
     return null;
   }
 
+  // Возвращает первое числовое значение из списка вариантов полей API.
   function firstFinite(...vals){
     for (const v of vals) {
       const n = Number(v);
@@ -1855,12 +1958,14 @@
   }
 
 
+  // Устанавливает текст и визуальный статус в информационном блоке.
   function setStatus(el, text, kind='') {
     el.className = 'status' + (kind ? ' ' + kind : '');
     el.textContent = text;
   }
 
   let toastTimer = null;
+  // Показывает короткое всплывающее уведомление без изменения основного интерфейса.
   function showToast(text, kind='good'){
     const el = $('toast');
     if (!el) return;
@@ -1870,17 +1975,20 @@
     toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
   }
 
+  // Форматирует число для UI, убирая лишние нули после запятой.
   function round(n, d=2) {
     if (!Number.isFinite(n)) return '—';
     return Number(n).toFixed(d).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1');
   }
 
+  // Приводит любой угол к диапазону 0–360 градусов.
   function normDeg(deg){
     deg = Number(deg);
     if (!Number.isFinite(deg)) return null;
     return ((deg % 360) + 360) % 360;
   }
 
+  // Определяет индекс сектора/румба для заданного направления.
   function dirIndex(deg, bins=16){
     deg = normDeg(deg);
     if (deg === null) return null;
@@ -1888,28 +1996,33 @@
     return Math.floor((deg + width/2) % 360 / width);
   }
 
+  // Возвращает короткое имя румба: С, ЮЗ, ВЮВ и т.п.
   function dirShortName(deg, bins=16){
     const i = dirIndex(deg, bins);
     if (i === null) return '—';
     return (bins === 8 ? DIR8 : DIR16)[i];
   }
 
+  // Возвращает полное русское название румба.
   function dirName(deg, bins=16){
     const i = dirIndex(deg, bins);
     if (i === null) return '—';
     return (bins === 8 ? DIR8_FULL : DIR16_FULL)[i];
   }
 
+  // Форматирует направление как название румба плюс градусы.
   function formatDir(deg, bins=16){
     if (deg == null) return '—';
     return `${dirName(deg,bins)} · ${round(deg,0)}°`;
   }
 
+  // Вычисляет сектор розы для заданного направления и числа секторов.
   function binIndex(deg, bins){
     const width = 360 / bins;
     return Math.floor((normDeg(deg) + width/2) % 360 / width);
   }
 
+  // Подбирает цветовой класс скорости ветра.
   function classIndex(speed){
     const s = Number(speed);
     for (let i=0; i<SPEED_CLASSES.length; i++) {
@@ -1918,6 +2031,7 @@
     return SPEED_CLASSES.length - 1;
   }
 
+  // Преобразует Date в строку datetime-local с учётом часового пояса точки.
   function toDateInput(date, timezone) {
     const d = date instanceof Date ? date : new Date(date);
     if (timezone) {
@@ -1933,13 +2047,16 @@
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
+  // Округляет строку datetime-local до начала часа.
   function floorToHourInput(s){
     if (!s) return s;
     return s.slice(0,14) + '00';
   }
 
+  // Достаёт дату YYYY-MM-DD из datetime-local.
   function datePart(dt){ return dt.slice(0,10); }
 
+  // Заполняет начало и конец периода по быстрому пресету.
   function applyPreset(){
     const preset = $('presetSelect').value;
     if (preset === 'custom') return;
@@ -1957,6 +2074,7 @@
     $('endTime').value = floorToHourInput(toDateInput(end, tz));
   }
 
+  // Включает кнопку загрузки только после выбора корректной точки.
   function updateActionState(){
     const btn = $('loadWeatherBtn');
     if (!btn) return;
@@ -1965,6 +2083,7 @@
     btn.title = ok ? 'Можно загружать ветер' : 'Сначала выберите населённый пункт, координаты или точку на карте';
   }
 
+  // Обновляет карточку выбранного места и синхронизирует карту/кнопку загрузки.
   function updatePlaceStatus(){
     if (!state.location) {
       setStatus($('placeStatus'), 'Место пока не выбрано.', 'warn');
@@ -1972,11 +2091,12 @@
       return;
     }
     const l = state.location;
-    setStatus($('placeStatus'), `${l.name || 'Точка по координатам'}\nШирота: ${round(l.latitude,5)}, долгота: ${round(l.longitude,5)}${l.timezone ? `\nЧасовой пояс: ${l.timezone}` : ''}\nМесто выбрано. Теперь выберите период и нажмите «Получить ветер и построить розу».`, 'good');
+    setStatus($('placeStatus'), `${l.name || 'Точка по координатам'}\nШирота: ${round(l.latitude,5)}, долгота: ${round(l.longitude,5)}${l.timezone ? `\nЧасовой пояс: ${l.timezone}` : ''}\nМесто выбрано. Выберите период и нажмите «Получить ветер и построить розу».`, 'good');
     moveMapToLocation();
     updateActionState();
   }
 
+  // Инициализирует Leaflet-карту для выбора точки в продвинутом режиме.
   function initMap(){
     const box = $('map');
     if (!box) return;
@@ -1999,6 +2119,7 @@
     if (state.location) moveMapToLocation();
   }
 
+  // Записывает координаты, выбранные кликом или перетаскиванием маркера на карте.
   function setLocationFromMap(lat, lon, name='Точка с карты'){
     state.location = {
       name,
@@ -2011,6 +2132,7 @@
     applyPreset();
   }
 
+  // Перемещает карту и маркер к текущей выбранной точке.
   function moveMapToLocation(){
     if (!state.map || !state.location) return;
     const lat = Number(state.location.latitude);
@@ -2030,11 +2152,13 @@
     setTimeout(() => state.map.invalidateSize(), 80);
   }
 
+  // Собирает человекочитаемое название населённого пункта из ответа geocoding API.
   function locationTitle(item){
     const parts = [item.name, item.admin1, item.admin2, item.country].filter(Boolean);
     return parts.join(', ');
   }
 
+  // Ищет населённый пункт через Open-Meteo Geocoding и выводит варианты выбора.
   async function searchPlace(){
     const q = $('placeInput').value.trim();
     const box = $('suggestions');
@@ -2072,7 +2196,7 @@
           $('suggestions').innerHTML = '';
           updatePlaceStatus();
           applyPreset();
-          setStatus($('loadStatus'), 'Населённый пункт выбран. Теперь выберите период и нажмите зелёную кнопку построения розы.', 'good');
+          setStatus($('loadStatus'), 'Населённый пункт выбран. Выберите период и нажмите зелёную кнопку построения розы.', 'good');
         });
         box.appendChild(div);
       }
@@ -2081,44 +2205,48 @@
     }
   }
 
+  // Экранирует пользовательский/внешний текст перед вставкой в innerHTML.
   function escapeHtml(s){
     return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   }
 
+  // Парсит числа с точкой или запятой.
   function parseNum(s){ return Number(String(s).replace(',', '.')); }
 
+  // Переводит градусы-минуты-секунды в десятичные координаты.
   function dmsToDecimal(deg, min=0, sec=0, sign=1){
     const d = Math.abs(parseNum(deg)) + (parseNum(min)||0)/60 + (parseNum(sec)||0)/3600;
     const explicitSign = parseNum(deg) < 0 ? -1 : 1;
     return d * sign * explicitSign;
   }
 
+  // Определяет знак координаты по стороне света.
   function signFromDir(dir){
     const d = String(dir || '').toUpperCase();
     if (['S','W','Ю','З'].includes(d)) return -1;
     return 1;
   }
 
+  // Проверяет, похожа ли пара чисел на допустимые широту и долготу.
   function isLatLon(lat, lon){
     return Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180;
   }
 
-  function looksLikeRussiaLonLat(a, b){
-    return Number.isFinite(a) && Number.isFinite(b) && Math.abs(a) <= 180 && Math.abs(b) <= 90;
-  }
-
-  function pairFromLonLat(lon, lat){
+// Создаёт координаты из порядка долгота, широта — типично для Яндекс.Карт.
+function pairFromLonLat(lon, lat){
     lon = parseNum(lon); lat = parseNum(lat);
     if (isLatLon(lat, lon)) return {latitude:lat, longitude:lon};
     return null;
   }
 
+  // Создаёт координаты из порядка широта, долгота — типично для Google Maps и обычного ввода.
   function pairFromLatLon(lat, lon){
     lat = parseNum(lat); lon = parseNum(lon);
     if (isLatLon(lat, lon)) return {latitude:lat, longitude:lon};
     return null;
   }
 
+  // Достаёт координаты из ссылок Яндекс.Карт, Google Maps и похожих URL.
   function parseUrlCoordinates(raw){
     let decoded = raw;
     try { decoded = decodeURIComponent(raw); } catch(e) {}
@@ -2173,6 +2301,7 @@
     return null;
   }
 
+  // Распознаёт координаты из URL, десятичного, DMS и форматов с N/E/S/W.
   function parseCoordinates(text){
     let raw = String(text || '').trim();
     if (!raw) throw new Error('Пустая строка координат.');
@@ -2229,6 +2358,7 @@
     throw new Error('Не смог распознать координаты. Для Яндекс.Карт лучше используйте ссылку с whatshere[point] или ll; для Google — ссылку с @lat,lon или q=lat,lon.');
   }
 
+  // Применяет координаты из textarea как текущую рабочую точку.
   function applyCoordinates(){
     try {
       const p = parseCoordinates($('coordInput').value);
@@ -2247,6 +2377,7 @@
     }
   }
 
+  // Запрашивает геолокацию у браузера и ставит её как рабочую точку.
   function getBrowserGeolocation(){
     if (!navigator.geolocation) {
       setStatus($('placeStatus'), 'Браузер не поддерживает геолокацию.', 'bad');
@@ -2267,26 +2398,8 @@
       setStatus($('placeStatus'), `Геолокация не получена: ${err.message}`, 'bad');
     }, {enableHighAccuracy:true, timeout:10000});
   }
-
-  function savePoint(){
-    if (!state.location) return setStatus($('placeStatus'), 'Сначала выберите место.', 'warn');
-    localStorage.setItem('psr_windrose_point', JSON.stringify(state.location));
-    setStatus($('placeStatus'), 'Точка сохранена в браузере.\n' + `${state.location.name}\n${round(state.location.latitude,5)}, ${round(state.location.longitude,5)}`, 'good');
-  }
-
-  function loadPoint(){
-    const s = localStorage.getItem('psr_windrose_point');
-    if (!s) return setStatus($('placeStatus'), 'Сохранённой точки пока нет.', 'warn');
-    try {
-      state.location = JSON.parse(s);
-      updatePlaceStatus();
-      applyPreset();
-    } catch(e){
-      setStatus($('placeStatus'), 'Сохранённая точка повреждена.', 'bad');
-    }
-  }
-
-  function getPeriodWindow(){
+// Собирает и валидирует выбранный пользователем временной интервал.
+function getPeriodWindow(){
     if (!state.location) throw new Error('Сначала выберите место или координаты.');
     let start = $('startTime').value;
     let end = $('endTime').value;
@@ -2297,6 +2410,7 @@
     return {start, end, startDate:new Date(start), endDate:new Date(end)};
   }
 
+  // Выбирает forecast или archive endpoint Open-Meteo по удалённости периода от текущего времени.
   function chooseOpenMeteoEndpoint(start, end){
     const now = new Date();
     const startDate = new Date(start);
@@ -2307,19 +2421,15 @@
     return 'archive';
   }
 
-  function hasFuturePart(start, end){
-    const nowLocal = floorToHourInput(toDateInput(new Date(), state.location?.timezone || undefined));
-    return end >= nowLocal;
-  }
-
-
-  function periodRelation(start, end){
+// Классифицирует период как прошлый, будущий или смешанный.
+function periodRelation(start, end){
     const nowLocal = floorToHourInput(toDateInput(new Date(), state.location?.timezone || undefined));
     if (end < nowLocal) return 'archive';
     if (start >= nowLocal) return 'forecast';
     return 'mixed';
   }
 
+  // Проверяет, подходит ли источник для архива, прогноза или смешанного периода.
   function sourceSupportsPeriod(id, start, end){
     const info = SOURCE_INFO[id];
     if (!info) return true;
@@ -2329,6 +2439,7 @@
     return info.modes.includes('archive') && info.modes.includes('forecast');
   }
 
+  // Возвращает статус ключа источника для выпадающего списка.
   function sourceKeyStatus(id){
     const info = SOURCE_INFO[id];
     if (!info || !info.keyField) return {text:'Без ключа', cls:'sourceNoKey', emoji:'⚪'};
@@ -2338,18 +2449,21 @@
       : {text:'Ключа нет', cls:'sourceKeyMissing', emoji:'🔴'};
   }
 
+  // Формирует краткое описание доступности источника.
   function sourceSummary(id){
     const info = SOURCE_INFO[id] || {availability:'архив — + прогноз —'};
     const key = sourceKeyStatus(id);
     return `${key.text}; ${info.availability || 'архив — + прогноз —'}`;
   }
 
+  // Собирает текст option для выбора источника данных.
   function sourceOptionText(id){
     const info = SOURCE_INFO[id] || {label:id};
     const key = sourceKeyStatus(id);
     return `${info.label} — ${key.emoji} ${sourceSummary(id)}`;
   }
 
+  // Перестраивает список источников с учётом наличия API-ключей.
   function refreshSourceOptions(){
     const select = $('sourceSelect');
     if (!select) return;
@@ -2375,6 +2489,7 @@
     select.value = values.includes(previous) ? previous : 'auto';
   }
 
+  // Возвращает источники для запроса: один ручной или подходящий автосписок.
   function selectedSourceIds(start, end){
     const choice = $('sourceSelect')?.value || 'auto';
     if (choice !== 'auto') return [choice];
@@ -2389,16 +2504,19 @@
     return [...new Set(list)];
   }
 
+  // Возвращает пользовательское название источника.
   function sourceHumanName(id){
     return SOURCE_INFO[id]?.label || id;
   }
 
+  // Читает таймаут запроса к источнику и ограничивает его безопасным диапазоном.
   function getSourceTimeoutMs(){
     const seconds = Number($('sourceTimeout')?.value || 5);
     const safeSeconds = Number.isFinite(seconds) ? Math.min(60, Math.max(5, seconds)) : 5;
     return safeSeconds * 1000;
   }
 
+  // Обёртка над fetch: таймаут, JSON-парсинг и единая обработка ошибок API.
   async function fetchJson(url, options={}, timeoutMs=getSourceTimeoutMs()){
     if (typeof options === 'number') { timeoutMs = options; options = {}; }
     const controller = new AbortController();
@@ -2424,6 +2542,7 @@
 
 
 
+  // Лёгкая проверка доступности JSON-источника.
   async function probeJson(url, timeoutMs=5000){
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -2439,11 +2558,13 @@
     }
   }
 
+  // Форматирует UTC-дату в YYYYMMDD для NASA POWER.
   function formatYmdUTC(d){
     const pad = n => String(n).padStart(2,'0');
     return `${d.getUTCFullYear()}${pad(d.getUTCMonth()+1)}${pad(d.getUTCDate())}`;
   }
 
+  // Проверяет базовый доступ к geocoding API и показывает сетевую диагностику.
   async function checkInternetAccess(){
     const el = $('internetStatus');
     if (!el) return;
@@ -2456,6 +2577,7 @@
     }
   }
 
+  // Проверяет, доступны ли основные бесплатные погодные источники без ключей.
   async function checkPrimarySourceAvailability(){
     const yesterday = formatYmdUTC(new Date(Date.now() - 86400000));
     const openUrl = 'https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.62&hourly=wind_speed_10m&forecast_days=1&wind_speed_unit=ms&timezone=UTC';
@@ -2474,12 +2596,14 @@
     }
   }
 
+  // Оставляет только валидные почасовые строки внутри выбранного периода.
   function filterRowsToPeriod(rows, start, end){
     return rows
       .filter(r => r && r.time && r.time >= start && r.time <= end && Number.isFinite(r.speed) && Number.isFinite(r.dir))
       .sort((a,b) => a.time.localeCompare(b.time));
   }
 
+  // Переводит часовой ключ NASA POWER из UTC в локальный час точки.
   function utcKeyToLocalInput(key, timezone){
     const s = String(key);
     const y = Number(s.slice(0,4));
@@ -2490,10 +2614,12 @@
     return floorToHourInput(toDateInput(date, timezone || undefined));
   }
 
+  // Готовит дату YYYYMMDD для API, которым нужен такой формат.
   function ymdForApi(dt){
     return String(dt).slice(0,10).replaceAll('-','');
   }
 
+  // Считает расстояние между двумя координатами по сфере.
   function haversineKm(lat1, lon1, lat2, lon2){
     const R = 6371;
     const toRad = d => d * Math.PI / 180;
@@ -2502,9 +2628,10 @@
     return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
 
+  // Загружает Open-Meteo Best Match: архив или прогноз с почасовыми погодными полями.
   async function fetchOpenMeteo(period){
     const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
-    const variables = 'wind_speed_10m,wind_direction_10m,wind_gusts_10m,temperature_2m,relative_humidity_2m,precipitation';
+    const variables = 'wind_speed_10m,wind_direction_10m,wind_gusts_10m,temperature_2m,relative_humidity_2m,precipitation,cloud_cover,shortwave_radiation,direct_radiation,diffuse_radiation';
     const endpoint = chooseOpenMeteoEndpoint(period.start, period.end);
     let url;
     if (endpoint === 'forecast') {
@@ -2544,7 +2671,11 @@
         gust: h.wind_gusts_10m?.[i] == null ? null : Number(h.wind_gusts_10m[i]),
         temp: h.temperature_2m?.[i] == null ? null : Number(h.temperature_2m[i]),
         rh: h.relative_humidity_2m?.[i] == null ? null : Number(h.relative_humidity_2m[i]),
-        precip: h.precipitation?.[i] == null ? null : Number(h.precipitation[i])
+        precip: h.precipitation?.[i] == null ? null : Number(h.precipitation[i]),
+        cloud: h.cloud_cover?.[i] == null ? null : Number(h.cloud_cover[i]),
+        shortwave: h.shortwave_radiation?.[i] == null ? null : Number(h.shortwave_radiation[i]),
+        directRad: h.direct_radiation?.[i] == null ? null : Number(h.direct_radiation[i]),
+        diffuseRad: h.diffuse_radiation?.[i] == null ? null : Number(h.diffuse_radiation[i])
       });
     }
     const filtered = filterRowsToPeriod(rows, period.start, period.end);
@@ -2565,6 +2696,7 @@
   }
 
 
+  // Загружает резервную модель GFS/NOAA через Open-Meteo Forecast API.
   async function fetchOpenMeteoGfs(period){
     const nowLocal = floorToHourInput(toDateInput(new Date(), state.location?.timezone || undefined));
     const startDate = new Date(period.start);
@@ -2576,7 +2708,7 @@
       throw new Error('Open‑Meteo GFS/NOAA доступен как резерв для последних 7 дней и прогноза примерно на 16 дней. Для более старого архива используйте обычный Open‑Meteo Historical или NASA POWER.');
     }
     const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
-    const variables = 'wind_speed_10m,wind_direction_10m,wind_gusts_10m,temperature_2m,relative_humidity_2m,precipitation';
+    const variables = 'wind_speed_10m,wind_direction_10m,wind_gusts_10m,temperature_2m,relative_humidity_2m,precipitation,cloud_cover,shortwave_radiation,direct_radiation,diffuse_radiation';
     const params = new URLSearchParams({
       latitude: lat,
       longitude: lon,
@@ -2601,7 +2733,11 @@
         gust: h.wind_gusts_10m?.[i] == null ? null : Number(h.wind_gusts_10m[i]),
         temp: h.temperature_2m?.[i] == null ? null : Number(h.temperature_2m[i]),
         rh: h.relative_humidity_2m?.[i] == null ? null : Number(h.relative_humidity_2m[i]),
-        precip: h.precipitation?.[i] == null ? null : Number(h.precipitation[i])
+        precip: h.precipitation?.[i] == null ? null : Number(h.precipitation[i]),
+        cloud: h.cloud_cover?.[i] == null ? null : Number(h.cloud_cover[i]),
+        shortwave: h.shortwave_radiation?.[i] == null ? null : Number(h.shortwave_radiation[i]),
+        directRad: h.direct_radiation?.[i] == null ? null : Number(h.direct_radiation[i]),
+        diffuseRad: h.diffuse_radiation?.[i] == null ? null : Number(h.diffuse_radiation[i])
       });
     }
     const filtered = filterRowsToPeriod(rows, period.start, period.end);
@@ -2621,6 +2757,7 @@
     };
   }
 
+  // Загружает прогноз MET Norway и приводит его к общей структуре rows.
   async function fetchMetNo(period){
     const lat = Number(state.location.latitude).toFixed(4), lon = Number(state.location.longitude).toFixed(4);
     const url = 'https://api.met.no/weatherapi/locationforecast/2.0/compact?' + new URLSearchParams({lat, lon}).toString();
@@ -2639,7 +2776,8 @@
         gust: det.wind_speed_of_gust == null ? null : Number(det.wind_speed_of_gust),
         temp: det.air_temperature == null ? null : Number(det.air_temperature),
         rh: det.relative_humidity == null ? null : Number(det.relative_humidity),
-        precip: p1 == null ? (p6 == null ? null : Number(p6)) : Number(p1)
+        precip: p1 == null ? (p6 == null ? null : Number(p6)) : Number(p1),
+        cloud: det.cloud_area_fraction == null ? null : Number(det.cloud_area_fraction)
       };
     });
     const filtered = filterRowsToPeriod(rows, period.start, period.end);
@@ -2659,11 +2797,12 @@
     };
   }
 
+  // Загружает NASA POWER, переводит UTC-ключи и сеточные параметры к общей структуре rows.
   async function fetchNasaPower(period){
     const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
     const start = ymdForApi(period.start), end = ymdForApi(period.end);
     const params = new URLSearchParams({
-      parameters: 'WS10M,WD10M,T2M,RH2M,PRECTOTCORR',
+      parameters: 'WS10M,WD10M,T2M,RH2M,PRECTOTCORR,ALLSKY_SFC_SW_DWN',
       community: 'AG',
       longitude: lon,
       latitude: lat,
@@ -2690,7 +2829,8 @@
         gust: null,
         temp: p.T2M?.[k] == null || Number(p.T2M[k]) <= -900 ? null : Number(p.T2M[k]),
         rh: p.RH2M?.[k] == null || Number(p.RH2M[k]) <= -900 ? null : Number(p.RH2M[k]),
-        precip: p.PRECTOTCORR?.[k] == null || Number(p.PRECTOTCORR[k]) <= -900 ? null : Number(p.PRECTOTCORR[k])
+        precip: p.PRECTOTCORR?.[k] == null || Number(p.PRECTOTCORR[k]) <= -900 ? null : Number(p.PRECTOTCORR[k]),
+        shortwave: p.ALLSKY_SFC_SW_DWN?.[k] == null || Number(p.ALLSKY_SFC_SW_DWN[k]) <= -900 ? null : Number(p.ALLSKY_SFC_SW_DWN[k])
       };
     });
     const filtered = filterRowsToPeriod(rows, period.start, period.end);
@@ -2711,6 +2851,7 @@
   }
 
 
+  // Пытается определить использованную станцию Visual Crossing и расстояние до неё.
   function visualCrossingStationMeta(data){
     const stationsObj = data.stations || {};
     const usedIds = new Set();
@@ -2731,6 +2872,7 @@
     return {station:`${name} (${c.id})`, distance:dist};
   }
 
+  // Загружает Visual Crossing Timeline API и переводит км/ч в м/с.
   async function fetchVisualCrossing(period){
     const key = ($('visualCrossingKey')?.value || '').trim();
     if (!key) throw new Error('для Visual Crossing нужен API‑ключ.');
@@ -2756,7 +2898,11 @@
           gust: h.windgust == null ? null : Number(h.windgust) / 3.6,
           temp: h.temp == null ? null : Number(h.temp),
           rh: h.humidity == null ? null : Number(h.humidity),
-          precip: h.precip == null ? null : Number(h.precip)
+          precip: h.precip == null ? null : Number(h.precip),
+          cloud: h.cloudcover == null ? null : Number(h.cloudcover),
+          shortwave: h.solarradiation == null ? null : Number(h.solarradiation),
+          solarEnergy: h.solarenergy == null ? null : Number(h.solarenergy),
+          uv: h.uvindex == null ? null : Number(h.uvindex)
         });
       }
     }
@@ -2779,6 +2925,7 @@
   }
 
 
+  // Загружает Яндекс/Meteum forecast при наличии ключа и нормализует поля ветра.
   async function fetchYandex(period){
     const key = getKey('yandexKey');
     if (!key) throw new Error('для Яндекс/Meteum нужен API‑ключ.');
@@ -2810,7 +2957,8 @@
           gust: firstFinite(h.wind_gust, h.windGust),
           temp: firstFinite(h.temp, h.temperature),
           rh: firstFinite(h.humidity),
-          precip: firstFinite(h.prec_mm, h.prec_period, h.prec)
+          precip: firstFinite(h.prec_mm, h.prec_period, h.prec),
+          cloud: firstFinite(h.cloudness, h.cloud, h.cloud_cover)
         });
       }
     }
@@ -2831,6 +2979,7 @@
     };
   }
 
+  // Рекурсивно собирает объекты из нестабильных/вложенных ответов API.
   function collectObjects(root, predicate, out=[]){
     if (!root || typeof root !== 'object') return out;
     if (predicate(root)) out.push(root);
@@ -2839,6 +2988,7 @@
     return out;
   }
 
+  // Загружает Gismeteo и вытаскивает почасовые/трёхчасовые точки ветра из ответа.
   async function fetchGismeteo(period){
     const key = getKey('gismeteoKey');
     if (!key) throw new Error('для Gismeteo нужен токен.');
@@ -2861,7 +3011,8 @@
         gust: firstFinite(wind.gust?.m_s, wind.gust?.ms, wind.gust?.value, wind.gust),
         temp: firstFinite(temp),
         rh: firstFinite(item.humidity?.percent, item.humidity),
-        precip
+        precip,
+        cloud: firstFinite(item.cloud?.percent, item.cloud?.cloudiness, item.cloudiness?.percent, item.cloudiness)
       };
     });
     const filtered = filterRowsToPeriod(rows, period.start, period.end);
@@ -2881,6 +3032,7 @@
     };
   }
 
+  // Загружает ДАНИО/HMN и выделяет погодные точки из вариативной структуры ответа.
   async function fetchDanio(period){
     const cid = getKey('danioCid');
     if (!cid) throw new Error('для ДАНИО/HMN нужен cid.');
@@ -2908,7 +3060,8 @@
         gust,
         temp: firstFinite(item.temp, item.temperature, item.t),
         rh: firstFinite(item.humidity, item.rh),
-        precip: firstFinite(item.precipitation, item.precip, item.rain)
+        precip: firstFinite(item.precipitation, item.precip, item.rain),
+        cloud: firstFinite(item.cloud, item.cloudiness, item.cloud_cover)
       };
     });
     const filtered = filterRowsToPeriod(rows, period.start, period.end);
@@ -2930,6 +3083,7 @@
     };
   }
 
+  // Загружает OpenWeather 5 day / 3 hour Forecast и приводит данные к rows.
   async function fetchOpenWeather(period){
     const key = getKey('openWeatherKey');
     if (!key) throw new Error('для OpenWeather нужен API‑ключ.');
@@ -2947,7 +3101,8 @@
         gust: firstFinite(item.wind?.gust),
         temp: firstFinite(item.main?.temp),
         rh: firstFinite(item.main?.humidity),
-        precip: firstFinite(item.rain?.['3h'], item.snow?.['3h'], item.rain?.['1h'], item.snow?.['1h'])
+        precip: firstFinite(item.rain?.['3h'], item.snow?.['3h'], item.rain?.['1h'], item.snow?.['1h']),
+        cloud: firstFinite(item.clouds?.all)
       };
     });
     const filtered = filterRowsToPeriod(rows, period.start, period.end);
@@ -2968,6 +3123,7 @@
   }
 
 
+  // Загружает WeatherAPI.com history/forecast и переводит скорость из км/ч в м/с.
   async function fetchWeatherApi(period){
     const key = getKey('weatherApiKey');
     if (!key) throw new Error('для WeatherAPI.com нужен API‑ключ.');
@@ -2993,7 +3149,9 @@
           gust: firstFinite(h.gust_kph) == null ? null : Number(h.gust_kph) / 3.6,
           temp: firstFinite(h.temp_c),
           rh: firstFinite(h.humidity),
-          precip: firstFinite(h.precip_mm)
+          precip: firstFinite(h.precip_mm),
+          cloud: firstFinite(h.cloud),
+          uv: firstFinite(h.uv)
         });
       }
     }
@@ -3015,6 +3173,7 @@
   }
 
 
+  // Унифицирует разные варианты ответа Tomorrow.io в массив rows.
   function tomorrowRowsFromData(data){
     const rawItems = [];
     const addHourly = (arr) => { if (Array.isArray(arr)) arr.forEach(x => rawItems.push(x)); };
@@ -3032,17 +3191,23 @@
         gust: firstFinite(vals.windGust, vals.wind_gust),
         temp: firstFinite(vals.temperature, vals.temperatureApparent),
         rh: firstFinite(vals.humidity, vals.relativeHumidity),
-        precip: firstFinite(vals.precipitationIntensity, vals.precipitationAccumulation, vals.rainIntensity)
+        precip: firstFinite(vals.precipitationIntensity, vals.precipitationAccumulation, vals.rainIntensity),
+        cloud: firstFinite(vals.cloudCover, vals.cloud_cover),
+        uv: firstFinite(vals.uvIndex, vals.uv_index),
+        shortwave: firstFinite(vals.solarGHI, vals.solar_ghi),
+        directRad: firstFinite(vals.solarDNI, vals.solar_dni),
+        diffuseRad: firstFinite(vals.solarDHI, vals.solar_dhi)
       };
     }).filter(Boolean);
   }
 
+  // Загружает Tomorrow.io historical или forecast в зависимости от периода.
   async function fetchTomorrowIo(period){
     const key = getKey('tomorrowKey');
     if (!key) throw new Error('для Tomorrow.io нужен API‑ключ. Получите бесплатный ключ в кабинете Tomorrow.io и вставьте его через шестерёнку.');
     const lat = Number(state.location.latitude), lon = Number(state.location.longitude);
     const nowLocal = floorToHourInput(toDateInput(new Date(), state.location?.timezone || undefined));
-    const fields = ['windSpeed','windDirection','windGust','temperature','humidity','precipitationIntensity'];
+    const fields = ['windSpeed','windDirection','windGust','temperature','humidity','precipitationIntensity','cloudCover','uvIndex','solarGHI','solarDNI','solarDHI'];
     let url, data, endpoint, sourceLabel, dataType;
 
     if (period.end < nowLocal) {
@@ -3090,12 +3255,14 @@
     };
   }
 
+  // Вычисляет метеонаправление «откуда дует» из U/V-компонент ветра.
   function directionFromUV(u, v){
     if (!Number.isFinite(u) || !Number.isFinite(v)) return null;
     // u/v задают, куда движется воздух. Метеонаправление «откуда дует» — обратное.
     return normDeg(Math.atan2(-u, -v) * 180 / Math.PI);
   }
 
+  // Загружает Windy Point Forecast и считает скорость/направление из U/V.
   async function fetchWindy(period){
     const key = getKey('windyKey');
     if (!key) throw new Error('для Windy Point Forecast нужен API‑ключ.');
@@ -3148,6 +3315,7 @@
     };
   }
 
+  // Маршрутизирует запрос к конкретной функции источника по id.
   async function fetchWeatherForSource(id, period){
     if (id === 'yandex') return await fetchYandex(period);
     if (id === 'gismeteo') return await fetchGismeteo(period);
@@ -3165,16 +3333,19 @@
   }
 
 
+  // Добавляет часы к локальному datetime-local без учёта внешних библиотек.
   function addHoursToLocalInput(localInput, hours){
     const d = localDateFromHour(localInput);
     if (!d) return localInput;
     return floorToHourInput(toDateInput(new Date(d.getTime() + hours * 3600000), undefined));
   }
 
+  // Возвращает текущий локальный час для выбранной точки.
   function currentLocalHour(){
     return floorToHourInput(toDateInput(new Date(), state.location?.timezone || undefined));
   }
 
+  // Объединяет строки прошлого периода и прогноза, убирая дубли по часу.
   function dedupeRowsByTime(rows){
     const m = new Map();
     for (const r of rows || []) {
@@ -3188,6 +3359,7 @@
     return [...m.values()].sort((a,b) => String(a.time).localeCompare(String(b.time)));
   }
 
+  // Находит ближайшую позицию почасового слайдера к заданному времени.
   function nearestTimeFocusIndex(targetTime){
     const ticks = buildTimeFocusTicks();
     if (!ticks.length) return 0;
@@ -3203,6 +3375,7 @@
     return best;
   }
 
+  // Подгружает прогноз +24 ч для кругового слайдера, не меняя основной период анализа.
   async function fetchFuture24RowsForSlider(period){
     const nowLocal = currentLocalHour();
     if (!nowLocal || period.start >= nowLocal) return {rows:[], message:''};
@@ -3217,6 +3390,7 @@
     }
   }
 
+  // Главный сценарий загрузки: выбирает источники, получает rows, строит анализ и UI.
   async function loadWeather(){
     const period = getPeriodWindow();
     const sources = selectedSourceIds(period.start, period.end);
@@ -3237,9 +3411,11 @@
 
         const originalRows = [...result.rows].sort((a,b) => String(a.time).localeCompare(String(b.time)));
         const futurePack = await fetchFuture24RowsForSlider(period);
-        state.fullRows = dedupeRowsByTime([...originalRows, ...(futurePack.rows || [])]);
-        state.rows = originalRows.map(r => ({...r, timeFocusWeight:1}));
-        state.timeFocusActive = true;
+        state.periodRows = originalRows.map(r => ({...r, timeFocusWeight:1}));
+        state.fullRows = dedupeRowsByTime([...state.periodRows, ...(futurePack.rows || [])]);
+        state.rows = state.periodRows.map(r => ({...r, timeFocusWeight:1}));
+        state.timeFocusActive = false;
+        state.timeFocusOverview = true;
         state.initialFocusTime = originalRows.at(-1)?.time || period.end;
         state.timeFocusIndex = nearestTimeFocusIndex(state.initialFocusTime);
         state.lastApiUrl = result.url;
@@ -3250,7 +3426,8 @@
         last.status = 'ok';
         last.message = `${result.rows.length} ч`;
         updatePlaceStatus();
-        applyTimeFocus(state.timeFocusIndex, true);
+        state.stats = analyze(state.rows);
+        renderAll();
         state.initialAnalysisText = $('analysisText')?.textContent || '';
         state.initialAnalysisKind = (($('analysisText')?.className || '').match(/\b(good|warn|bad)\b/) || [,''])[1];
         state.keepInitialAnalysis = true;
@@ -3272,19 +3449,23 @@
     renderSourceInfo();
   }
 
+  // Ограничивает число заданным диапазоном.
   function clamp(n, min, max){ return Math.min(max, Math.max(min, n)); }
 
+  // Парсит локальный час YYYY-MM-DDTHH:mm в объект Date.
   function localDateFromHour(time){
     const m = String(time || '').match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
     if (!m) return null;
     return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]), Number(m[4]), Number(m[5]));
   }
 
+  // Возвращает номер дня года для упрощённой солнечной геометрии.
   function dayOfYear(d){
     const start = new Date(d.getFullYear(), 0, 0);
     return Math.floor((d - start) / 86400000);
   }
 
+  // Оценивает смещение часового пояса точки для расчёта положения солнца.
   function timeZoneOffsetHours(timeZone, date){
     if (!timeZone || !(date instanceof Date) || isNaN(date)) return null;
     try {
@@ -3299,6 +3480,7 @@
     }
   }
 
+  // Приближённо оценивает высоту солнца над горизонтом для часа и широты.
   function estimateSolarElevation(time, lat){
     const d = localDateFromHour(time);
     if (!d || !Number.isFinite(lat)) return null;
@@ -3322,47 +3504,275 @@
     return Math.asin(clamp(sinEl, -1, 1)) * 180 / Math.PI;
   }
 
+  // Достаёт облачность из разных вариантов названия поля API.
+  function rowCloudCover(r){
+    const v = firstFinite(r.cloud, r.cloudCover, r.cloud_cover, r.cloudiness);
+    if (v == null) return null;
+    return clamp(Number(v), 0, 100);
+  }
+
+  // Достаёт коротковолновую солнечную радиацию из разных источников.
+  function rowShortwaveRadiation(r){
+    return firstFinite(r.shortwave, r.shortwaveRadiation, r.shortwave_radiation, r.solarradiation, r.solarRadiation, r.solarGHI, r.radiation);
+  }
+
+  // Достаёт прямую солнечную радиацию из разных источников.
+  function rowDirectRadiation(r){
+    return firstFinite(r.directRad, r.directRadiation, r.direct_radiation, r.solarDNI);
+  }
+
+  // Достаёт UV-индекс из разных источников.
+  function rowUvIndex(r){
+    return firstFinite(r.uv, r.uvIndex, r.uv_index);
+  }
+
+  // Сводит радиацию, UV, облачность и высоту солнца в индекс Солнце E от 0 до 1.
+  function solarExposureForRow(r, sun){
+    const shortwave = rowShortwaveRadiation(r);
+    const direct = rowDirectRadiation(r);
+    const uv = rowUvIndex(r);
+    const cloud = rowCloudCover(r);
+    const values = [];
+    let source = 'геометрия солнца';
+
+    if (Number.isFinite(shortwave)) {
+      values.push(clamp((shortwave - 80) / 620, 0, 1));
+      source = 'радиация';
+    }
+    if (Number.isFinite(direct)) {
+      values.push(clamp((direct - 35) / 520, 0, 1));
+      source = 'прямая радиация';
+    }
+    if (Number.isFinite(uv)) {
+      values.push(clamp(uv / 8, 0, 1) * 0.9);
+      if (source === 'геометрия солнца') source = 'UV';
+    }
+
+    let exposure;
+    if (values.length) {
+      exposure = Math.max(...values);
+    } else if (sun != null && Number.isFinite(sun)) {
+      const base = clamp((sun - 4) / 55, 0, 1);
+      const cloudFactor = cloud == null ? 0.88 : clamp(1 - (cloud / 100) * 0.78, 0.22, 1);
+      exposure = base * cloudFactor;
+    } else {
+      exposure = 0;
+      source = 'нет данных';
+    }
+
+    return {exposure: clamp(exposure, 0, 1), cloud, shortwave, direct, uv, source};
+  }
+
+  // Оценивает, насколько скорость и порывы разрывают или рассеивают запаховый шлейф.
+  function windDispersionPenaltyForRow(r){
+    const speed = Number(r.speed || 0);
+    const gust = Number(r.gust || 0);
+    let penalty = 1;
+    const reasons = [];
+
+    if (speed < 0.5) {
+      penalty *= 0.70;
+      reasons.push('почти штиль: запаховая картина пятнистая');
+    } else if (speed <= 2.5) {
+      penalty *= 1.03;
+    } else if (speed <= 4) {
+      penalty *= 0.94;
+      reasons.push('ветер начинает растягивать шлейф');
+    } else if (speed <= 6) {
+      penalty *= 0.78;
+      reasons.push('заметный ветер рассеивает запах');
+    } else if (speed <= 8) {
+      penalty *= 0.62;
+      reasons.push('сильный ветер разметает запах');
+    } else if (speed <= 12) {
+      penalty *= 0.45;
+      reasons.push('очень сильный ветер разрывает запаховый шлейф');
+    } else {
+      penalty *= 0.32;
+      reasons.push('крайне сильный ветер: шлейф становится рваным');
+    }
+
+    if (gust && speed) {
+      const ratio = gust / Math.max(speed, 0.1);
+      if (ratio >= 3) {
+        penalty *= 0.68;
+        reasons.push('резкая порывистость');
+      } else if (ratio >= 2.3) {
+        penalty *= 0.80;
+        reasons.push('порывистость');
+      }
+    }
+    if (gust >= 12) {
+      penalty *= 0.76;
+      reasons.push('очень сильные порывы');
+    } else if (gust >= 9) {
+      penalty *= 0.86;
+      reasons.push('сильные порывы');
+    }
+
+    return {penalty:clamp(penalty, 0.18, 1.05), reasons};
+  }
+
+
+  // Возвращает активный тип задачи: ПСС или ПТП.
+  function scentTaskMode(){
+    return state.taskMode === 'ptp' ? 'ptp' : 'pss';
+  }
+
+  // Возвращает короткую русскую подпись режима ПСС/ПТП.
+  function taskModeLabel(mode=scentTaskMode()){
+    return mode === 'ptp' ? 'ПТП' : 'ПСС';
+  }
+
+  // Считает шаги морозного штрафа каждые 5°C ниже −5°C.
+  function coldSeverityBelowMinus5(temp){
+    if (!Number.isFinite(temp) || temp >= -5) return 0;
+    return clamp((-5 - temp) / 5, 0, 6);
+  }
+
+  // Формирует текстовое пояснение морозного штрафа для отчёта.
+  function coldStepText(severity){
+    if (!Number.isFinite(severity) || severity <= 0) return '';
+    return `морозный штраф: ${round(severity,1)} шага по 5°C ниже −5°C`;
+  }
+
+  // Главная почасовая эвристика запаха: сохранность × доступность с учётом ПСС/ПТП.
   function scentFactorForRow(r){
+    const taskMode = scentTaskMode();
+    const isPtp = taskMode === 'ptp';
     const lat = Number(state.location?.latitude);
     const sun = estimateSolarElevation(r.time, lat);
+    const solar = solarExposureForRow(r, sun);
     const speed = Number(r.speed || 0);
     const gust = Number(r.gust || 0);
     const temp = Number(r.temp);
     const rh = Number(r.rh);
     const precip = Number(r.precip || 0);
-    let factor = 1;
-    const reasons = [];
+    const exp = solar.exposure;
+    const isSnowLike = precip > 0 && Number.isFinite(temp) && temp <= 1;
+    const coldSeverity = coldSeverityBelowMinus5(temp);
 
+    let preservation = 1;
+    let accessibility = 1;
+    const reasons = [];
+    const accessReasons = [];
+    const preservationReasons = [];
+
+    // Влажность: для ПСС это и комфорт носа, и насыщенность запаха; для ПТП — ещё и влияние на выход холодного запаха.
     if (Number.isFinite(rh)) {
-      if (rh >= 55 && rh <= 90) { factor *= 1.18; reasons.push('рабочая влажность'); }
-      else if (rh > 90) { factor *= 1.03; reasons.push('очень высокая влажность'); }
-      else if (rh < 35) { factor *= 0.68; reasons.push('сухой воздух'); }
-      else { factor *= 0.92; }
+      if (rh >= 55 && rh <= 88) { preservation *= 1.15; accessibility *= 1.06; preservationReasons.push('рабочая влажность'); }
+      else if (rh > 88 && rh <= 96) { preservation *= 1.06; accessibility *= isPtp ? 0.96 : 1.00; preservationReasons.push('очень высокая влажность'); }
+      else if (rh > 96) {
+        preservation *= 1.03;
+        accessibility *= isPtp ? (speed < 1.5 ? 0.86 : 0.93) : (speed < 1.5 ? 0.92 : 0.98);
+        accessReasons.push(isPtp ? 'сырой мороз/туман может запирать холодный запах локально' : 'очень влажный застой может делать шлейф локальным');
+      }
+      else if (rh < 30) { preservation *= 0.48; accessibility *= isPtp ? 0.70 : 0.76; preservationReasons.push('очень сухой воздух'); accessReasons.push('сухой воздух снижает читаемость запаха и работу носа'); }
+      else if (rh < 45) { preservation *= 0.74; accessibility *= isPtp ? 0.84 : 0.90; preservationReasons.push('суховатый воздух'); }
+      else { preservation *= 0.94; }
     }
+
+    // Температура: штраф за мороз нарастает каждые 5°C ниже −5°C.
+    // ПСС: живой человек теплее среды, поэтому выход запаха не считается перекрытым снегом/морозом.
+    // ПТП: объект температуры среды, летучесть и выход запаха при морозе падают сильнее.
     if (Number.isFinite(temp)) {
-      if (temp >= 5 && temp <= 18) factor *= 1.12;
-      else if (temp > 25 && temp <= 30) { factor *= 0.78; reasons.push('тепло ускоряет распад'); }
-      else if (temp > 30) { factor *= 0.58; reasons.push('жара ускоряет распад'); }
-      else if (temp < -5) { factor *= 0.72; reasons.push('мороз снижает летучесть'); }
+      if (temp >= 0 && temp <= 15) { preservation *= 1.12; accessibility *= 1.05; }
+      else if (temp > 15 && temp <= 22) { preservation *= 1.02; accessibility *= 1.02; }
+      else if (temp > 22 && temp <= 26) { preservation *= 0.90; accessibility *= 0.94; }
+      else if (temp > 26 && temp <= 30) { preservation *= 0.68; accessibility *= 0.78; preservationReasons.push('жара'); accessReasons.push('тёплый приземный слой поднимает запах'); }
+      else if (temp > 30) { preservation *= 0.48; accessibility *= 0.62; preservationReasons.push('сильная жара'); accessReasons.push('перегрев и восходящие потоки'); }
+      else if (temp < -5) {
+        const preservationCold = isPtp ? Math.pow(0.96, coldSeverity) : Math.pow(0.99, coldSeverity);
+        const accessCold = isPtp ? Math.pow(0.83, coldSeverity) : Math.pow(0.93, coldSeverity);
+        preservation *= preservationCold;
+        accessibility *= accessCold;
+        const step = coldStepText(coldSeverity);
+        if (isPtp) {
+          preservationReasons.push(`ПТП: холод замедляет запахообразование${step ? ' (' + step + ')' : ''}`);
+          accessReasons.push('ПТП: объект холодный, летучесть и выход запаха снижаются');
+        } else {
+          preservationReasons.push(`ПСС: мороз снижает общую летучесть${step ? ' (' + step + ')' : ''}`);
+          if (coldSeverity >= 2) accessReasons.push('ПСС: сильный мороз ухудшает распространение и работу носа, но не считается укрытием источника');
+        }
+      }
+      else if (temp < 0) {
+        preservation *= isPtp ? 1.02 : 1.05;
+        accessibility *= isPtp ? 0.90 : 0.95;
+        if (isPtp) accessReasons.push('лёгкий мороз снижает летучесть холодного объекта');
+      }
     }
-    if (sun != null) {
-      if (sun > 45) { factor *= 0.58; reasons.push('активное солнце'); }
-      else if (sun > 25) { factor *= 0.75; reasons.push('солнечная нагрузка'); }
-      else if (sun < -3) { factor *= 1.15; reasons.push('ночной режим'); }
+
+    // Солнце и время суток. Для ПСС тепло тела помогает запаху выйти в воздух; для ПТП прогрев/оттепель может открыть каналы выхода, но жара и радиация всё равно разрушают картину.
+    if (sun != null && Number.isFinite(sun)) {
+      if (exp >= 0.80) { preservation *= 0.28; accessibility *= isPtp ? 0.66 : 0.58; preservationReasons.push('прямое солнце/высокая радиация'); accessReasons.push('сильная конвекция уносит запах выше уровня земли'); }
+      else if (exp >= 0.60) { preservation *= 0.42; accessibility *= isPtp ? 0.76 : 0.68; preservationReasons.push('сильная солнечная нагрузка'); accessReasons.push('дневная конвекция'); }
+      else if (exp >= 0.40) { preservation *= 0.62; accessibility *= isPtp ? 0.90 : 0.80; preservationReasons.push('солнечная нагрузка'); }
+      else if (exp >= 0.20) { preservation *= 0.80; accessibility *= isPtp ? 1.00 : 0.90; preservationReasons.push('умеренная солнечная нагрузка'); }
+      else if (sun < -3) {
+        preservation *= 1.13;
+        accessibility *= isPtp ? (Number.isFinite(temp) && temp < -5 ? 0.92 : 1.00) : (speed < 0.8 ? 0.92 : 1.04);
+        preservationReasons.push('ночной режим');
+        if (isPtp && Number.isFinite(temp) && temp < -5) accessReasons.push('ПТП: ночью холодный объект отдаёт запах слабее, возможен локальный застой');
+      }
+      else if (sun < 8) { preservation *= 1.05; accessibility *= isPtp ? 1.05 : 1.02; preservationReasons.push('низкое солнце'); }
     }
+
+    if (isPtp && Number.isFinite(temp) && temp > -2 && temp < 3 && sun != null && sun > 0 && exp < 0.45) {
+      accessibility *= 1.12;
+      accessReasons.push('ПТП: слабый прогрев/околооттепель может открыть каналы выхода запаха');
+    }
+    if (!isPtp && Number.isFinite(temp) && temp < 5 && speed >= 0.5 && speed <= 4) {
+      accessibility *= 1.04;
+      accessReasons.push('ПСС: тепло тела помогает запаху выходить в поток воздуха');
+    }
+
+    // Комбинации: «жара+солнце» и «сухость+солнце» рушат старую картину для обоих режимов.
+    if (Number.isFinite(temp) && temp > 25 && exp >= 0.55) { preservation *= 0.64; accessibility *= 0.76; preservationReasons.push('жара + солнце'); }
+    else if (Number.isFinite(temp) && temp > 24 && exp >= 0.35) { preservation *= 0.80; accessibility *= 0.86; preservationReasons.push('тёплая солнечная погода'); }
+    if (Number.isFinite(rh) && rh < 45 && exp >= 0.45) { preservation *= 0.70; accessibility *= 0.78; preservationReasons.push('сухость + солнце'); }
+
+    // Осадки: в ПСС снег не считается укрытием источника; в ПТП снег может дополнительно перекрывать выход запаха.
     if (precip > 0) {
-      if (precip >= 5) { factor *= 0.25; reasons.push('сильный дождь/смыв'); }
-      else if (precip >= 1) { factor *= 0.45; reasons.push('дождь'); }
-      else { factor *= 0.82; reasons.push('слабые осадки'); }
+      if (isSnowLike) {
+        if (isPtp) {
+          if (precip >= 3) { preservation *= 0.82; accessibility *= 0.55; preservationReasons.push('ПТП: сильный снег перекрывает источник'); accessReasons.push('ПТП: снег заметно снижает выход запаха к поверхности'); }
+          else if (precip >= 1) { preservation *= 0.90; accessibility *= 0.68; preservationReasons.push('ПТП: снег засыпает запах'); accessReasons.push('ПТП: снег частично перекрывает выход запаха'); }
+          else if (precip >= 0.3) { preservation *= 1.02; accessibility *= 0.82; preservationReasons.push('ПТП: слабый снег консервирует запах'); accessReasons.push('ПТП: свежий снег частично запечатывает запах'); }
+          else { preservation *= 1.04; accessibility *= 0.93; preservationReasons.push('ПТП: снежное увлажнение консервирует запах'); }
+        } else {
+          if (precip >= 3) { preservation *= 0.88; accessibility *= 0.86; preservationReasons.push('ПСС: сильный снег осложняет воздушный шлейф'); }
+          else if (precip >= 1) { preservation *= 0.94; accessibility *= 0.90; preservationReasons.push('ПСС: снегопад перестраивает шлейф'); }
+          else { preservation *= 1.04; accessibility *= 0.99; preservationReasons.push('ПСС: слабый снег/увлажнение может поддерживать запах у поверхности'); }
+        }
+      } else if (precip >= 5) { preservation *= 0.25; accessibility *= 0.38; preservationReasons.push('сильный дождь/смыв'); accessReasons.push('ливень обрывает воздушный шлейф'); }
+      else if (precip >= 1) { preservation *= 0.50; accessibility *= 0.62; preservationReasons.push('заметный дождь'); accessReasons.push('дождь перераспределяет запах'); }
+      else if (precip >= 0.3) { preservation *= 0.82; accessibility *= 0.86; preservationReasons.push('слабый дождь'); }
+      else { preservation *= 1.04; accessibility *= 1.04; preservationReasons.push('слабое увлажнение'); }
     }
-    if (speed < 0.5) { factor *= 0.70; reasons.push('почти штиль'); }
-    else if (speed >= 0.5 && speed <= 4) factor *= 1.05;
-    else if (speed > 8) { factor *= 0.62; reasons.push('сильный ветер рассеивает'); }
-    else if (speed > 4) factor *= 0.85;
-    if (gust && speed && gust / Math.max(speed,0.1) >= 2.5) { factor *= 0.86; reasons.push('порывистость'); }
-    return {factor:clamp(factor, 0.05, 1.55), sun, reasons};
+
+    // Ветер: нужен для доставки запаха, но сильный ветер разбавляет, окисляет и разрывает шлейф.
+    const windDispersion = windDispersionPenaltyForRow(r);
+    preservation *= windDispersion.penalty;
+    accessibility *= windDispersion.penalty;
+    preservationReasons.push(...windDispersion.reasons);
+    if (speed < 0.5) accessReasons.push('почти штиль: запах остаётся пятнами возле источника');
+    if (speed > 4) accessReasons.push('ветер рассеивает и растягивает шлейф');
+    if (gust && speed && gust / Math.max(speed, 0.1) >= 2.3) accessReasons.push('порывы рвут шлейф');
+
+    // Ночная инверсия/застой: для ПСС чаще локализует запах, для ПТП в мороз может сильнее ограничивать выход.
+    if (sun != null && sun < -3 && speed < 1 && Number.isFinite(rh) && rh >= 85) {
+      accessibility *= isPtp ? 0.78 : 0.88;
+      accessReasons.push(isPtp ? 'ПТП: ночной застой/инверсия ограничивает выход холодного запаха' : 'ночной застой/инверсия: возможны локальные карманы запаха');
+    }
+
+    preservation = clamp(preservation, 0.03, 1.45);
+    accessibility = clamp(accessibility, 0.08, 1.35);
+    const factor = clamp(preservation * accessibility, 0.02, 1.55);
+    reasons.push(...preservationReasons, ...accessReasons);
+    return {factor, preservationFactor:preservation, accessibilityFactor:accessibility, taskMode, coldSeverity, sun, solarExposure: exp, solar, windDispersionPenalty: windDispersion.penalty, windDispersionReasons: windDispersion.reasons, preservationReasons, accessReasons, reasons};
   }
 
+  // Добавляет к rows запаховые коэффициенты, возрастной вес и солнечные метаданные.
   function prepareScentWeights(rows){
     const times = rows.map(r => localDateFromHour(r.time)).filter(Boolean).map(d => d.getTime());
     const maxT = times.length ? Math.max(...times) : null;
@@ -3370,66 +3780,162 @@
       const sf = scentFactorForRow(r);
       const t = localDateFromHour(r.time)?.getTime();
       const ageH = maxT && t ? Math.max(0, (maxT - t) / 3600000) : 0;
-      const halfLife = 2.5 + 12 * clamp(sf.factor / 1.2, 0.05, 1.25);
+      const normalized = clamp(sf.factor / 1.15, 0.03, 1.25);
+      const halfLife = clamp(2.0 + 10.5 * Math.pow(normalized, 1.45), 1.4, 14);
       const ageWeight = Math.exp(-ageH / halfLife);
       r.scentFactor = sf.factor;
+      r.scentPreservationFactor = sf.preservationFactor;
+      r.scentAccessibilityFactor = sf.accessibilityFactor;
+      r.scentTaskMode = sf.taskMode;
+      r.coldSeverity = sf.coldSeverity;
       r.scentAgeHours = ageH;
-      r.scentWeight = clamp(sf.factor * ageWeight, 0.02, 1.55);
+      r.scentHalfLife = halfLife;
+      r.scentWeight = clamp(sf.factor * ageWeight, 0.01, 1.45);
       r.solarElevation = sf.sun;
+      r.solarExposure = sf.solarExposure;
+      r.solarMeta = sf.solar;
+      r.windDispersionPenalty = sf.windDispersionPenalty;
+      r.windDispersionReasons = sf.windDispersionReasons || [];
+      r.scentPreservationReasons = sf.preservationReasons || [];
+      r.scentAccessReasons = sf.accessReasons || [];
       r.scentReasons = sf.reasons;
       return r;
     });
     return enriched;
   }
 
+  // Переводит балл сохранности запаха в статус, CSS-класс и цветовой тон.
   function scentDurabilityLabel(score){
-    if (score >= 72) return {text:'хорошая', cls:'good'};
-    if (score >= 52) return {text:'средняя', cls:'warn'};
-    if (score >= 32) return {text:'низкая', cls:'warn'};
-    return {text:'плохая', cls:'bad'};
+    const v = Math.round(Number(score) || 0);
+    if (v >= 70) return {text:'хорошая', cls:'info', tone:'blue'};
+    if (v >= 40) return {text:'средняя', cls:'good', tone:'green'};
+    if (v >= 16) return {text:'низкая', cls:'warn', tone:'orange'};
+    return {text:'очень низкая', cls:'bad', tone:'red'};
   }
-
-  function describeScentDurability(rows){
+// Считает итоговую сохранность запаха, доступность и поясняющие факторы за период.
+function describeScentDurability(rows){
+    const taskMode = scentTaskMode();
+    const isPtp = taskMode === 'ptp';
     const n = rows.length || 1;
     const avgWeight = rows.reduce((a,r)=>a+(r.scentWeight ?? 1),0)/n;
     const avgFactor = rows.reduce((a,r)=>a+(r.scentFactor ?? 1),0)/n;
+    const avgPreservation = rows.reduce((a,r)=>a+(r.scentPreservationFactor ?? r.scentFactor ?? 1),0)/n;
+    const avgAccessibility = rows.reduce((a,r)=>a+(r.scentAccessibilityFactor ?? 1),0)/n;
+    const avgSolarExposure = rows.reduce((a,r)=>a+(r.solarExposure ?? 0),0)/n;
+    const avgColdSeverity = rows.reduce((a,r)=>a+(Number.isFinite(r.coldSeverity) ? r.coldSeverity : coldSeverityBelowMinus5(Number(r.temp))),0)/n;
     const precipHours = rows.filter(r => (r.precip || 0) > 0).length;
-    const heavyRainHours = rows.filter(r => (r.precip || 0) >= 1).length;
-    const sunHours = rows.filter(r => Number.isFinite(r.solarElevation) && r.solarElevation > 25).length;
-    const strongSunHours = rows.filter(r => Number.isFinite(r.solarElevation) && r.solarElevation > 45).length;
+    const lightMoistureHours = rows.filter(r => (r.precip || 0) > 0 && (r.precip || 0) < 0.3 && !(Number.isFinite(r.temp) && r.temp <= 1)).length;
+    const moderateRainHours = rows.filter(r => (r.precip || 0) >= 0.3 && (r.precip || 0) < 1 && !(Number.isFinite(r.temp) && r.temp <= 1)).length;
+    const heavyRainHours = rows.filter(r => (r.precip || 0) >= 1 && !(Number.isFinite(r.temp) && r.temp <= 1)).length;
+    const veryHeavyRainHours = rows.filter(r => (r.precip || 0) >= 5 && !(Number.isFinite(r.temp) && r.temp <= 1)).length;
+    const snowHours = rows.filter(r => (r.precip || 0) > 0 && Number.isFinite(r.temp) && r.temp <= 1).length;
+    const heavySnowHours = rows.filter(r => (r.precip || 0) >= 1 && Number.isFinite(r.temp) && r.temp <= 1).length;
+    const veryHeavySnowHours = rows.filter(r => (r.precip || 0) >= 3 && Number.isFinite(r.temp) && r.temp <= 1).length;
+    const solarHours = rows.filter(r => Number.isFinite(r.solarExposure) && r.solarExposure >= 0.30).length;
+    const strongSolarHours = rows.filter(r => Number.isFinite(r.solarExposure) && r.solarExposure >= 0.60).length;
+    const directSunHours = rows.filter(r => Number.isFinite(r.solarExposure) && r.solarExposure >= 0.80).length;
+    const geometricSunHours = rows.filter(r => Number.isFinite(r.solarElevation) && r.solarElevation > 25).length;
     const nightHours = rows.filter(r => Number.isFinite(r.solarElevation) && r.solarElevation < -3).length;
+    const lowSunHours = rows.filter(r => Number.isFinite(r.solarElevation) && r.solarElevation >= -3 && r.solarElevation < 8).length;
     const hotHours = rows.filter(r => Number.isFinite(r.temp) && r.temp > 25).length;
+    const veryHotHours = rows.filter(r => Number.isFinite(r.temp) && r.temp > 30).length;
+    const hotSunHours = rows.filter(r => Number.isFinite(r.temp) && r.temp > 25 && Number.isFinite(r.solarExposure) && r.solarExposure >= 0.45).length;
     const dryHours = rows.filter(r => Number.isFinite(r.rh) && r.rh < 35).length;
-    const humidGoodHours = rows.filter(r => Number.isFinite(r.rh) && r.rh >= 55 && r.rh <= 90).length;
-    const strongWindHours = rows.filter(r => (r.speed || 0) > 8).length;
+    const drySunHours = rows.filter(r => Number.isFinite(r.rh) && r.rh < 45 && Number.isFinite(r.solarExposure) && r.solarExposure >= 0.45).length;
+    const humidGoodHours = rows.filter(r => Number.isFinite(r.rh) && r.rh >= 55 && r.rh <= 88).length;
+    const fogStagnationHours = rows.filter(r => Number.isFinite(r.rh) && r.rh >= 96 && (r.speed || 0) < 1.5).length;
+    const freezeHours = rows.filter(r => Number.isFinite(r.temp) && r.temp < -5).length;
+    const deepFreezeHours = rows.filter(r => Number.isFinite(r.temp) && r.temp < -15).length;
+    const extremeFreezeHours = rows.filter(r => Number.isFinite(r.temp) && r.temp < -25).length;
+    const thawHours = rows.filter(r => Number.isFinite(r.temp) && r.temp > -1 && r.temp < 3).length;
+    const dispersiveWindHours = rows.filter(r => (r.speed || 0) > 4).length;
+    const strongWindHours = rows.filter(r => (r.speed || 0) > 6).length;
+    const veryStrongWindHours = rows.filter(r => (r.speed || 0) > 8).length;
+    const gustyHours = rows.filter(r => Number.isFinite(r.gust) && (r.speed || 0) > 0 && r.gust / Math.max(r.speed,0.1) >= 2.3).length;
+    const highGustHours = rows.filter(r => Number.isFinite(r.gust) && r.gust >= 9).length;
+    const avgWindDispersionPenalty = rows.reduce((a,r)=>a+(Number.isFinite(r.windDispersionPenalty) ? r.windDispersionPenalty : 1),0)/n;
     const calmHours = rows.filter(r => (r.speed || 0) < 0.5).length;
-    let score = 55 + (avgFactor - 1) * 38;
-    score += humidGoodHours/n * 12;
-    score += nightHours/n * 8;
-    score -= sunHours/n * 13;
-    score -= strongSunHours/n * 10;
-    score -= hotHours/n * 9;
-    score -= dryHours/n * 12;
-    score -= precipHours/n * 10;
-    score -= heavyRainHours/n * 18;
-    score -= strongWindHours/n * 10;
-    score -= calmHours/n * 4;
-    score = clamp(score, 5, 95);
+
+    const coldPreservationPenalty = avgColdSeverity * (isPtp ? 4.5 : 2.0);
+    const coldAccessPenalty = avgColdSeverity * (isPtp ? 12.0 : 4.5);
+
+    const preservationScore = clamp(62 + (avgPreservation - 1) * 58
+      + humidGoodHours/n * 8 + nightHours/n * 6 + lightMoistureHours/n * 5 + snowHours/n * (isPtp ? 3 : 1)
+      - solarHours/n * 10 - strongSolarHours/n * 16 - directSunHours/n * 12
+      - hotHours/n * 7 - veryHotHours/n * 9 - hotSunHours/n * 18
+      - dryHours/n * 11 - drySunHours/n * 12
+      - heavyRainHours/n * 22 - veryHeavyRainHours/n * 18
+      - heavySnowHours/n * (isPtp ? 10 : 5) - veryHeavySnowHours/n * (isPtp ? 10 : 6)
+      - strongWindHours/n * 14 - veryStrongWindHours/n * 16 - gustyHours/n * 9
+      - coldPreservationPenalty,
+      5, 95);
+
+    const accessibilityScore = clamp(66 + (avgAccessibility - 1) * 64
+      + humidGoodHours/n * 5 + lightMoistureHours/n * 7 + thawHours/n * (isPtp ? 9 : 2) + (isPtp ? lowSunHours/n * 3 : 0)
+      - calmHours/n * 12 - fogStagnationHours/n * (isPtp ? 12 : 7)
+      - strongSolarHours/n * 15 - hotSunHours/n * 16
+      - coldAccessPenalty
+      - snowHours/n * (isPtp ? 13 : 3) - heavySnowHours/n * (isPtp ? 18 : 7) - veryHeavySnowHours/n * (isPtp ? 12 : 6)
+      - heavyRainHours/n * 16 - veryHeavyRainHours/n * 18
+      - dispersiveWindHours/n * 8 - strongWindHours/n * 13 - veryStrongWindHours/n * 16
+      - gustyHours/n * 11 - highGustHours/n * 8,
+      5, 95);
+
+    let score = isPtp
+      ? (0.52 * preservationScore + 0.48 * accessibilityScore + (avgFactor - 1) * 24)
+      : (0.72 * preservationScore + 0.28 * accessibilityScore + (avgFactor - 1) * 16);
+    score -= (1 - avgWindDispersionPenalty) * 14;
+
+    if (isPtp) {
+      if (avgAccessibility < 0.45) score = Math.min(score, 52);
+      if (avgAccessibility < 0.32) score = Math.min(score, 38);
+      if (avgAccessibility < 0.22) score = Math.min(score, 26);
+      if (deepFreezeHours/n >= 0.55 && snowHours/n >= 0.30) score = Math.min(score, 34);
+      if (extremeFreezeHours/n >= 0.35 && snowHours/n >= 0.20) score = Math.min(score, 24);
+    } else {
+      if (avgAccessibility < 0.28) score = Math.min(score, 46);
+      if (avgFactor < 0.16) score = Math.min(score, 35);
+    }
+    if (strongSolarHours/n >= 0.55 && drySunHours/n >= 0.30) score -= 14;
+    if (veryStrongWindHours/n >= 0.35 || highGustHours/n >= 0.35) score -= 14;
+    if (veryHeavyRainHours/n >= 0.20 || heavyRainHours/n >= 0.45) score -= 12;
+    score = clamp(score, 3, 95);
+
     const label = scentDurabilityLabel(score);
-    const halfLife = 2.5 + 12 * (score/100);
-    const usefulHours = Math.max(1, Math.round(halfLife * 1.3));
+    const halfLife = clamp(1.4 + 12.5 * Math.pow(score/100, 1.35), 0.8, 14);
+    const usefulHours = Math.max(1, Math.round(halfLife * 1.2));
     const details = [];
+    details.push(`режим ${taskModeLabel(taskMode)}`);
     if (humidGoodHours) details.push(`рабочая влажность ${humidGoodHours} ч`);
     if (nightHours) details.push(`ночной/низкосолнечный режим ${nightHours} ч`);
-    if (sunHours) details.push(`солнечная нагрузка ${sunHours} ч`);
+    if (lowSunHours) details.push(`низкое солнце/переходный свет ${lowSunHours} ч`);
+    if (lightMoistureHours) details.push(`слабое увлажнение ${lightMoistureHours} ч`);
+    if (solarHours) details.push(`солнечная нагрузка ${solarHours} ч`);
+    if (strongSolarHours) details.push(`сильная солнечная нагрузка ${strongSolarHours} ч`);
+    if (directSunHours) details.push(`прямое/почти прямое солнце ${directSunHours} ч`);
     if (hotHours) details.push(`температура выше 25°C ${hotHours} ч`);
+    if (hotSunHours) details.push(`жара + солнце ${hotSunHours} ч`);
     if (dryHours) details.push(`сухой воздух ${dryHours} ч`);
-    if (precipHours) details.push(`осадки ${precipHours} ч, из них заметные ${heavyRainHours} ч`);
-    if (strongWindHours) details.push(`сильный ветер ${strongWindHours} ч`);
+    if (drySunHours) details.push(`сухость + солнце ${drySunHours} ч`);
+    if (precipHours) details.push(`осадки ${precipHours} ч, сумма ${round(rows.reduce((a,r)=>a+(Number(r.precip)||0),0),1)} мм`);
+    if (snowHours) details.push(`${isPtp ? 'ПТП: снег/осадки при морозе' : 'ПСС: снег/осадки при морозе'} ${snowHours} ч`);
+    if (heavyRainHours) details.push(`заметный дождь ${heavyRainHours} ч`);
+    if (freezeHours) details.push(`мороз ниже −5°C ${freezeHours} ч`);
+    if (deepFreezeHours) details.push(`сильный мороз ниже −15°C ${deepFreezeHours} ч`);
+    if (extremeFreezeHours) details.push(`экстремальный мороз ниже −25°C ${extremeFreezeHours} ч`);
+    if (avgColdSeverity > 0) details.push(`средний морозный штраф ${round(avgColdSeverity,1)} шага по 5°C ниже −5°C`);
+    if (fogStagnationHours) details.push(`сырой застой/туман ${fogStagnationHours} ч`);
+    if (dispersiveWindHours) details.push(`ветер >4 м/с ${dispersiveWindHours} ч`);
+    if (strongWindHours) details.push(`сильный ветер >6 м/с ${strongWindHours} ч`);
+    if (veryStrongWindHours) details.push(`очень сильный ветер >8 м/с ${veryStrongWindHours} ч`);
+    if (gustyHours) details.push(`порывистость ${gustyHours} ч`);
+    if (highGustHours) details.push(`порывы ≥9 м/с ${highGustHours} ч`);
     if (calmHours) details.push(`почти штиль ${calmHours} ч`);
-    return {score, label, halfLife, usefulHours, avgWeight, details, counts:{precipHours, heavyRainHours, sunHours, strongSunHours, nightHours, hotHours, dryHours, humidGoodHours, strongWindHours, calmHours}};
+
+    return {score, preservationScore, accessibilityScore, taskMode, label, halfLife, usefulHours, avgWeight, avgFactor, avgPreservation, avgAccessibility, avgSolarExposure, avgColdSeverity, avgWindDispersionPenalty, details, counts:{precipHours, lightMoistureHours, moderateRainHours, heavyRainHours, veryHeavyRainHours, snowHours, heavySnowHours, veryHeavySnowHours, solarHours, strongSolarHours, directSunHours, geometricSunHours, nightHours, lowSunHours, hotHours, veryHotHours, hotSunHours, dryHours, drySunHours, humidGoodHours, fogStagnationHours, freezeHours, deepFreezeHours, extremeFreezeHours, thawHours, dispersiveWindHours, strongWindHours, veryStrongWindHours, gustyHours, highGustHours, calmHours}};
   }
 
+  // Считает средние векторы ветра/запаха, Rнапр и практическую устойчивость.
   function vectorStats(rows, mode, minSpeed){
     let x=0, y=0, wsum=0;
     for (const r of rows) {
@@ -3450,6 +3956,39 @@
     return {mean, r:res};
   }
 
+  // Считает практическую стабильность шлейфа с учётом направленности и ветрового штрафа.
+  function scentPracticalStability(rows, directionalR, minSpeed){
+    let weightedPenalty = 0;
+    let weightSum = 0;
+    let dispersiveHours = 0;
+    let strongWindHours = 0;
+    let veryStrongWindHours = 0;
+    let gustyHours = 0;
+    let highGustHours = 0;
+
+    for (const r of rows) {
+      const speed = Number(r.speed || 0);
+      if (speed < minSpeed) continue;
+      const gust = Number(r.gust || 0);
+      const timeWeight = r.timeFocusWeight ?? 1;
+      const w = Math.max(speed, 0.1) * timeWeight;
+      const p = Number.isFinite(r.windDispersionPenalty) ? r.windDispersionPenalty : windDispersionPenaltyForRow(r).penalty;
+      weightedPenalty += p * w;
+      weightSum += w;
+      if (speed > 4) dispersiveHours++;
+      if (speed > 6) strongWindHours++;
+      if (speed > 8) veryStrongWindHours++;
+      if (gust && speed && gust / Math.max(speed, 0.1) >= 2.3) gustyHours++;
+      if (gust >= 9) highGustHours++;
+    }
+
+    const windPenalty = weightSum > 0 ? clamp(weightedPenalty / weightSum, 0.18, 1.05) : 1;
+    const rDirectional = Number.isFinite(directionalR) ? directionalR : 0;
+    const rEffective = clamp(rDirectional * windPenalty, 0, 1);
+    return {rDirectional, rEffective, windPenalty, dispersiveHours, strongWindHours, veryStrongWindHours, gustyHours, highGustHours};
+  }
+
+  // Группирует часы по секторам розы и скоростным классам.
   function sectorStats(rows, mode, bins, minSpeed){
     const shortList = bins === 8 ? DIR8 : DIR16;
     const fullList = bins === 8 ? DIR8_FULL : DIR16_FULL;
@@ -3476,6 +4015,7 @@
     return {sectors, calm, ignored};
   }
 
+  // Центральная функция анализа: готовит rows, сектора, векторы, стабильность и запаховые оценки.
   function analyze(rows){
     rows = prepareScentWeights(rows);
     const bins = Number($('binCount').value);
@@ -3506,6 +4046,12 @@
 
     const windVec = vectorStats(rows,'wind',minSpeed);
     const scentVec = vectorStats(rows,'scent',minSpeed);
+    const scentStability = scentPracticalStability(rows, scentVec.r, minSpeed);
+    scentVec.rDirectional = scentStability.rDirectional;
+    scentVec.rEffective = scentStability.rEffective;
+    scentVec.windPenalty = scentStability.windPenalty;
+    scentVec.windStability = scentStability;
+    scentVec.r = scentStability.rEffective;
     const windSec = sectorStats(rows,'wind',bins,minSpeed);
     const scentSec = sectorStats(rows,'scent',bins,minSpeed);
 
@@ -3516,49 +4062,61 @@
     return {bins,minSpeed,total:rows.length,avg,median,max,maxGust,calmCount,weakCount,avgRh,avgTemp,precipTotal,precipHours,directionSwitches,windVec,scentVec,windSec,scentSec,dominantWind,dominantScent,scentDurability};
   }
 
+  // Переводит балл стабильности шлейфа в статус и цветовой тон.
   function stabilityLabel(r){
-    if (r >= 0.75) return {text:'высокая', cls:'good'};
-    if (r >= 0.50) return {text:'средняя', cls:'warn'};
-    if (r >= 0.25) return {text:'низкая', cls:'warn'};
-    return {text:'переменный ветер', cls:'bad'};
+    const v = Math.round(clamp((Number(r) || 0) * 100, 0, 100));
+    if (v >= 75) return {text:'хорошая', cls:'info', tone:'blue'};
+    if (v >= 50) return {text:'средняя', cls:'good', tone:'green'};
+    if (v >= 25) return {text:'низкая', cls:'warn', tone:'orange'};
+    return {text:'переменный ветер', cls:'bad', tone:'red'};
   }
 
+  // Переводит локальный час строки в timestamp для сравнения времени.
   function rowHourMs(r){
     const d = localDateFromHour(r?.time);
     return d ? d.getTime() : NaN;
   }
 
-  function localHourStringFromMs(ms){
-    const d = new Date(ms);
-    const pad = n => String(n).padStart(2,'0');
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:00`;
+// Строит список реальных часов для почасового слайдера без пустых промежутков.
+function buildTimeFocusTicks(){
+    const uniqueSorted = (rows) => [...new Set((rows || [])
+      .map(r => r?.time)
+      .filter(Boolean))]
+      .sort((a,b) => String(a).localeCompare(String(b)));
+    const periodTicks = uniqueSorted(state.periodRows?.length ? state.periodRows : (state.fullRows || []).filter(r => !r._futureForecast));
+    if (!periodTicks.length) return uniqueSorted(state.fullRows || []);
+    const lastPeriodMs = rowHourMs({time: periodTicks.at(-1)});
+    const futureTicks = uniqueSorted((state.fullRows || []).filter(r => {
+      if (!r?._futureForecast) return false;
+      const ms = rowHourMs(r);
+      return Number.isFinite(ms) && Number.isFinite(lastPeriodMs) ? ms > lastPeriodMs : true;
+    }));
+    // Не строим искусственную непрерывную шкалу между выбранным прошлым периодом и прогнозом:
+    // иначе при старых периодах появляются месяцы пустых «будущих» часов.
+    return [...periodTicks, ...futureTicks];
   }
 
-  function buildTimeFocusTicks(){
-    if (!state.fullRows?.length) return [];
-    const times = state.fullRows.map(rowHourMs).filter(Number.isFinite);
-    if (!times.length) return state.fullRows.map(r => r.time);
-    const start = Math.min(...times);
-    const end = Math.max(...times);
-    const ticks = [];
-    for (let t = start; t <= end + 1; t += 3600000) ticks.push(localHourStringFromMs(t));
-    return ticks;
-  }
-
+  // Форматирует час слайдера для ярлыка и центральной подсказки.
   function formatFocusTime(time){
     if (!time) return '—';
     const s = String(time).replace('T',' ');
     return s.slice(0,16);
   }
 
+  // Создаёт срез rows для выбранного часа: будущее скрывается, прошлое быстро ослабляется.
   function timeFocusRows(index){
     if (!state.fullRows?.length) return [];
     const ticks = buildTimeFocusTicks();
     const safeIndex = Math.max(0, Math.min(ticks.length - 1, Number(index) || 0));
     const targetTime = ticks[safeIndex] || state.fullRows.at(-1)?.time;
     const targetMs = rowHourMs({time:targetTime});
-    return state.fullRows
-      .filter(r => String(r.time) <= String(targetTime))
+    const periodTicks = [...new Set((state.periodRows || []).map(r => r?.time).filter(Boolean))].sort((a,b) => String(a).localeCompare(String(b)));
+    const lastPeriodMs = periodTicks.length ? rowHourMs({time:periodTicks.at(-1)}) : NaN;
+    const isForecastBranch = Number.isFinite(targetMs) && Number.isFinite(lastPeriodMs) && targetMs > lastPeriodMs;
+    const sourceRows = isForecastBranch
+      ? (state.fullRows || []).filter(r => r._futureForecast && String(r.time) <= String(targetTime))
+      : ((state.periodRows?.length ? state.periodRows : state.fullRows) || []).filter(r => String(r.time) <= String(targetTime) && !r._futureForecast);
+    return sourceRows
       .map(r => {
         const ageH = Number.isFinite(targetMs) && Number.isFinite(rowHourMs(r)) ? Math.max(0, (targetMs - rowHourMs(r)) / 3600000) : 0;
         // Быстрое затухание: выбранный час читается как основной, предыдущие часы остаются только фоном.
@@ -3567,10 +4125,25 @@
       });
   }
 
+  // Возвращает розу к обзору всего выбранного периода.
+  function applyTimeOverview(shouldRender=true){
+    const baseRows = state.periodRows?.length
+      ? state.periodRows
+      : (state.fullRows || []).filter(r => !r._futureForecast);
+    if (!baseRows.length) return;
+    state.timeFocusOverview = true;
+    state.timeFocusActive = false;
+    state.rows = baseRows.map(r => ({...r, timeFocusWeight:1}));
+    state.stats = analyze(state.rows);
+    if (shouldRender) renderAll();
+  }
+
+  // Применяет выбранный почасовой срез и перерисовывает весь интерфейс.
   function applyTimeFocus(index, shouldRender=true){
     if (!state.fullRows?.length) return;
     const ticks = buildTimeFocusTicks();
     if (!ticks.length) return;
+    state.timeFocusOverview = false;
     state.timeFocusActive = true;
     state.timeFocusIndex = Math.max(0, Math.min(ticks.length - 1, Number(index) || 0));
     state.rows = timeFocusRows(state.timeFocusIndex);
@@ -3578,13 +4151,16 @@
     if (shouldRender) renderAll();
   }
 
+  // Возвращает строку данных, соответствующую текущей позиции почасового слайдера.
   function currentFocusRow(){
+    if (state.timeFocusOverview) return null;
     if (!state.fullRows?.length || state.timeFocusIndex == null) return null;
     const ticks = buildTimeFocusTicks();
     if (!ticks.length) return null;
     return {time:ticks[Math.max(0, Math.min(ticks.length - 1, state.timeFocusIndex))]};
   }
 
+  // Подбирает иконку ярлыка по высоте солнца: ночь, восход, день, закат.
   function focusTimeIcon(time){
     const lat = Number(state.location?.latitude);
     const sun = estimateSolarElevation(time, lat);
@@ -3599,6 +4175,17 @@
     return '☀️';
   }
 
+  // Формирует подпись «прошлое/будущее/прогноз» для центрального бейджа слайдера.
+  function focusTimeBadgeContext(time, idx){
+    const focusMs = rowHourMs({time});
+    const nowMs = rowHourMs({time:currentLocalHour()});
+    const origin = timeDialOriginIndex();
+    if (Number.isFinite(focusMs) && Number.isFinite(nowMs) && focusMs > nowMs + 1800000) return 'Будущее · прогноз';
+    if (Number.isFinite(idx) && idx > origin) return 'Будущее · прогноз';
+    return 'Прошлое';
+  }
+
+  // Обновляет заполнение ярлыка слайдера: прошлое, текущий период или прогноз.
   function applyKnobFill(knob, time){
     const ticks = buildTimeFocusTicks();
     const times = ticks.map(t => rowHourMs({time:t})).filter(Number.isFinite);
@@ -3628,6 +4215,7 @@
     }
   }
 
+  // Находит верхнюю опорную позицию ярлыка — последний час исходного периода.
   function timeDialOriginIndex(){
     const ticks = buildTimeFocusTicks();
     if (!ticks.length) return 0;
@@ -3635,27 +4223,48 @@
     return Math.max(0, Math.min(ticks.length - 1, nearestTimeFocusIndex(originTime)));
   }
 
+  // Считает угловой шаг слайдера между соседними реальными часами.
+  function timeDialStepDegrees(){
+    const ticks = buildTimeFocusTicks();
+    const n = ticks.length;
+    if (n < 2) return 180;
+    const origin = timeDialOriginIndex();
+    const pastSteps = origin + 1;
+    const futureSteps = Math.max(0, n - 1 - origin);
+    return 180 / Math.max(pastSteps, futureSteps, 1);
+  }
+
+  // Переводит индекс часа в угол на круговом слайдере.
   function timeDialAngleForIndex(idx){
     const ticks = buildTimeFocusTicks();
     const n = ticks.length;
     if (n < 2) return 0;
     const origin = timeDialOriginIndex();
-    const maxOffset = Math.max(origin, n - 1 - origin, 1);
-    const step = 180 / maxOffset;
+    const step = timeDialStepDegrees();
+    if (idx <= origin) return -(origin - idx + 1) * step;
     return (idx - origin) * step;
   }
 
+  // Переводит угол указателя мыши/тача в индекс ближайшего часа.
   function timeDialIndexForAngle(deg){
     const ticks = buildTimeFocusTicks();
     const n = ticks.length;
-    if (n < 2) return 0;
+    if (n < 2) return null;
     const origin = timeDialOriginIndex();
-    const maxOffset = Math.max(origin, n - 1 - origin, 1);
-    const step = 180 / maxOffset;
+    const step = timeDialStepDegrees();
     const signedDeg = deg <= 180 ? deg : deg - 360;
-    return Math.max(0, Math.min(n - 1, origin + Math.round(signedDeg / step)));
+    if (Math.abs(signedDeg) < step / 2) return null;
+    if (signedDeg < 0) {
+      const offset = Math.max(1, Math.round(Math.abs(signedDeg) / step));
+      return Math.max(0, Math.min(n - 1, origin - offset + 1));
+    }
+    const futureSteps = Math.max(0, n - 1 - origin);
+    if (futureSteps <= 0) return null;
+    const offset = Math.max(1, Math.round(signedDeg / step));
+    return Math.max(0, Math.min(n - 1, origin + offset));
   }
 
+  // Отрисовывает положение ярлыка, центральную подсказку и текст почасового среза.
   function renderTimeDial(){
     const dial = $('timeDial');
     const knob = $('timeDialKnob');
@@ -3671,9 +4280,10 @@
     }
     dial.classList.remove('hidden');
     info.classList.remove('hidden');
-    const idx = Math.max(0, Math.min(n - 1, state.timeFocusIndex ?? n - 1));
+    const overview = state.timeFocusOverview || state.timeFocusIndex == null;
+    const idx = Math.max(0, Math.min(n - 1, state.timeFocusIndex ?? timeDialOriginIndex()));
     const row = {time:ticks[idx]};
-    const deg = timeDialAngleForIndex(idx);
+    const deg = overview ? 0 : timeDialAngleForIndex(idx);
     dial.style.setProperty('--dial-progress', `${deg}deg`);
     const rect = dial.getBoundingClientRect();
     const size = Math.min(rect.width || 620, rect.height || 620);
@@ -3685,16 +4295,30 @@
     const y = cy + Math.sin(rad) * radius;
     knob.style.left = `${x}px`;
     knob.style.top = `${y}px`;
+
+    if (overview) {
+      knob.className = 'timeDialKnob nowish';
+      knob.style.setProperty('--knob-fill-pct', '0%');
+      knob.innerHTML = '<span class="sunIcon">🕒</span>';
+      if (badge) badge.innerHTML = 'Весь период<span>перетащите ярлык по кругу</span>';
+      const periodStart = $('startTime')?.value ? formatFocusTime($('startTime').value) : '—';
+      const periodEnd = $('endTime')?.value ? formatFocusTime($('endTime').value) : '—';
+      info.innerHTML = `<b>Показан весь выбранный период:</b> ${escapeHtml(periodStart)} — ${escapeHtml(periodEnd)} · в расчёте ${state.rows?.length || 0} ч. Соседние часы быстро теряют влияние.`;
+      return;
+    }
+
     applyKnobFill(knob, row.time);
     const dateShort = formatFocusTime(row?.time);
     const visibleRows = state.rows?.length || 0;
     const futureCut = n - idx - 1;
     const icon = focusTimeIcon(row.time);
     knob.innerHTML = `<span class="sunIcon">${icon}</span><small>${escapeHtml(String(row?.time || '—').slice(11,16))}</small>`;
-    if (badge) badge.innerHTML = `Почасовой срез<span>${escapeHtml(dateShort)}</span>`;
+    const badgeContext = focusTimeBadgeContext(row.time, idx);
+    if (badge) badge.innerHTML = `Почасовой срез<span>${escapeHtml(badgeContext)} · ${escapeHtml(dateShort)}</span>`;
     info.innerHTML = `<b>Почасовой срез:</b> ${escapeHtml(dateShort)} · в расчёте ${visibleRows} ч; будущие часы скрыты: ${futureCut}. Соседние часы быстро теряют влияние.`;
   }
 
+  // Обрабатывает drag/pointer по кругу и выбирает ближайший почасовой индекс.
   function updateTimeDialFromPointer(e){
     const dial = $('timeDial');
     if (!dial || !state.fullRows?.length) return;
@@ -3704,11 +4328,15 @@
     const dx = e.clientX - cx;
     const dy = e.clientY - cy;
     const deg = (Math.atan2(dy, dx) * 180 / Math.PI + 90 + 360) % 360;
-    const n = buildTimeFocusTicks().length;
     const idx = timeDialIndexForAngle(deg);
-    if (idx !== state.timeFocusIndex) applyTimeFocus(idx, true);
+    if (idx == null) {
+      if (!state.timeFocusOverview) applyTimeOverview(true);
+      return;
+    }
+    if (state.timeFocusOverview || idx !== state.timeFocusIndex) applyTimeFocus(idx, true);
   }
 
+  // Подключает события drag, touch/pointer и колесо мыши для кругового слайдера.
   function setupTimeDial(){
     const dial = $('timeDial');
     if (!dial) return;
@@ -3735,12 +4363,31 @@
     dial.addEventListener('pointercancel', stop);
     dial.addEventListener('wheel', e => {
       if (!state.fullRows?.length) return;
+      const ticks = buildTimeFocusTicks();
+      const n = ticks.length;
+      const origin = timeDialOriginIndex();
       const delta = e.deltaY > 0 ? -1 : 1;
-      applyTimeFocus((state.timeFocusIndex ?? buildTimeFocusTicks().length - 1) + delta, true);
+      if (state.timeFocusOverview) {
+        if (delta > 0 && origin >= n - 1) {
+          e.preventDefault();
+          return;
+        }
+        const next = delta < 0 ? origin : Math.min(n - 1, origin + 1);
+        applyTimeFocus(next, true);
+        e.preventDefault();
+        return;
+      }
+      const current = state.timeFocusIndex ?? origin;
+      if ((current === origin && delta > 0) || (current === origin + 1 && delta < 0)) {
+        applyTimeOverview(true);
+      } else {
+        applyTimeFocus(current + delta, true);
+      }
       e.preventDefault();
     }, {passive:false});
   }
 
+  // Единая точка перерисовки после изменения данных, режима или почасового среза.
   function renderAll(){
     renderMetrics();
     drawRose($('roseCanvas'));
@@ -3753,6 +4400,7 @@
   }
 
 
+  // Подбирает компактное имя направления для карточек сводки.
   function metricDirDisplayName(deg, bins=16){
     const short = dirShortName(deg, bins);
     if (short === '—') return '—';
@@ -3760,6 +4408,7 @@
     return fullAllowed.has(short) ? dirName(deg, bins) : short;
   }
 
+  // Форматирует направление для мини-окна метрики.
   function formatMetricDir(deg, bins=16){
     if (deg == null) return {short:'—', full:'—', className:''};
     const full = formatDir(deg, bins);
@@ -3771,15 +4420,110 @@
     return {short, full, className};
   }
 
+  // Собирает HTML метрики направления с адаптацией длинных румбов.
   function metricDirectionHtml(label, dirObj, extraClass=''){
     const cls = dirObj.className || '';
     return `<div class="metric directionMetric ${extraClass}"><span class="metricLabel">${label}</span><b class="${cls}" title="${escapeHtml(dirObj.full)}">${escapeHtml(dirObj.short)}</b></div>`;
   }
 
+  // Выбирает CSS-класс цвета карточки по тону статуса.
+  function metricClassFromLabel(label){
+    const tone = label?.tone || '';
+    if (tone === 'blue') return 'statusBlue';
+    if (tone === 'green') return 'statusGreen';
+    if (tone === 'orange') return 'statusOrange';
+    if (tone === 'red') return 'statusRed';
+    return label?.cls === 'good' ? 'statusGreen' : label?.cls === 'bad' ? 'statusRed' : 'statusOrange';
+  }
+
+  // Описывает сохранение старого сектора после смены ветра для сводки.
+  function describeOldSectorMemory(d){
+    const h = d?.usefulHours;
+    if (!Number.isFinite(Number(h))) return 'Старые направления могут сохраняться локальными пятнами, но точный срок по данным не оценён.';
+    if (d.score < 16) return `Прежние направления быстро теряют практический смысл: при похожих условиях заметный вклад старого сектора обычно держится меньше ${h} ч.`;
+    if (d.score < 40) return `Заметный вклад прежнего направления обычно быстро падает — ориентир около ${h} ч; в тени, влажной подстилке и низинах возможны отдельные пятна дольше.`;
+    if (d.score < 70) return `Прежний сектор может оставаться полезным ограниченное время — примерно до ${h} ч при похожих условиях, но проверять его нужно с запасом по рельефу.`;
+    return `Прежний сектор может сохранять практический вклад примерно до ${h} ч при похожих условиях; в лесу, низинах и влажной подстилке локальные пятна могут жить дольше.`;
+  }
+
+  // Даёт прикладное пояснение осадков с различием ПСС/ПТП.
+  function precipitationInterpretation(s){
+    const c = s.scentDurability?.counts || {};
+    const total = Number(s.precipTotal || 0);
+    const hours = Number(s.precipHours || 0);
+    if (!hours || total <= 0) {
+      if (c.dryHours || c.drySunHours) return 'За выбранный период осадков не было. При сухом воздухе и солнце старая запаховая картина быстрее выветривается; сильнее ориентируйтесь на тень, влажную подстилку, низины и фактическую росу/сырость на месте.';
+      return 'За выбранный период осадков не было. Дождь или снег не перестраивали запаховую картину, поэтому важнее влажность воздуха, солнце, ветер и тип подложки.';
+    }
+    const base = `За выбранный период осадки длились ${hours} ч, суммарно ${round(total,1)} мм.`;
+    if (c.snowHours) {
+      const mode = s.scentDurability?.taskMode || scentTaskMode();
+      if (mode === 'ptp') {
+        if (c.heavySnowHours) return `${base} По температуре это похоже на снег или мокрый снег. Для ПТП это может консервировать материал, но одновременно перекрывать выход запаха; собака может брать запах у трещин, проталин, подветренных выходов или в стороне от фактического источника.`;
+        return `${base} Это похоже на слабый снег/снежное увлажнение. Для ПТП оно может частично консервировать источник, но доступность зависит от рыхлости снега, проталин и движения воздуха у поверхности.`;
+      }
+      if (c.heavySnowHours) return `${base} По температуре это похоже на снег или мокрый снег. Для ПСС снег не считается автоматическим укрытием живого человека, но снегопад может очищать воздух, перестраивать шлейф и ухудшать читаемость старых направлений.`;
+      return `${base} Это похоже на слабый снег/снежное увлажнение. Для ПСС такое увлажнение может частично поддерживать запах у поверхности, если нет сильного ветра и резкой турбулентности.`;
+    }
+    if (total < 0.5 && c.lightMoistureHours) return `${base} Это слабое увлажнение: оно может прибить пыль, поддержать запах у поверхности и немного помочь собаке, если нет сильного ветра и активной конвекции.`;
+    if (total < 3 && !c.veryHeavyRainHours) return `${base} Осадки заметные, но не ливневые: часть запаха могла лучше удержаться на влажной подложке, а часть — сместиться потёками и перестать совпадать со старым воздушным шлейфом.`;
+    return `${base} Это уже серьёзное увлажнение/дождь: воздушный шлейф мог обрываться, а материал на поверхности — смываться и перераспределяться. Старые секторы после такого читаются осторожно.`;
+  }
+
+  // Формирует микрометеориски только по фактическим условиям текущего периода.
+  function microMeteoRiskFromStats(s){
+    const c = s.scentDurability?.counts || {};
+    const n = Math.max(1, s.total || 1);
+    const reasons = [];
+    let points = 0;
+    const add = (pts, text) => { points += pts; reasons.push(text); };
+    const pct = (v) => round((Number(v || 0) / n) * 100, 0);
+    const mode = s.scentDurability?.taskMode || scentTaskMode();
+
+    if ((c.strongSolarHours || 0)/n >= 0.25 || (c.hotSunHours || 0)/n >= 0.15) {
+      add(2, `сильная солнечная нагрузка ${c.strongSolarHours || 0} ч (${pct(c.strongSolarHours)}%) может поднимать запах выше рабочего приземного слоя`);
+    }
+    if ((c.directSunHours || 0)/n >= 0.20) {
+      add(2, `прямое/почти прямое солнце ${c.directSunHours || 0} ч (${pct(c.directSunHours)}%) повышает риск выгорания и разрывов шлейфа`);
+    }
+    if ((c.calmHours || 0)/n >= 0.25 && ((c.nightHours || 0) || s.avgRh >= 85)) {
+      add(2, `штиль или почти штиль ${c.calmHours || 0} ч (${pct(c.calmHours)}%) при ночи/высокой влажности может давать локальные карманы запаха`);
+    }
+    if ((c.fogStagnationHours || 0) > 0) {
+      add(2, `сырой застой/туман отмечен ${c.fogStagnationHours} ч: запах может запираться локально и смещаться по микрорельефу`);
+    }
+    if ((c.gustyHours || 0)/n >= 0.20 || (c.highGustHours || 0)/n >= 0.10) {
+      add(2, `порывистость отмечена ${c.gustyHours || 0} ч, сильные порывы ≥9 м/с — ${c.highGustHours || 0} ч: шлейф может рваться на отдельные пятна`);
+    }
+    if ((c.strongWindHours || 0)/n >= 0.25) {
+      add(2, `сильный ветер >6 м/с держался ${c.strongWindHours || 0} ч (${pct(c.strongWindHours)}%): растёт турбулентность и рассеивание`);
+    }
+    if ((c.heavyRainHours || 0)/n >= 0.15 || (c.veryHeavyRainHours || 0) > 0) {
+      add(2, `заметные осадки/дождь отмечены ${c.heavyRainHours || 0} ч: воздушный и поверхностный запах могли перестроиться`);
+    }
+    if ((c.snowHours || 0) > 0) {
+      if (mode === 'ptp') add(1, `снег/осадки при морозе отмечены ${c.snowHours} ч: для ПТП возможна консервация материала и ограниченный выход запаха`);
+      else add(1, `снег/осадки при морозе отмечены ${c.snowHours} ч: для ПСС это влияет на читаемость шлейфа, но не считается укрытием живого источника`);
+    } else if ((c.freezeHours || 0)/n >= 0.30) {
+      add(1, `мороз ниже −5°C держался ${c.freezeHours || 0} ч (${pct(c.freezeHours)}%): снижается летучесть и меняется приземное распространение запаха`);
+    }
+    if ((c.lowSunHours || 0) > 0 && (c.nightHours || 0) > 0 && s.avg < 3 && ((c.calmHours || 0) > 0 || (c.fogStagnationHours || 0) > 0 || s.avgRh >= 85)) {
+      add(1, `Низкое солнце отмечено ${c.lowSunHours || 0} ч. При слабом ветре и высокой влажности запах может дольше держаться у земли, собираться в низинах и смещаться по рельефу.`);
+    }
+
+    let level = {text:'низкий', cls:'good'};
+    if (points >= 10) level = {text:'очень высокий', cls:'bad'};
+    else if (points >= 7) level = {text:'высокий', cls:'bad'};
+    else if (points >= 4) level = {text:'средний', cls:'warn'};
+    return {level, points, reasons};
+  }
+
+  // Рисует сводку, теги, общий вывод и статусы в продвинутом режиме.
   function renderMetrics(){
     const s = state.stats;
     if (!s) return;
     const stability = stabilityLabel(s.scentVec.r);
+    const stabilityScore = Math.round(clamp((Number(s.scentVec.r) || 0) * 100, 0, 100));
     const durability = s.scentDurability?.label || {text:'—', cls:''};
     const windMean = formatDir(s.windVec.mean, s.bins);
     const scentMean = formatDir(s.scentVec.mean, s.bins);
@@ -3791,37 +4535,51 @@
     const topWind = [...s.windSec.sectors].sort((a,b)=>b.count-a.count || b.weighted-a.weighted)[0];
     const topScentPct = topScent ? topScent.count / Math.max(0.01, s.scentSec.sectors.reduce((a,b)=>a+b.count,0)) * 100 : 0;
     const switchRate = s.total > 1 ? s.directionSwitches / (s.total-1) * 100 : 0;
+    const micro = microMeteoRiskFromStats(s);
+    const taskLabel = taskModeLabel(s.scentDurability?.taskMode || scentTaskMode());
 
     $('metrics').innerHTML = `
       ${metricDirectionHtml('Усреднённый вектор ветра', windMetric)}
       ${metricDirectionHtml('Усредненный вектор запаха', scentMetric, 'primary')}
-      <div class="metric ${durability.cls === 'good' ? 'goodish' : durability.cls === 'bad' ? 'badish' : 'warnish'}"><span class="metricLabel">Устойчивость запаха</span><b>${durability.text}</b></div>
-      <div class="metric ${stability.cls === 'good' ? 'goodish' : stability.cls === 'bad' ? 'badish' : 'warnish'}"><span class="metricLabel">Стабильность переноса</span><b>${stability.text}</b></div>
+      <div class="metric ${metricClassFromLabel(durability)}"><span class="metricLabel">Сохранность запаха</span><b>${durability.text}</b></div>
+      <div class="metric ${metricClassFromLabel(stability)}"><span class="metricLabel">Стабильность шлейфа</span><b>${stability.text}</b></div>
       <div class="metric"><span class="metricLabel">Скорость ветра</span><b>${round(s.avg,1)} м/с</b><span>медиана ${round(s.median,1)} м/с</span></div>
       <div class="metric"><span class="metricLabel">Осадки и влажность</span><b>${s.precipTotal ? round(s.precipTotal,1)+' мм' : 'без осадков'}</b><span>RH≈${s.avgRh == null ? '—' : round(s.avgRh,0)+'%'}</span></div>
     `;
 
+    const stabilityHelpStatus = $('stabilityHelpStatus');
+    const stabilityHelpScore = $('stabilityHelpScore');
+    if (stabilityHelpStatus) stabilityHelpStatus.textContent = `${stability.text}`;
+    if (stabilityHelpScore) stabilityHelpScore.textContent = `Текущий балл стабильности шлейфа: ${stabilityScore}/100.`;
+
     const lines = [];
     lines.push(`Основной расчётный перенос запаха: ${scentMean}. Ветер в среднем дул из сектора: ${windMean}.`);
-    if (topWind && topScent) lines.push(`Чаще всего ветер приходил из сектора ${topWind.name}; после учёта возраста следа и погоды основной сектор переноса запаха — ${topScent.name}.`);
-    lines.push(`Устойчивость запаха: ${durability.text} (оценка ${round(s.scentDurability.score,0)}/100). Ориентировочный полезный хвост после смены ветра: около ${s.scentDurability.usefulHours} ч, но в лесу/низинах возможны локальные сохранения.`);
-    lines.push(`Стабильность переноса: ${stability.text}; смен сектора за период — ${s.directionSwitches}.`);
+    if (topWind && topScent) lines.push(`Чаще всего ветер приходил из сектора ${topWind.name}; после учёта возраста, доступности запаха и погоды основной сектор переноса запаха — ${topScent.name}.`);
+    lines.push(`Сохранность запаха: ${durability.text} (${round(s.scentDurability.score,0)}/100). Тип задачи: ${taskLabel}.`);
+    lines.push(describeOldSectorMemory(s.scentDurability));
+    lines.push(`Стабильность шлейфа: ${stability.text}. Ветер менял сектор ${s.directionSwitches} раз${s.directionSwitches ? ', поэтому среднюю стрелку стоит читать вместе с почасовой динамикой' : ''}.`);
+    if (micro.reasons.length) lines.push(`Микрометео-риск: ${micro.level.text}. ${micro.reasons.slice(0,3).join('; ')}.`);
+    else lines.push('Микрометео-риск: низкий. По доступным погодным данным выраженных признаков конвекции, застоя, сильной турбулентности или осадочного сбоя нет.');
+
     if (s.avg >= 2 && s.scentVec.r >= 0.65 && topScentPct >= 35 && s.scentDurability.score >= 52) {
       lines.push('Картина пригодна для выбора основного сектора работы. Границы сектора держать с запасом по рельефу, растительности и возможным завихрениям.');
+    } else if (s.scentDurability.score < 16) {
+      lines.push('Условия близки к «нет смысла полагаться на розу как на рабочий шлейф»: нужен перенос работы на другое окно, повторный проход или очень плотное перекрытие зоны.');
     } else if (s.avg < 1 || calmPct >= 35) {
       lines.push(`Ветер слабый: штиль/почти штиль ${round(calmPct,0)}% периода. В низинах, лесу и ночью запах может лежать пятнами, а не ровным шлейфом.`);
     } else if (s.scentVec.r < 0.35 || switchRate >= 45) {
       lines.push('Направление заметно гуляло. Смотрите почасовую динамику и несколько верхних секторов, не одну среднюю стрелку.');
     } else if (weakPct >= 60) {
-      lines.push(`Слабый ветер до 2 м/с занимает ${round(weakPct,0)}% периода: в закрытой местности фактический перенос у земли может отличаться от модели 10 м.`);
+      lines.push(`Слабый ветер до 2 м/с занимает ${round(weakPct,0)}% периода: движение запаха у земли может отличаться от аналитических представлений, потому что погодные данные обычно отражают движение ветра на высоте около 10 м.`);
     }
     if (s.maxGust != null && s.avg > 0 && s.maxGust / s.avg >= 2.5) lines.push('Порывы выражены: возможны короткие выбросы запаха дальше основного сектора, особенно на открытых местах и просеках.');
-    if (s.precipHours >= 2 || s.precipTotal >= 1) lines.push(`Осадки отмечены ${s.precipHours} ч, сумма ${round(s.precipTotal,1)} мм: слабое увлажнение может поддерживать запах, но заметный дождь снижает читаемость старого следа и смывает часть материала.`);
+    lines.push(precipitationInterpretation(s));
     if (s.avgRh != null && s.avgRh >= 85 && s.avg < 2) lines.push(`Высокая влажность при слабом ветре (RH≈${round(s.avgRh,0)}%) усиливает зависимость от микрорельефа, ночного стока воздуха и закрытых участков.`);
     if (state.keepInitialAnalysis && state.initialAnalysisText) {
       setStatus($('analysisText'), state.initialAnalysisText, state.initialAnalysisKind || stability.cls);
     } else {
-      setStatus($('analysisText'), lines.join('\n'), stability.cls);
+      const statusKind = durability.cls === 'bad' ? 'bad' : (micro.level.cls === 'bad' ? 'warn' : stability.cls);
+      setStatus($('analysisText'), lines.join('\n'), statusKind);
     }
     renderSourceInfo();
 
@@ -3830,14 +4588,18 @@
     flags.push(`<span class="pill">штиль: ${round(calmPct,0)}%</span>`);
     flags.push(`<span class="pill">слабее 2 м/с: ${round(weakPct,0)}%</span>`);
     flags.push(`<span class="pill">смен сектора: ${s.directionSwitches}</span>`);
-    flags.push(`<span class="pill">R=${round(s.scentVec.r,2)}</span>`);
-    flags.push(`<span class="pill">запах: ${round(s.scentDurability.score,0)}/100</span>`);
+    flags.push(`<span class="pill">шлейф: ${stabilityScore}/100</span>`);
+    flags.push(`<span class="pill">микрометео: ${escapeHtml(micro.level.text)}</span>`);
+    flags.push(`<span class="pill">тип: ${escapeHtml(taskLabel)}</span>`);
+    flags.push(`<span class="pill">сохранность: ${round(s.scentDurability.score,0)}/100</span>`);
+    flags.push(`<span class="pill">доступность: ${round(s.scentDurability.accessibilityScore,0)}/100</span>`);
     flags.push(`<span class="pill">секторов: ${s.bins}</span>`);
     flags.push(`<span class="pill">порог: ${s.minSpeed} м/с</span>`);
     if (state.location?.timezone) flags.push(`<span class="pill">${escapeHtml(state.location.timezone)}</span>`);
     $('flags').innerHTML = flags.join('');
   }
 
+  // Заполняет модальное окно технической информацией об источнике и запросах.
   function renderSourceInfo(){
     const el = $('sourceInfo');
     if (!el) return;
@@ -3862,30 +4624,37 @@
     `;
   }
 
+  // Рисует развёрнутую расшифровку сохранности запаха и доступности.
   function renderScentDetails(){
     const el = $('scentDetails');
     const s = state.stats;
     if (!el || !s?.scentDurability) return;
     const d = s.scentDurability;
-    const c = d.counts || {};
+    const micro = microMeteoRiskFromStats(s);
     const parts = [];
-    parts.push(`<p><b>Оценка:</b> ${escapeHtml(d.label.text)} · ${round(d.score,0)}/100. Ориентировочная половина полезности старой запаховой картины: около ${round(d.halfLife,1)} ч; практический хвост после переноса/смены ветра: примерно ${d.usefulHours} ч при сходных условиях.</p>`);
+    parts.push(`<p><b>Итоговая оценка:</b> ${escapeHtml(d.label.text)} · ${round(d.score,0)}/100. Внутри неё уже учтены две вещи: <b>сохранение запахового материала</b> (${round(d.preservationScore,0)}/100) и <b>доступность запаха собаке</b> (${round(d.accessibilityScore,0)}/100).</p>`);
+    parts.push(`<p><b>Шкала:</b> 0–15 — очень низкая, 16–39 — низкая, 40–69 — средняя, 70–100 — хорошая.</p>`);
+    parts.push(`<p><b>Как читать время старых секторов:</b> ${escapeHtml(describeOldSectorMemory(d))}</p>`);
     if (d.details.length) parts.push(`<p><b>Факторы периода:</b> ${escapeHtml(d.details.join('; '))}.</p>`);
-    parts.push(`<p><b>Что учитывается:</b> программа по каждому часу оценивает влажность, температуру, осадки, силу ветра, порывы, примерную солнечную нагрузку, ночной режим и возраст точки относительно самых свежих данных. Это не лабораторная модель запаховых молекул, а рабочая эвристика для быстрого решения в поле.</p>`);
-    parts.push(`<p><b>Влажность:</b> диапазон примерно 55–90% считается поддерживающим: поверхность и растительность меньше пересыхают, запаховая картина обычно дольше читается. Очень сухой воздух снижает вес старых часов. Очень высокая влажность не всегда означает «лучше»: в низинах и густом лесу запах может лежать пятнами, а не давать ровный шлейф.</p>`);
-    parts.push(`<p><b>Солнце и температура:</b> дневная солнечная нагрузка, особенно при высокой температуре, ускоряет пересыхание поверхности и разрушение старой картины. Ночь, тень и прохладное утро обычно помогают сохранности, но могут дать сток воздуха по склонам и локальные карманы запаха.</p>`);
-    parts.push(`<p><b>Осадки:</b> слабое увлажнение иногда поддерживает запах, но заметный дождь и особенно длительный/сильный дождь уменьшают вклад старых часов: часть материала смывается, перераспределяется и перестаёт соответствовать прежней розе переноса.</p>`);
-    parts.push(`<p><b>Ветер:</b> умеренный ветер помогает формировать читаемый сектор переноса. Почти штиль делает картину локальной и пятнистой; сильный ветер и порывы рассеивают запах, дают короткие выбросы и снижают надёжность старого сектора.</p>`);
-    parts.push(`<p><b>Возраст запаховой картины:</b> на вкладке «Перенос запаха» свежие часы имеют больший вес. Старые часы не исчезают сразу, но постепенно ослабляются; чем хуже погода для сохранности, тем быстрее они становятся малополезными на графике.</p>`);
-    parts.push(`<p><b>После смены ветра:</b> свежий перенос важнее для выбора первого рабочего сектора. Старый сектор может сохраняться в тени, подстилке, низинах, у препятствий, в закрытом лесу, в колеях, у кромок растительности и на влажных участках. Открытая продуваемая местность обычно теряет читаемость быстрее.</p>`);
-    parts.push(`<p><b>Как применять:</b> высокая устойчивость — повод учитывать не только последнюю стрелку, но и предыдущие секторы. Низкая устойчивость — повод сильнее опираться на последние часы, фактический ветер у земли, рельеф и поведение собаки, а старый перенос читать осторожно.</p>`);
+    parts.push(`<p><b>Формула часового фактора:</b> Fчас = clamp(Fсохран × Fдоступ, 0.02, 1.55). Fсохран отвечает за то, насколько запаховый материал мог пережить погоду. Fдоступ отвечает за то, насколько этот запах мог выйти к собаке, а не остаться запертым снегом, морозом, застойным слоем, конвекцией или смывом.</p>`);
+    parts.push(`<p><b>Возраст:</b> T½ = clamp(1.4 + 12.5 × (score/100)^1.35, 0.8, 14). Вес старого часа в розе переноса считается через Wзапах = Fчас × exp(−возраст_ч / T½). Поэтому плохие условия не только снижают итоговую оценку, но и быстрее гасят старые направления.</p>`);
+    parts.push(`<p><b>Солнце и конвекция:</b> учитываются высота солнца, облачность, а где источник отдаёт данные — коротковолновая/прямая радиация или UV. Высокая солнечная нагрузка штрафует сохранность и доступность: запах быстрее окисляется, высушивается и может уходить выше уровня работы собаки.</p>`);
+    parts.push(`<p><b>Ветер:</b> слабый устойчивый ветер помогает доставить запах. Почти штиль делает картину пятнистой. После 4 м/с растёт рассеивание, после 6–8 м/с шлейф часто становится рваным, а порывы дополнительно снижают читаемость.</p>`);
+    parts.push(`<p><b>Осадки:</b> ${escapeHtml(precipitationInterpretation(s))}</p>`);
+    parts.push(`<p><b>Мороз и снег:</b> мороз может консервировать материал, но снижает летучесть. Снег может «запечатать» запах; при оттепели или проталинах запах выходит точками, поэтому обозначение может смещаться от фактического источника.</p>`);
+    if (micro.reasons.length) parts.push(`<p><b>Микрометео-риск:</b> ${escapeHtml(micro.level.text)}. ${escapeHtml(micro.reasons.join('; '))}.</p>`);
+    else parts.push(`<p><b>Микрометео-риск:</b> низкий. По доступным данным нет выраженных признаков сильной конвекции, инверсии, сырого застоя, порывистого ветра или осадочного сбоя.</p>`);
+    parts.push(`<p><b>Стабильность шлейфа:</b> Rнапр = √((Σw·sinα)² + (Σw·cosα)²) / Σw показывает согласованность направлений. Rэфф = Rнапр × Pветра дополнительно снижает уверенность при сильном и порывистом ветре. В сводке показывается только статус, а числа оставлены как техническая внутрянка.</p>`);
+    parts.push(`<p><b>Ограничение:</b> погодные данные обычно описывают ветер на высоте около 10 м. Движение запаха у земли в лесу, овраге, у воды, на просеке, в застройке, в высокой траве или под снегом может отличаться от этой аналитической картины.</p>`);
     el.innerHTML = parts.join('');
   }
 
+  // Проверяет, включена ли исходная тёмная тема.
   function isOriginalTheme(){
     return document.body.classList.contains('original-theme');
   }
 
+  // Возвращает палитру скоростей ветра с учётом текущей темы.
   function currentSpeedClasses(){
     const colors = isOriginalTheme()
       ? ['#7b879c','#7dd3fc','#8ddf9a','#ffd166','#ff8a8a']
@@ -3893,6 +4662,7 @@
     return SPEED_CLASSES.map((c,i)=>({...c,color:colors[i] || c.color}));
   }
 
+  // Возвращает палитру переноса запаха с учётом текущей темы.
   function currentScentClasses(){
     const colors = isOriginalTheme()
       ? ['#706b9f','#c4b5fd','#a78bfa','#f0abfc','#f472b6']
@@ -3900,6 +4670,7 @@
     return SCENT_CLASSES.map((c,i)=>({...c,color:colors[i] || c.color}));
   }
 
+  // Возвращает набор цветов canvas для светлой/тёмной темы.
   function roseColors(){
     if (isOriginalTheme()) {
       return {
@@ -3921,6 +4692,7 @@
     };
   }
 
+  // Переключает тему и перерисовывает canvas/легенду.
   function applyTheme(theme){
     const original = theme === 'original';
     document.body.classList.toggle('original-theme', original);
@@ -3940,6 +4712,7 @@
     }
   }
 
+  // Строит легенду розы под canvas.
   function renderLegend(el){
     const speedClasses = currentSpeedClasses();
     const wind = speedClasses.map(c=>`<span><i class="swatch" style="background:${c.color}"></i>${c.name} м/с · ${c.label}</span>`).join('');
@@ -3954,6 +4727,7 @@
     el.innerHTML = wind + scent + arrows;
   }
 
+  // Рисует сетку, подписи сторон света и базовую геометрию розы.
   function drawBaseRose(ctx, cssSize, R, bins){
     const cx = cssSize/2, cy = cssSize/2;
     const colors = roseColors();
@@ -3978,6 +4752,7 @@
     }
   }
 
+  // Рисует один слой розы: ветер или перенос запаха.
   function drawRoseLayer(ctx, sec, classes, opts){
     const {R, bins, alpha=0.88, radiusScale=1, stroke='rgba(5,10,20,.55)'} = opts;
     const cx = opts.cssSize/2, cy = opts.cssSize/2;
@@ -4012,6 +4787,7 @@
     return maxSector;
   }
 
+  // Рисует наконечник стрелки среднего направления.
   function drawArrowHead(ctx, x, y, rad, size){
     const a1 = rad + Math.PI*0.82, a2 = rad - Math.PI*0.82;
     ctx.beginPath();
@@ -4022,6 +4798,7 @@
     ctx.fill();
   }
 
+  // Рисует подпись стрелки среднего направления на canvas.
   function drawArrowLabel(ctx, text, x1, y1, x2, y2, color){
     if (!text) return;
     const mx = (x1 + x2) / 2;
@@ -4048,6 +4825,7 @@
     ctx.restore();
   }
 
+  // Рисует средний вектор ветра или запаха.
   function drawMeanArrow(ctx, deg, rValue, kind, opts){
     if (deg == null || rValue <= 0.05) return;
     const {cssSize, R, label=''} = opts;
@@ -4082,6 +4860,7 @@
     ctx.shadowBlur = 0;
   }
 
+  // Главная функция отрисовки canvas-розы с выбранным режимом отображения.
   function drawRose(canvas){
     const s = state.stats;
     if (!s) return;
@@ -4118,11 +4897,13 @@
     ctx.fillText(`макс. сектор: ${state.roseMode === 'scent' ? round(maxSector,1) + ' усл.ч' : round(maxSector,1) + ' ч'}`, cssSize/2, cssSize/2+12);
   }
 
+  // Переключает таблицу между секторами и почасовой динамикой.
   function renderDataPanel(){
     if (state.dataMode === 'hourly') renderHourlyTable();
     else renderSectorSummary();
   }
 
+  // Рисует таблицу главных секторов и их вклада.
   function renderSectorSummary(){
     const s = state.stats;
     const sectors = [...s.windSec.sectors]
@@ -4140,8 +4921,10 @@
     $('dataPanel').innerHTML = `<table><thead><tr><th>#</th><th>Ветер: откуда</th><th>Часы</th><th>Доля</th><th>Ср. скорость</th><th>Макс. порыв</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
   }
 
+  // Рисует почасовую таблицу с подсказками по каждому столбцу.
   function renderHourlyTable(){
     const bins = state.stats?.bins || 16;
+    const th = (text, hint) => `<th title="${escapeHtml(hint)}">${text}</th>`;
     const rows = state.rows.map(r => {
       const scent = normDeg(r.dir + 180);
       return `<tr>
@@ -4153,11 +4936,28 @@
         <td>${r.temp == null ? '—' : round(r.temp,1)}</td>
         <td>${r.rh == null ? '—' : round(r.rh,0)}</td>
         <td>${r.precip == null ? '—' : round(r.precip,1)}</td>
+        <td>${r.solarExposure == null ? '—' : round(r.solarExposure,2)}</td>
+        <td>${rowCloudCover(r) == null ? '—' : round(rowCloudCover(r),0)}</td>
+        <td>${rowShortwaveRadiation(r) == null ? '—' : round(rowShortwaveRadiation(r),0)}</td>
       </tr>`;
     });
-    $('dataPanel').innerHTML = `<table><thead><tr><th>Время</th><th>м/с</th><th>Откуда</th><th>Куда запах</th><th>Порыв</th><th>°C</th><th>RH%</th><th>Осадки</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+    const headers = [
+      th('Время','Локальный час выбранной точки.'),
+      th('м/с','Средняя скорость ветра за час.'),
+      th('Откуда','Направление, откуда дул ветер.'),
+      th('Куда запах','Куда могло относить запах: ветер + 180°.'),
+      th('Порыв','Максимальный порыв ветра за час.'),
+      th('°C','Температура воздуха у поверхности.'),
+      th('RH%','Относительная влажность воздуха.'),
+      th('Осадки','Сумма осадков за час, мм.'),
+      th('Солнце E','Индекс солнечной нагрузки 0–1.'),
+      th('Обл.%','Облачность: доля неба в облаках.'),
+      th('Вт/м²','Солнечная радиация у поверхности.')
+    ].join('');
+    $('dataPanel').innerHTML = `<table><thead><tr>${headers}</tr></thead><tbody>${rows.join('')}</tbody></table>`;
   }
 
+  // Собирает текстовый отчёт для копирования в штаб/чат.
   function buildReport(){
     const l = state.location || {};
     const s = state.stats;
@@ -4166,6 +4966,7 @@
     const scentMean = s.scentVec.mean == null ? '—' : `${dirName(s.scentVec.mean,s.bins)} ${round(s.scentVec.mean,0)}°`;
     const stabilityInfo = stabilityLabel(s.scentVec.r);
     const durability = s.scentDurability?.label?.text || '—';
+    const micro = microMeteoRiskFromStats(s);
 
     const totalWindHours = Math.max(0.01, s.windSec.sectors.reduce((a,b)=>a+b.count,0));
     const totalScentHours = Math.max(0.01, s.scentSec.sectors.reduce((a,b)=>a+b.count,0));
@@ -4180,7 +4981,10 @@
     const distance = meta.distance || '—';
     const tried = (state.lastTriedSources || []).map(x => `${sourceHumanName(x.id)}: ${x.status === 'ok' ? 'успех' : 'ошибка'}${x.message ? ' (' + x.message + ')' : ''}`).join('; ') || '—';
     const scentFactors = s.scentDurability?.details?.length ? s.scentDurability.details.join('; ') : 'без выраженных дополнительных факторов';
+    const solarCounts = s.scentDurability?.counts || {};
+    const solarSummary = `Солнечная нагрузка: ${solarCounts.solarHours || 0} ч; сильная: ${solarCounts.strongSolarHours || 0} ч; прямое/почти прямое солнце: ${solarCounts.directSunHours || 0} ч; средний индекс E=${round(s.scentDurability?.avgSolarExposure,2)}.`;
     const analysis = $('analysisText')?.textContent?.trim() || '';
+    const microText = micro.reasons.length ? `${micro.level.text}: ${micro.reasons.join('; ')}` : `${micro.level.text}: выраженных микрометео-рисков по данным не видно`;
 
     state.reportText = [
       'ПСР — краткий отчёт по ветру и переносу запаха',
@@ -4189,54 +4993,63 @@
       `Место/точка: ${l.name || 'точка'}`,
       `Координаты: ${round(l.latitude,5)}, ${round(l.longitude,5)}`,
       `Период анализа: ${$('startTime').value} — ${$('endTime').value}${l.timezone ? ' ('+l.timezone+')' : ''}${currentFocusRow() ? '; почасовой срез: ' + formatFocusTime(currentFocusRow().time) : ''}`,
+      `Тип задачи: ${taskModeLabel(s.scentDurability?.taskMode || scentTaskMode())}`,
       `Источник данных: ${source}`,
       `Метеостанция/расчётная точка: ${station}; расстояние: ${distance}`,
       '',
       '2. Основной вывод для кинолога',
       `Усреднённое направление ветра: ${windMean} — откуда дуло.`,
       `Усреднённое направление переноса запаха: ${scentMean} — куда относило запах.`,
-      `Стабильность переноса: ${stabilityInfo.text}, R=${round(s.scentVec.r,2)}. Чем ниже R, тем осторожнее надо читать единственную среднюю стрелку.`,
-      `Устойчивость запаха: ${durability}, ${round(s.scentDurability?.score,0)}/100. Ориентировочный полезный хвост после смены ветра: около ${s.scentDurability?.usefulHours || '—'} ч при сходных условиях.`,
+      `Стабильность шлейфа: ${stabilityInfo.text}. Ветер менял сектор ${s.directionSwitches} раз.`,
+      `Сохранность запаха: ${durability}, ${round(s.scentDurability?.score,0)}/100. Сохранение материала: ${round(s.scentDurability?.preservationScore,0)}/100; ${s.scentDurability?.taskMode === 'ptp' ? 'выход/доступность запаха' : 'доступность и читаемость воздушного шлейфа'}: ${round(s.scentDurability?.accessibilityScore,0)}/100.`,
+      `Память старых секторов: ${describeOldSectorMemory(s.scentDurability)}`,
+      `Микрометео-риск: ${microText}.`,
       '',
       '3. Погодные условия',
       `Скорость ветра: средняя ${round(s.avg,1)} м/с, медиана ${round(s.median,1)} м/с, максимум ${round(s.max,1)} м/с${s.maxGust == null ? '' : ', порыв до '+round(s.maxGust,1)+' м/с'}.`,
       `Осадки: ${s.precipTotal ? round(s.precipTotal,1)+' мм' : 'без осадков'}; часов с осадками: ${s.precipHours}.`,
       `Влажность: RH≈${s.avgRh == null ? '—' : round(s.avgRh,0)+'%'}; температура: ${s.avgTemp == null ? '—' : round(s.avgTemp,1)+'°C'}.`,
+      solarSummary,
       `Штиль/почти штиль: ${round(s.calmCount/s.total*100,0)}%; ветер слабее 2 м/с: ${round(s.weakCount/s.total*100,0)}%; смен сектора: ${s.directionSwitches}.`,
+      precipitationInterpretation(s),
       '',
       '4. Секторы',
       `Главные секторы ветра — откуда дуло: ${topWind}.`,
-      `Главные секторы переноса запаха с учётом возраста и погоды: ${topScent}.`,
+      `Главные секторы переноса запаха с учётом возраста, типа задачи и погоды: ${topScent}.`,
       '',
       '5. Практическая интерпретация',
       analysis || 'Нет дополнительного текстового вывода.',
       '',
-      '6. Оценка устойчивости запаха',
+      '6. Как оценена сохранность запаха',
       `Факторы периода: ${scentFactors}.`,
-      'Свежие часы в розе переноса имеют больший вес. Старые часы ослабляются по возрасту, а также сильнее ослабляются при жаре, солнце, заметном дожде, сухом воздухе, сильном ветре и порывах. Влажность, тень, ночь/утро и умеренный ветер повышают практическую ценность более старых секторов.',
-      'После смены ветра старый сектор не обнуляется мгновенно: он может сохраняться пятнами в тени, подстилке, низинах, у препятствий, в закрытом лесу, на влажных участках и кромках растительности. На открытой продуваемой местности старый перенос обычно становится малополезным быстрее.',
+      `Итоговая оценка зависит от типа задачи. Сохранение: ${round(s.scentDurability?.preservationScore,0)}/100; ${s.scentDurability?.taskMode === 'ptp' ? 'выход/доступность' : 'доступность и читаемость шлейфа'}: ${round(s.scentDurability?.accessibilityScore,0)}/100.`,
+      'Формула часа: Fчас = clamp(Fсохран × Fдоступ, 0.02, 1.55). В ПСС Fдоступ означает читаемость воздушного шлейфа от живого человека на поверхности; снег не считается автоматическим укрытием источника. В ПТП Fдоступ дополнительно снижается, если холодный объект мог быть перекрыт снегом или морозом.',
+      'Старые часы в розе переноса имеют меньший вес: Wзапах = Fчас × exp(−возраст_ч / T½). Поэтому после плохой погоды старые направления быстро теряют практический смысл, а после влажной прохладной тени могут дольше оставаться локальными пятнами.',
+      'Ограничение: это полевая эвристика. Прямой солнечный свет на открытой дороге, тень в лесу, влажная подстилка, низина, колея, снег или закрытый объём могут дать разные результаты при одинаковой погодной строке.',
       '',
       '7. Техническая справка',
       `Проанализировано почасовых точек: ${s.total}; секторов розы: ${s.bins}; порог отсечения слабого ветра: ${s.minSpeed} м/с.`,
       `Тип данных: ${meta.dataType || '—'}.`,
       `Проверка источников: ${tried}.`,
-      'Ограничение: это штабная подсказка. Ветер на 10 м и модельные/сеточные данные не равны фактическому ветру у земли в лесу, овраге, у воды, на просеке или в застройке. Рабочее решение сверяется с рельефом, фактическим ветром и поведением собаки.'
+      'Ограничение: это штабная подсказка. Погодные данные обычно отражают ветер на высоте около 10 м, а движение запаха у земли может отличаться в лесу, овраге, у воды, на просеке, в застройке, высокой траве или под снегом. Рабочее решение сверяется с рельефом, фактическим ветром и поведением собаки.'
     ].join('\n');
     return state.reportText;
   }
 
+  // Экспортирует текущие почасовые данные в CSV.
   function exportCsv(){
     if (!state.rows.length) return setStatus($('loadStatus'), 'Нет данных для CSV.', 'warn');
-    const lines = [['time','wind_speed_ms','wind_from_deg','wind_from_sector','scent_to_deg','scent_to_sector','gust_ms','temperature_c','relative_humidity_pct','precipitation_mm']];
+    const lines = [['time','wind_speed_ms','wind_from_deg','wind_from_sector','scent_to_deg','scent_to_sector','gust_ms','temperature_c','relative_humidity_pct','precipitation_mm','solar_exposure_0_1','cloud_cover_pct','shortwave_wm2','direct_radiation_wm2','uv_index','scent_factor','scent_preservation_factor','scent_accessibility_factor','scent_half_life_h','scent_weight']];
     const bins = state.stats?.bins || 16;
     for (const r of state.rows) {
       const scent = normDeg(r.dir + 180);
-      lines.push([r.time, r.speed, r.dir, dirName(r.dir,bins), scent, dirName(scent,bins), r.gust ?? '', r.temp ?? '', r.rh ?? '', r.precip ?? '']);
+      lines.push([r.time, r.speed, r.dir, dirName(r.dir,bins), scent, dirName(scent,bins), r.gust ?? '', r.temp ?? '', r.rh ?? '', r.precip ?? '', r.solarExposure ?? '', rowCloudCover(r) ?? '', rowShortwaveRadiation(r) ?? '', rowDirectRadiation(r) ?? '', rowUvIndex(r) ?? '', r.scentFactor ?? '', r.scentPreservationFactor ?? '', r.scentAccessibilityFactor ?? '', r.scentHalfLife ?? '', r.scentWeight ?? '']);
     }
     const csv = lines.map(row => row.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(';')).join('\n');
     downloadBlob(csv, `psr_windrose_${datePart($('startTime').value)}_${datePart($('endTime').value)}.csv`, 'text/csv;charset=utf-8');
   }
 
+  // Копирует текстовый отчёт в буфер или предлагает скачать txt как fallback.
   async function copyReport(){
     if (!state.stats) return setStatus($('loadStatus'), 'Нет отчёта для копирования.', 'warn');
     buildReport();
@@ -4250,6 +5063,7 @@
     }
   }
 
+  // Готовит подпись для PNG-экспорта розы.
   function pngCaptionLines(){
     const l = state.location || {};
     const s = state.stats;
@@ -4262,11 +5076,12 @@
     return [
       `Точка: ${l.name || 'точка'} · координаты ${round(l.latitude,5)}, ${round(l.longitude,5)}`,
       `Период: ${$('startTime').value} — ${$('endTime').value}${l.timezone ? ' · ' + l.timezone : ''}${focusLine}`,
-      `Ветер: ${windMean} · перенос запаха: ${scentMean} · устойчивость запаха: ${s.scentDurability?.label?.text || '—'} (${round(s.scentDurability?.score,0)}/100)`,
+      `Ветер: ${windMean} · перенос запаха: ${scentMean} · сохранность запаха: ${s.scentDurability?.label?.text || '—'} (${round(s.scentDurability?.score,0)}/100)`,
       `Источник: ${source}`
     ];
   }
 
+  // Экспортирует canvas с подписью в PNG.
   function exportCanvas(canvas, name){
     if (!state.stats) return setStatus($('loadStatus'), 'Сначала постройте розу.', 'warn');
     const dpr = window.devicePixelRatio || 1;
@@ -4298,6 +5113,7 @@
     out.toBlob(blob => downloadBlob(blob, name, 'image/png'));
   }
 
+  // Универсально скачивает Blob как файл.
   function downloadBlob(data, filename, type){
     const blob = data instanceof Blob ? data : new Blob([data], {type});
     const url = URL.createObjectURL(blob);
@@ -4306,6 +5122,7 @@
     setTimeout(()=>URL.revokeObjectURL(url), 1000);
   }
 
+  // Делает карточки сворачиваемыми и закрывает defaultCollapsed по умолчанию.
   function setupCollapsibleCards(){
     document.querySelectorAll('.card').forEach((card, idx) => {
       const h2 = card.querySelector(':scope > h2');
@@ -4329,6 +5146,10 @@
         node = next;
       }
       card.appendChild(body);
+      if (card.classList.contains('defaultCollapsed')) {
+        card.classList.add('collapsed');
+        btn.textContent = '+';
+      }
       btn.addEventListener('click', () => {
         card.classList.toggle('collapsed');
         btn.textContent = card.classList.contains('collapsed') ? '+' : '−';
@@ -4336,12 +5157,47 @@
     });
   }
 
+
+  // Переключает ПСС/ПТП, сохраняет выбор и пересчитывает анализ.
+  function setTaskMode(mode){
+    state.taskMode = mode === 'ptp' ? 'ptp' : 'pss';
+    localStorage.setItem('psr_task_mode', state.taskMode);
+    setSwitchActive('taskModeSwitch', 'data-task-mode', state.taskMode);
+    if (state.rows.length) {
+      const wasOverview = state.timeFocusOverview;
+      const focusIndex = state.timeFocusIndex;
+      state.keepInitialAnalysis = false;
+      if (wasOverview) applyTimeOverview(false);
+      else if (focusIndex != null) {
+        state.timeFocusOverview = false;
+        state.timeFocusActive = true;
+        state.rows = timeFocusRows(focusIndex);
+        state.stats = analyze(state.rows);
+      } else {
+        state.stats = analyze(state.rows);
+      }
+      renderAll();
+      state.initialAnalysisText = $('analysisText')?.textContent || '';
+      state.initialAnalysisKind = (($('analysisText')?.className || '').match(/\b(good|warn|bad)\b/) || [,''])[1];
+      state.keepInitialAnalysis = true;
+    }
+  }
+
+  // Восстанавливает режим ПСС/ПТП из localStorage.
+  function loadTaskMode(){
+    const saved = localStorage.getItem('psr_task_mode');
+    state.taskMode = saved === 'ptp' ? 'ptp' : 'pss';
+    setSwitchActive('taskModeSwitch', 'data-task-mode', state.taskMode);
+  }
+
+  // Обновляет active-класс у сегментированных переключателей.
   function setSwitchActive(containerId, attr, value){
     document.querySelectorAll(`#${containerId} button`).forEach(btn => {
       btn.classList.toggle('active', btn.getAttribute(attr) === value);
     });
   }
 
+  // Переключает простой/продвинутый режим интерфейса.
   function setUiMode(mode){
     state.uiMode = mode === 'advanced' ? 'advanced' : 'simple';
     document.body.classList.toggle('simple-mode', state.uiMode === 'simple');
@@ -4361,6 +5217,7 @@
   }
 
 
+  // Загружает сохранённые API-ключи в поля настроек.
   function loadSourceKeys(){
     for (const field of KEY_FIELDS) {
       const val = localStorage.getItem(KEY_STORAGE[field] || field);
@@ -4370,6 +5227,7 @@
   }
 
   let sourceKeyAutosaveTimer = null;
+  // Автоматически сохраняет ключ при вводе и обновляет список источников.
   function autosaveSourceKey(field){
     const el = $(field);
     if (!el) return;
@@ -4378,6 +5236,7 @@
     sourceKeyAutosaveTimer = setTimeout(() => refreshSourceOptions(), 180);
   }
 
+  // Сохраняет все API-ключи и закрывает окно настроек.
   function saveSourceKeys(){
     for (const field of KEY_FIELDS) {
       const el = $(field);
@@ -4389,6 +5248,7 @@
     closeSourceSettings();
   }
 
+  // Удаляет все сохранённые API-ключи из localStorage.
   function clearSourceKeys(){
     for (const field of KEY_FIELDS) {
       const el = $(field);
@@ -4399,44 +5259,54 @@
     setStatus($('loadStatus'), 'Ключи источников очищены.', 'warn');
   }
 
+  // Открывает окно API-ключей и фокусирует основной ключ.
   function openSourceSettings(){
     $('sourceSettingsModal')?.classList.remove('hidden');
     setTimeout(() => $('weatherApiKey')?.focus(), 30);
   }
 
+  // Закрывает окно API-ключей.
   function closeSourceSettings(){
     $('sourceSettingsModal')?.classList.add('hidden');
   }
 
+  // Открывает техническую информацию об источнике.
   function openTechnicalInfo(){
     renderSourceInfo();
     $('technicalInfoModal')?.classList.remove('hidden');
   }
 
+  // Закрывает техническую информацию.
   function closeTechnicalInfo(){
     $('technicalInfoModal')?.classList.add('hidden');
   }
 
+  // Открывает общую справку.
   function openHelpInfo(){
     $('helpInfoModal')?.classList.remove('hidden');
   }
 
+  // Закрывает общую справку.
   function closeHelpInfo(){
     $('helpInfoModal')?.classList.add('hidden');
   }
 
+  // Открывает справку по координатам и ссылкам карт.
   function openCoordHelp(){
     $('coordHelpModal')?.classList.remove('hidden');
   }
 
+  // Закрывает справку по координатам.
   function closeCoordHelp(){
     $('coordHelpModal')?.classList.add('hidden');
   }
 
+  // Возвращает id поля API-ключа для выбранного источника.
   function sourceKeyField(id){
     return SOURCE_INFO[id]?.keyField || null;
   }
 
+  // Подключает обработчики модальных окон и автосохранение API-ключей.
   function setupSourceSettings(){
     loadSourceKeys();
     $('sourceSettingsBtn')?.addEventListener('click', openSourceSettings);
@@ -4475,11 +5345,19 @@
     }
   }
 
+
+  /*
+    Инициализация интерфейса: подписки на кнопки, переключатели, модальные окна,
+    восстановление сохранённых настроек и первая отрисовка пустой розы.
+  */
   let searchTimer = null;
+  // Режимы интерфейса и тема: эти настройки не влияют на расчёт, только на отображение.
   $('simpleModeBtn')?.addEventListener('click', () => setUiMode('simple'));
   $('advancedModeBtn')?.addEventListener('click', () => setUiMode('advanced'));
   $('themeToggleBtn')?.addEventListener('click', () => applyTheme(isOriginalTheme() ? 'grid' : 'original'));
   $('headerHelpBtn')?.addEventListener('click', openHelpInfo);
+
+  // Ввод места: поиск города запускается с небольшой задержкой, чтобы не слать запрос на каждый символ.
   $('placeInput').addEventListener('input', () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(searchPlace, 450);
@@ -4487,11 +5365,11 @@
   $('searchPlaceBtn').addEventListener('click', searchPlace);
   $('parseCoordBtn').addEventListener('click', applyCoordinates);
   $('geoBtn').addEventListener('click', getBrowserGeolocation);
-  $('savePointBtn')?.addEventListener('click', savePoint);
-  $('loadPointBtn')?.addEventListener('click', loadPoint);
   $('presetSelect').addEventListener('change', applyPreset);
   $('binCount').addEventListener('change', () => { if (state.fullRows.length) applyTimeFocus(state.timeFocusIndex ?? buildTimeFocusTicks().length - 1, true); else if (state.rows.length) { state.stats = analyze(state.rows); renderAll(); }});
   $('minSpeed').addEventListener('change', () => { if (state.fullRows.length) applyTimeFocus(state.timeFocusIndex ?? buildTimeFocusTicks().length - 1, true); else if (state.rows.length) { state.stats = analyze(state.rows); renderAll(); }});
+
+  // Смена источника сразу показывает, подходит ли он к периоду и нужен ли API-ключ.
   $('sourceSelect')?.addEventListener('change', () => {
     const src = $('sourceSelect').value;
     const timeout = getSourceTimeoutMs()/1000;
@@ -4517,6 +5395,8 @@
     localStorage.setItem('psr_source_timeout_sec', $('sourceTimeout').value || '5');
     setStatus($('loadStatus'), `Таймаут источников: ${getSourceTimeoutMs()/1000} сек на каждый источник.`, '');
   });
+
+  // Основные действия пользователя: загрузка погоды, экспорт, переключение режимов графика и таблицы.
   $('loadWeatherBtn').addEventListener('click', () => loadWeather().catch(e => setStatus($('loadStatus'), 'Ошибка: ' + e.message, 'bad')));
   $('exportCsvBtn').addEventListener('click', exportCsv);
   $('copyReportBtn').addEventListener('click', copyReport);
@@ -4527,6 +5407,9 @@
     setSwitchActive('roseModeSwitch', 'data-rose-mode', state.roseMode);
     if (state.stats) { drawRose($('roseCanvas')); renderLegend($('legendRose')); }
   }));
+  document.querySelectorAll('#taskModeSwitch button').forEach(btn => btn.addEventListener('click', () => {
+    setTaskMode(btn.dataset.taskMode || 'pss');
+  }));
   document.querySelectorAll('#dataModeSwitch button').forEach(btn => btn.addEventListener('click', () => {
     state.dataMode = btn.dataset.dataMode || 'sectors';
     setSwitchActive('dataModeSwitch', 'data-data-mode', state.dataMode);
@@ -4534,11 +5417,14 @@
   }));
   window.addEventListener('resize', () => { if (state.stats) { drawRose($('roseCanvas')); renderTimeDial(); } });
 
+
+  // Старт приложения: восстановление настроек, первичная отрисовка и фоновые проверки сети.
   const savedTimeout = localStorage.getItem('psr_source_timeout_sec');
   if (savedTimeout && $('sourceTimeout') && [...$('sourceTimeout').options].some(o => o.value === savedTimeout)) $('sourceTimeout').value = savedTimeout;
   setupSourceSettings();
   setupTimeDial();
   setupCollapsibleCards();
+  loadTaskMode();
   setUiMode('simple');
   initMap();
   applyPreset();
@@ -4549,6 +5435,7 @@
   checkInternetAccess();
   checkPrimarySourceAvailability();
 
+  // Рисует пустое состояние canvas до загрузки погодных данных.
   function drawEmpty(canvas, title){
     $('timeDial')?.classList.add('hidden');
     $('timeDialInfo')?.classList.add('hidden');
